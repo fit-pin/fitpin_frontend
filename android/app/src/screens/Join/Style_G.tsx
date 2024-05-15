@@ -42,18 +42,18 @@ export default function Style_G() {
         <Text style={styles.styleSelectionText}>스타일 선택</Text>
         <Text style={styles.fitText}>핏</Text>
         <View style={styles.rectangleRow}>
-          <View style={styles.rectangleContainer}>
+          <TouchableOpacity style={styles.rectangleContainer}>
             <Text style={styles.styleText}>#오버핏</Text>
-          </View>
-          <View style={styles.rectangleContainer}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.rectangleContainer}>
             <Text style={styles.styleText}>#정핏</Text>
-          </View>
-          <View style={styles.rectangleContainer}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.rectangleContainer}>
             <Text style={styles.styleText}>#슬림핏</Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <View style={styles.line} />
-        <Text style={styles.fitText}>스타일</Text>
+        <Text style={styles.fitText2}>스타일</Text>
         <View style={styles.rectangleRow2}>
           {styleTexts.map(item => (
             <View key={item} style={styles.rectangleContainer2}>
@@ -72,16 +72,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     backgroundColor: '#fff',
-    padding: 8,
   },
   pageButtonContainer: {
+    position: 'relative',
+    top: '20%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginTop: 60,
-    marginHorizontal: 24,
+    marginHorizontal: '8.5%',
   },
   pageButton: {
-    marginHorizontal: 5,
+    marginHorizontal: '2%',
   },
   circle: {
     width: 10,
@@ -99,35 +99,47 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   analysisText: {
-    marginHorizontal: 30,
+    position: 'relative',
+    marginHorizontal: '10%',
     fontSize: 18,
     color: '#878787',
     textAlign: 'left',
-    marginTop: 30,
-    marginBottom: -25,
+    top: '10%',
+    bottom: '-2%',
   },
   styleSelectionText: {
-    marginHorizontal: 30,
+    position: 'relative',
+    marginHorizontal: '10%',
+    top: '13%',
     fontSize: 25,
     color: '#000',
     fontWeight: 'bold',
     textAlign: 'left',
-    marginTop: 55,
   },
   fitText: {
+    position: 'relative',
+    marginHorizontal: '10%',
+    top: '16%',
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'left',
-    marginHorizontal: 30,
-    marginTop: 30,
+  },
+  fitText2: {
+    position: 'relative',
+    marginHorizontal: '10%',
+    top: '21%',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'left',
   },
   rectangleRow: {
+    position: 'relative',
+    marginHorizontal: '10%',
+    top: '45%',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
-    marginHorizontal: 80,
-    marginLeft: 30,
   },
   rectangleContainer: {
     width: 88,
@@ -138,28 +150,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 25,
+    marginRight: '8%',
   },
   styleText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#000',
     textAlign: 'center',
   },
   rectangleRow2: {
+    position: 'relative',
+    marginHorizontal: '10%',
+    top: '58%',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginTop: 20,
   },
   rectangleContainer2: {
-    width: 160,
-    height: 230,
+    position: 'relative',
+    width: '45%',
+    height: 200,
     backgroundColor: '#DFDFDF',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
     overflow: 'hidden',
-    marginHorizontal: 10,
-    marginBottom: 20,
+    marginBottom: '5%',
+    padding: '2%',
+    margin: '2%',
   },
   rectangleTextContainer: {
     flex: 1,
@@ -173,9 +190,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   line: {
+    position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    marginTop: 20,
+    top: '19%',
     width: '100%',
   },
 });
