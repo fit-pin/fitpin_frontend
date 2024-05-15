@@ -1,0 +1,10 @@
+
+@font-face {
+    font-family: 'Spoqa Han Sans Neo';
+    src: url('//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css') format('woff2');
+  }
+  
+  .font {
+    font-family: 'Spoqa Han Sans Neo', sans-serif; /* 폰트 적용 */
+  }
+  
