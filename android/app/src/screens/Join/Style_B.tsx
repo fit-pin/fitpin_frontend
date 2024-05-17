@@ -1,4 +1,3 @@
-import {StackNavigationProp} from '@react-navigation/stack';
 import React from 'react';
 import {
   Text,
@@ -8,21 +7,16 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import {RootStackParamList} from '../../../../../App';
-import {useNavigation} from '@react-navigation/native';
 
 const congratsImages = [
-  require('../../assets/img/join/style_g/1.png'),
-  require('../../assets/img/join/style_g/2.png'),
-  require('../../assets/img/join/style_g/3.png'),
-  require('../../assets/img/join/style_g/4.png'),
+  require('../../assets/img/join/style_b/1.jpg'),
+  require('../../assets/img/join/style_b/2.jpg'),
+  require('../../assets/img/join/style_b/3.jpg'),
+  require('../../assets/img/join/style_b/4.jpg'),
 ];
 
-type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
-
 export default function Style_G() {
-  const navigation = useNavigation<StyleGNavigationProp>();
-  const styleTexts = ['스트릿', '레트로', '미니멀', '빈티지'];
+  const styleTexts = ['스트릿', '에슬레져', '미니멀', '테일러'];
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -65,9 +59,7 @@ export default function Style_G() {
             </View>
           ))}
         </View>
-        <TouchableOpacity
-          style={styles.longButton}
-          onPress={() => navigation.navigate('Congrats')}>
+        <TouchableOpacity style={styles.longButton}>
           <Text style={styles.longButtonText}>2개 이상 선택하기</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -223,5 +215,8 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
     borderRadius: 10,
+  },
+  text: {
+    fontFamily: 'GmarketSansTTFMedium',
   },
 });

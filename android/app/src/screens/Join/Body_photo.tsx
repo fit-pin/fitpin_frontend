@@ -1,13 +1,23 @@
 import React from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {
-  Text,
-  SafeAreaView,
-  StyleSheet,
   TouchableOpacity,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   View,
 } from 'react-native';
+import {RootStackParamList} from '../../../../../App.tsx';
+
+type BodyPhotoNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Body_photo'
+>;
 
 export default function Body_photo() {
+  const navigation = useNavigation<BodyPhotoNavigationProp>();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.pageButtonContainer}>
@@ -34,7 +44,9 @@ export default function Body_photo() {
           </View>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.longButton}>
+      <TouchableOpacity
+        style={styles.longButton}
+        onPress={() => navigation.navigate('Style_G')}>
         <Text style={styles.longButtonText}>계속하기</Text>
       </TouchableOpacity>
     </SafeAreaView>
