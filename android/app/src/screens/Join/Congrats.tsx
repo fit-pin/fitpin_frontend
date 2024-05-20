@@ -7,19 +7,31 @@ import {
   View,
   Image,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../../../../App.tsx';
+
+type CongratsNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
 export default function Congrats() {
+  const navigation = useNavigation<CongratsNavigationProp>();
+
   // 이미지
   const congratsImage = require('../../assets/img/congrats.png');
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.pageButtonContainer}>
-        {[1, 2, 3, 4].map(pageNumber => (
+        {[1, 2, 3, 4].map((pageNumber, index) => (
           <TouchableOpacity
             key={pageNumber}
             style={[styles.pageButton, styles.activeButton]}>
-            <View style={[styles.circle, styles.activeCircle]} />
+            <View
+              style={[
+                styles.circle,
+                index === 3 ? styles.blackCircle : styles.activeCircle,
+              ]}
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -30,7 +42,9 @@ export default function Congrats() {
       <Text style={styles.additionalText}>모든 단계가 끝났습니다!</Text>
       <Text style={styles.additionalText}>이제 버튼을 눌러</Text>
       <Text style={styles.additionalText}>당신의 핏을 찾아보세요</Text>
-      <TouchableOpacity style={styles.longButton}>
+      <TouchableOpacity
+        style={styles.longButton}
+        onPress={() => navigation.navigate('Main')}>
         <Text style={styles.longButtonText}>시작하기</Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -45,7 +59,7 @@ const styles = StyleSheet.create({
   },
   pageButtonContainer: {
     position: 'relative',
-    top: '30%',
+    top: '17%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     marginHorizontal: '8.5%',
@@ -62,12 +76,15 @@ const styles = StyleSheet.create({
   activeCircle: {
     backgroundColor: '#D9D9D9',
   },
+  blackCircle: {
+    backgroundColor: '#000',
+  },
   activeButton: {
     backgroundColor: 'transparent',
   },
   firstLine: {
     position: 'relative',
-    top: '23%',
+    top: '17%',
     marginHorizontal: '10%',
     fontSize: 25,
     color: '#000',
@@ -76,7 +93,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    top: '28%',
+    top: '23%',
     marginHorizontal: '10%',
   },
   image: {
@@ -85,7 +102,7 @@ const styles = StyleSheet.create({
   },
   additionalText: {
     position: 'relative',
-    top: '30%',
+    top: '26%',
     marginTop: '2%',
     marginHorizontal: '10%',
     fontSize: 18,
@@ -94,15 +111,15 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   longButton: {
-    position: 'relative',
     marginHorizontal: '8%',
-    top: '35%',
     backgroundColor: '#000',
     width: '85%',
-    height: '7%',
+    height: '9%',
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: '50%',
+    bottom: '4.5%',
   },
   longButtonText: {
     fontSize: 18,

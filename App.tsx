@@ -4,11 +4,13 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Body_photo from './android/app/src/screens/Join/Body_photo';
 import Style_G from './android/app/src/screens/Join/Style_G';
 import Congrats from './android/app/src/screens/Join/Congrats';
+import Main from './android/app/src/screens/Main/Main';
 
 export type RootStackParamList = {
   Body_photo: undefined;
   Style_G: undefined;
   Congrats: undefined;
+  Main: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -31,6 +33,11 @@ const App = () => {
           name="Congrats"
           component={Congrats}
           options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Main"
+          component={Main}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     </NavigationContainer>

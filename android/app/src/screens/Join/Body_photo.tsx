@@ -21,11 +21,19 @@ export default function Body_photo() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.pageButtonContainer}>
-        {[1, 2, 3, 4].map(pageNumber => (
+        {[1, 2, 3, 4].map((pageNumber, index) => (
           <TouchableOpacity
             key={pageNumber}
-            style={[styles.pageButton, styles.activeButton]}>
-            <View style={[styles.circle, styles.activeCircle]} />
+            style={[
+              styles.pageButton,
+              index === 1 ? styles.blackButton : styles.activeButton,
+            ]}>
+            <View
+              style={[
+                styles.circle,
+                index === 1 ? styles.blackCircle : styles.activeCircle,
+              ]}
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -61,7 +69,7 @@ const styles = StyleSheet.create({
   },
   pageButtonContainer: {
     position: 'relative',
-    top: '30%',
+    top: '17%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     marginHorizontal: '8.5%',
@@ -73,17 +81,22 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#000',
   },
   activeCircle: {
     backgroundColor: '#D9D9D9',
   },
+  blackCircle: {
+    backgroundColor: '#000',
+  },
   activeButton: {
+    backgroundColor: 'transparent',
+  },
+  blackButton: {
     backgroundColor: 'transparent',
   },
   firstLine: {
     position: 'relative',
-    top: '23%',
+    top: '16%',
     marginHorizontal: '10%',
     fontSize: 18,
     color: '#000',
@@ -92,7 +105,7 @@ const styles = StyleSheet.create({
   },
   secondLine: {
     position: 'relative',
-    top: '23%',
+    top: '16.5%',
     marginHorizontal: '10%',
     fontSize: 18,
     color: '#878787',
@@ -100,7 +113,7 @@ const styles = StyleSheet.create({
   },
   thirdLine: {
     position: 'relative',
-    top: '27%',
+    top: '21%',
     marginHorizontal: '10%',
     fontSize: 25,
     color: '#000',
@@ -111,17 +124,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     position: 'relative',
-    top: '47%',
+    top: '35%',
     marginHorizontal: '10%',
   },
   rectangleContainer: {
     width: '50%',
     height: '58%',
-    marginHorizontal: '2%',
-    backgroundColor: '#DFDFDF',
+    marginHorizontal: '1.5%',
+    backgroundColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 10,
     overflow: 'hidden',
   },
   plusButton: {
@@ -136,15 +149,15 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   longButton: {
-    position: 'relative',
     marginHorizontal: '8%',
-    bottom: '-7%',
     backgroundColor: '#000',
     width: '85%',
-    height: '7%',
+    height: '9%',
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: '12%',
+    bottom: '4.5%',
   },
   longButtonText: {
     fontSize: 18,
