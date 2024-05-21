@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,9 +25,9 @@ const App = () => {
                 secureTextEntry={true}
             />
 
-            <Pressable style={styles.button}>
+            <TouchableOpacity style={styles.button}>
                 <Text style={styles.buttonText}>로그인</Text>
-            </Pressable>
+            </TouchableOpacity>
         </View>
     );
 };

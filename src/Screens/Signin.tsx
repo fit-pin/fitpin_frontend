@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,9 +24,9 @@ const App = () => {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <Pressable style={styles.verifyButton}>
+        <TouchableOpacity style={styles.verifyButton}>
           <Text style={styles.verifyButtonText}>인증하기</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.label}>비밀번호</Text>
@@ -43,14 +43,14 @@ const App = () => {
         secureTextEntry={true}
       />
 
-      <Pressable style={styles.button}>
+      <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>가입하기</Text>
-      </Pressable>
+      </TouchableOpacity>
 
       <View style={styles.transparentButtonContainer}>
-        <Pressable>
+        <TouchableOpacity>
           <Text style={styles.transparentButtonText}>로그인하러 가기</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

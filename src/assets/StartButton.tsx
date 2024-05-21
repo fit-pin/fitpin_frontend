@@ -15,7 +15,7 @@ const StartButton = () => {
                 color: '#ffffff',
                 fontSize: 24,
                 textAlign: 'center',
-                 }}>시작하기</Text>
+            }}>시작하기</Text>
         </TouchableOpacity>
     );
 };

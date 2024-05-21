@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Pressable, TextInput, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,7 +36,7 @@ const App = () => {
 
       <View style={styles.buttonRow}>
         <View style={styles.buttonContainer}>
-          <Pressable
+          <TouchableOpacity
             style={[
               styles.circleButton,
               isFemaleSelected && styles.circleButtonSelected
@@ -44,11 +44,11 @@ const App = () => {
             onPress={handleFemalePress}
           >
             <Image source={require('../image/woman.png')} style={styles.icon} />
-          </Pressable>
+          </TouchableOpacity>
           <Text style={styles.genderLabel}>여성</Text>
         </View>
         <View style={styles.buttonContainer}>
-          <Pressable
+          <TouchableOpacity
             style={[
               styles.circleButton,
               isMaleSelected && styles.circleButtonSelected
@@ -56,7 +56,7 @@ const App = () => {
             onPress={handleMalePress}
           >
             <Image source={require('../image/man.png')} style={styles.icon} />
-          </Pressable>
+          </TouchableOpacity>
           <Text style={styles.genderLabel}>남성</Text>
         </View>
       </View>
@@ -73,9 +73,9 @@ const App = () => {
         keyboardType="numeric"
       />
 
-      <Pressable style={styles.button}>
+      <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>계속하기</Text>
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -8,29 +8,29 @@ const App = () => {
         <View style={styles.container}>
             <Text style={styles.title}>Fitpin.</Text>
 
-            <Pressable style={[styles.button, styles.buttonOutlined]}>
+            <TouchableOpacity style={[styles.button, styles.buttonOutlined]}>
                 <Text style={styles.buttonText}>계정 생성하기</Text>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable style={[styles.button, styles.buttonFilled]}>
+            <TouchableOpacity style={[styles.button, styles.buttonFilled]}>
                 <Text style={styles.buttonText2}>로그인</Text>
-            </Pressable>
+            </TouchableOpacity>
 
             <Text style={styles.or}>or</Text>
 
-            <Pressable style={[styles.button, styles.buttonKakao]}>
+            <TouchableOpacity style={[styles.button, styles.buttonKakao]}>
                 <View style={styles.buttonContent}>
                     <Image source={require('../image/kakaotalk.png')} style={styles.buttonIcon} />
                     <Text style={styles.buttonText}>카카오톡으로 계속하기</Text>
                 </View>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable style={[styles.button, styles.buttonOutlined]}>
+            <TouchableOpacity style={[styles.button, styles.buttonOutlined]}>
                 <View style={styles.buttonContent}>
                     <Image source={require('../image/google.png')} style={styles.buttonIcon} />
                     <Text style={styles.buttonText}>구글로 계속하기</Text>
                 </View>
-            </Pressable>
+            </TouchableOpacity>
         </View>
     );
 };
