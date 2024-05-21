@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Image, Text, StyleSheet, Dimensions,  } from 'react-native';
 import StartButton from '../assets/StartButton';
 
 const { width, height } = Dimensions.get('window');
