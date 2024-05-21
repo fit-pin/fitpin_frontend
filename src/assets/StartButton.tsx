@@ -1,9 +1,9 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { TouchableOpacity, Text } from 'react-native';
 
 const StartButton = () => {
     return (
-        <Pressable style = {{
+        <TouchableOpacity style = {{
             backgroundColor: '#000000',
             padding: 16,
             margin: 20,
@@ -16,7 +16,7 @@ const StartButton = () => {
                 fontSize: 24,
                 textAlign: 'center',
                  }}>시작하기</Text>
-        </Pressable>
+        </TouchableOpacity>
     );
 };
 
