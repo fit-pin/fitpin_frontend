@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, Pressable, TextInput, Image, Dimensions, TouchableOpacity } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,7 +36,7 @@ const App = () => {
 
       <View style={styles.buttonRow}>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
+          <Pressable
             style={[
               styles.circleButton,
               isFemaleSelected && styles.circleButtonSelected
@@ -44,11 +44,11 @@ const App = () => {
             onPress={handleFemalePress}
           >
             <Image source={require('../image/woman.png')} style={styles.icon} />
-          </TouchableOpacity>
+          </Pressable>
           <Text style={styles.genderLabel}>여성</Text>
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
+          <Pressable
             style={[
               styles.circleButton,
               isMaleSelected && styles.circleButtonSelected
@@ -56,7 +56,7 @@ const App = () => {
             onPress={handleMalePress}
           >
             <Image source={require('../image/man.png')} style={styles.icon} />
-          </TouchableOpacity>
+          </Pressable>
           <Text style={styles.genderLabel}>남성</Text>
         </View>
       </View>
