@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 
 const sections: string[] = ['상의', '하의', '아우터', '원피스'];
 const boxes: {text: string; image: any}[] = [
@@ -21,17 +22,15 @@ const ProductCard: React.FC<{
   title: string;
   description: string;
   price: string;
-}> = ({title, description, price}) => {
+  image: any;
+}> = ({title, description, price, image}) => {
   return (
     <View style={styles.productCardContainer}>
       <View style={styles.topRectangle}>
         <Text style={styles.brandText}>Musinsa</Text>
       </View>
       <View style={styles.middleRectangle}>
-        <Image
-          source={require('../../assets/img/main/polo.png')}
-          style={styles.productImage}
-        />
+        <Image source={image} style={styles.productImage} />
       </View>
       <View style={styles.bottomRectangle}>
         <View style={styles.productTextContainer}>
@@ -46,44 +45,75 @@ const ProductCard: React.FC<{
   );
 };
 
-export default class Main extends Component {
+export default class MainScreen extends Component {
   state = {
-    selectedSection: '',
-    showProductGrid: false,
+    selectedSection: '상의',
+    showProductGrid: true,
     products: [
       {
         title: '폴로 랄프 로렌',
         description: '데님 셔츠 - 블루',
         price: '219.000₩',
+        image: require('../../assets/img/main/top/top1.png'),
       },
       {
-        title: '폴로 랄프 로렌2',
-        description: '데님 셔츠 - 블루2',
-        price: '319.000₩',
+        title: '에스이오',
+        description: '럭비 저지 탑',
+        price: '168.000₩',
+        image: require('../../assets/img/main/top/top2.png'),
       },
       {
         title: '폴로 랄프 로렌3',
         description: '데님 셔츠 - 블루3',
         price: '419.000₩',
+        image: require('../../assets/img/main/top/top2.png'),
       },
       {
         title: '폴로 랄프 로렌4',
         description: '데님 셔츠 - 블루4',
         price: '519.000₩',
+        image: require('../../assets/img/main/top/top2.png'),
+      },
+    ],
+    bottomProducts: [
+      {
+        title: '위캔더스',
+        description: '데님 팬츠',
+        price: '198,000₩',
+        image: require('../../assets/img/main/bottom/bottom1.png'),
+      },
+      {
+        title: '제품2',
+        description: '하의 제품 설명',
+        price: '129.000₩',
+        image: require('../../assets/img/main/bottom/bottom1.png'),
+      },
+      {
+        title: '제품3',
+        description: '하의 제품 설명',
+        price: '149.000₩',
+        image: require('../../assets/img/main/bottom/bottom1.png'),
       },
     ],
   };
 
   renderProductGrid = () => {
     if (this.state.showProductGrid) {
+      let productsToShow: any[] = [];
+      if (this.state.selectedSection === '상의') {
+        productsToShow = this.state.products;
+      } else if (this.state.selectedSection === '하의') {
+        productsToShow = this.state.bottomProducts;
+      }
       return (
         <View style={styles.productGrid}>
-          {this.state.products.map((product, index) => (
+          {productsToShow.map((product, index) => (
             <ProductCard
               key={index}
               title={product.title}
               description={product.description}
               price={product.price}
+              image={product.image}
             />
           ))}
         </View>
@@ -155,6 +185,7 @@ export default class Main extends Component {
           </View>
           {this.renderProductGrid()}
         </ScrollView>
+        <BottomTabNavigator />
       </SafeAreaView>
     );
   }
@@ -170,7 +201,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: '3%',
+    paddingVertical: '4%',
   },
   headerText: {
     fontSize: 24,
