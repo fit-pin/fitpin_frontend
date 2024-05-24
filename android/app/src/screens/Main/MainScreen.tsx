@@ -1,21 +1,43 @@
-import React, {Component} from 'react';
+import React, {Component, useEffect, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   Text,
   View,
   Image,
-  TouchableOpacity,
   ScrollView,
+  Animated,
+  TouchableOpacity,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+
+type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
 const sections: string[] = ['상의', '하의', '아우터', '원피스'];
-const boxes: {text: string; image: any}[] = [
-  {text: '스트릿 \nStreet', image: require('../../assets/img/main/street.png')},
-  {text: '캐주얼 \nCasual', image: require('../../assets/img/main/street.png')},
-  {text: '스트릿 \nStreet', image: require('../../assets/img/main/street.png')},
-  {text: '스트릿 \nStreet', image: require('../../assets/img/main/street.png')},
+const boxes: {text: string; image: any; recommended: boolean}[] = [
+  {
+    text: '스트릿 \nStreet',
+    image: require('../../assets/img/main/street.png'),
+    recommended: true,
+  },
+  {
+    text: '캐주얼 \nCasual',
+    image: require('../../assets/img/main/street.png'),
+    recommended: false,
+  },
+  {
+    text: '스트릿 \nStreet',
+    image: require('../../assets/img/main/street.png'),
+    recommended: false,
+  },
+  {
+    text: '스트릿 \nStreet',
+    image: require('../../assets/img/main/street.png'),
+    recommended: false,
+  },
 ];
 
 const ProductCard: React.FC<{
@@ -24,14 +46,17 @@ const ProductCard: React.FC<{
   price: string;
   image: any;
 }> = ({title, description, price, image}) => {
+  const navigation = useNavigation<MainScreenNavigationProp>();
   return (
     <View style={styles.productCardContainer}>
       <View style={styles.topRectangle}>
         <Text style={styles.brandText}>Musinsa</Text>
       </View>
-      <View style={styles.middleRectangle}>
-        <Image source={image} style={styles.productImage} />
-      </View>
+      <TouchableOpacity onPress={() => navigation.navigate('ProductPage')}>
+        <View style={styles.middleRectangle}>
+          <Image source={image} style={styles.productImage} />
+        </View>
+      </TouchableOpacity>
       <View style={styles.bottomRectangle}>
         <View style={styles.productTextContainer}>
           <View style={styles.leftText}>
@@ -42,6 +67,34 @@ const ProductCard: React.FC<{
         </View>
       </View>
     </View>
+  );
+};
+
+const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const blink = () => {
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start(() => blink());
+    };
+    blink();
+  }, [opacity]);
+
+  return (
+    <Animated.Text style={[styles.recommendText, {opacity}]}>
+      {children}
+    </Animated.Text>
   );
 };
 
@@ -149,6 +202,7 @@ export default class MainScreen extends Component {
           <View style={styles.sections}>
             {boxes.map((box, index) => (
               <View key={index} style={styles.roundedBox}>
+                {box.recommended && <BlinkingText>추천</BlinkingText>}
                 <View style={styles.boxContent}>
                   <Text style={styles.boxText}>{box.text}</Text>
                   <Image source={box.image} style={styles.boxImage} />
@@ -253,22 +307,34 @@ const styles = StyleSheet.create({
     padding: '7.5%',
     marginBottom: '3%',
     alignItems: 'center',
+    position: 'relative',
   },
   boxContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: '1%',
   },
   boxText: {
     fontSize: 16,
     color: '#000',
     flex: 1,
     fontWeight: 'bold',
+    left: '17%',
   },
   boxImage: {
     width: '60%',
     height: '232%',
     resizeMode: 'contain',
     left: '20%',
+  },
+  recommendText: {
+    fontSize: 12,
+    color: '#1A16FF',
+    fontWeight: 'bold',
+    position: 'absolute',
+    top: '16%',
+    left: '8%',
+    zIndex: 1,
   },
   productGrid: {
     flexDirection: 'row',
