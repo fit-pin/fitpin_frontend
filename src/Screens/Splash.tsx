@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-const App = () => {
+const Splash = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Fitpin</Text>
@@ -26,4 +26,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Splash;

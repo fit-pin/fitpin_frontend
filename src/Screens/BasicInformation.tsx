@@ -7,7 +7,7 @@ const Circle = () => (
   <View style={styles.circle} />
 );
 
-const App = () => {
+const BasicInformation = () => {
   const [isFemaleSelected, setIsFemaleSelected] = useState(false);
   const [isMaleSelected, setIsMaleSelected] = useState(false);
 
@@ -184,4 +184,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default BasicInformation;

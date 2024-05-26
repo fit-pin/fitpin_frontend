@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimens
 
 const { width, height } = Dimensions.get('window');
 
-const App = () => {
+const Signin = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Fitpin.</Text>
@@ -153,4 +153,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Signin;

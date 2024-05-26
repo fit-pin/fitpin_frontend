@@ -4,7 +4,7 @@ import StartButton from '../assets/StartButton';
 
 const { width, height } = Dimensions.get('window');
 
-const App = () => {
+const Start = () => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default App;
+export default Start;
