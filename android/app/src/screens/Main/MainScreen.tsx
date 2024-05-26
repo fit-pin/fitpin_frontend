@@ -25,17 +25,17 @@ const boxes: {text: string; image: any; recommended: boolean}[] = [
   },
   {
     text: '캐주얼 \nCasual',
-    image: require('../../assets/img/main/street.png'),
+    image: require('../../assets/img/main/casual.png'),
     recommended: false,
   },
   {
-    text: '스트릿 \nStreet',
-    image: require('../../assets/img/main/street.png'),
+    text: '미니멀 \nMinimal',
+    image: require('../../assets/img/main/minimal.png'),
     recommended: false,
   },
   {
-    text: '스트릿 \nStreet',
-    image: require('../../assets/img/main/street.png'),
+    text: '빈티지 \nVintage',
+    image: require('../../assets/img/main/vintage.png'),
     recommended: false,
   },
 ];
@@ -315,17 +315,17 @@ const styles = StyleSheet.create({
     marginTop: '1%',
   },
   boxText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#000',
     flex: 1,
     fontWeight: 'bold',
-    left: '17%',
+    left: '5%',
   },
   boxImage: {
-    width: '60%',
-    height: '232%',
+    width: '55%',
+    height: '245%',
     resizeMode: 'contain',
-    left: '20%',
+    left: '25%',
   },
   recommendText: {
     fontSize: 12,

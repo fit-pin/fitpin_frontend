@@ -1,0 +1,285 @@
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+
+const WritePage: React.FC = () => {
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedFit, setSelectedFit] = useState<string | null>(null);
+
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
+  };
+
+  const handleFitSelect = (fit: string) => {
+    setSelectedFit(fit);
+  };
+
+  const fitOptions = ['약간 작다', '딱 맞는다', '약간 크다'];
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>핏 코멘트 작성하기</Text>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require('../../assets/img/write/camera.png')}
+          style={styles.cameraIcon}
+        />
+        <Image
+          source={require('../../assets/img/write/add.png')}
+          style={styles.plusIcon}
+        />
+      </View>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>브랜드명</Text>
+        <TextInput
+          placeholder="브랜드 이름을 적어주세요📝"
+          placeholderTextColor="#999"
+          style={styles.input}
+        />
+      </View>
+      <View style={styles.line} />
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>제품명</Text>
+        <TextInput
+          placeholder="제품명을 적어주세요📝"
+          placeholderTextColor="#999"
+          style={styles.input}
+        />
+      </View>
+      <View style={styles.line} />
+      <View style={styles.sizeContainer}>
+        <Text style={styles.sizeTitle}>Select Size</Text>
+        <View style={styles.sizeButtons}>
+          {['S', 'M', 'L', 'XL', 'XXL', 'Free'].map(size => (
+            <TouchableOpacity
+              key={size}
+              style={[
+                styles.sizeButton,
+                selectedSize === size && styles.selectedSizeButton,
+              ]}
+              onPress={() => handleSizeSelect(size)}>
+              <Text
+                style={[
+                  styles.sizeButtonText,
+                  selectedSize === size && styles.selectedSizeButtonText,
+                ]}>
+                {size}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={styles.line} />
+      <Text style={styles.selectOptionText}>선택 옵션</Text>
+      <View style={styles.fitOptions}>
+        {fitOptions.map((fit, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.fitButton,
+              selectedFit === fit && styles.selectedFitButton,
+            ]}
+            onPress={() => handleFitSelect(fit)}>
+            <View style={styles.fitTextContainer}>
+              <Text
+                style={[
+                  styles.fitTextBold,
+                  selectedFit === fit && styles.selectedFitButtonText,
+                ]}>
+                사이즈
+              </Text>
+              <Text
+                style={[
+                  styles.fitButtonText,
+                  selectedFit === fit && styles.selectedFitButtonText,
+                ]}>
+                {fit}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={styles.line} />
+      <Text style={styles.reviewText}>한줄평</Text>
+      <TextInput
+        placeholder="한줄평을 적어주세요"
+        placeholderTextColor="#999"
+        style={styles.reviewInput}
+      />
+      <TouchableOpacity style={styles.submitButton}>
+        <Text style={styles.submitButtonText}>후기 올리기</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: '6%',
+    backgroundColor: '#fff',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: '4%',
+    color: '#000',
+  },
+  imageContainer: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    marginBottom: 16,
+  },
+  cameraIcon: {
+    width: 50,
+    height: 50,
+  },
+  plusIcon: {
+    width: 30,
+    height: 30,
+    position: 'absolute',
+    right: '3%',
+    bottom: '5%',
+  },
+  inputContainer: {
+    marginBottom: '3%',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: '1%',
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 8,
+    fontSize: 16,
+    color: '#000',
+    marginTop: '2%',
+  },
+  line: {
+    height: 1,
+    backgroundColor: '#E9E9E9',
+    marginVertical: '2%',
+    marginBottom: '3%',
+  },
+  sizeContainer: {
+    marginBottom: '2%',
+  },
+  sizeTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#000',
+  },
+  sizeButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  sizeButton: {
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    flexBasis: '30%',
+    alignItems: 'center',
+  },
+  selectedSizeButton: {
+    backgroundColor: '#000',
+  },
+  sizeButtonText: {
+    fontSize: 15,
+    textAlign: 'center',
+    color: '#000',
+  },
+  selectedSizeButtonText: {
+    color: '#fff',
+  },
+  selectOptionText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#000',
+  },
+  fitOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  fitButton: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    flexBasis: '30%',
+    alignItems: 'center',
+  },
+  selectedFitButton: {
+    backgroundColor: '#000',
+  },
+  fitTextContainer: {
+    alignItems: 'center',
+  },
+  fitTextBold: {
+    fontWeight: 'bold',
+    color: '#000',
+    fontSize: 15,
+    right: '19%',
+  },
+  fitButtonText: {
+    fontSize: 14,
+    color: '#000',
+    textAlign: 'center',
+    right: '10%',
+  },
+  selectedFitButtonText: {
+    color: '#fff',
+  },
+  reviewText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#000',
+  },
+  reviewInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 8,
+    height: 100,
+    fontSize: 16,
+    color: '#000',
+    marginBottom: 16,
+  },
+  submitButton: {
+    backgroundColor: '#000',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: '4%',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+});
+
+export default WritePage;

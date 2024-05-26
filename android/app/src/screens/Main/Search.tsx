@@ -100,11 +100,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: '4%',
+    paddingHorizontal: '1%',
   },
   headerContainer: {
-    marginTop: '-1%',
-    paddingHorizontal: '5%',
+    marginTop: '8%',
+    paddingHorizontal: '6%',
   },
   headerText: {
     fontSize: 25,
@@ -122,12 +122,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5%',
   },
   searchContainer: {
-    paddingHorizontal: '5%',
     marginTop: '3%',
+    left: '3.2%',
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    width: '90%',
+    width: '82%',
     borderColor: '#ccc',
   },
   searchInput: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   recenttext: {
     fontSize: 15,
-    marginTop: '7%',
+    marginTop: '5%',
     marginBottom: '3%',
     color: '#000',
     paddingHorizontal: '5%',

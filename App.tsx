@@ -10,6 +10,7 @@ import Search from './android/app/src/screens/Main/Search';
 import Comment from './android/app/src/screens/Main/Comment';
 import Mypage from './android/app/src/screens/Main/Mypage';
 import ProductPage from './android/app/src/screens/Main/ProductPage';
+import WritePage from './android/app/src/screens/Main/WritePage';
 
 export type RootStackParamList = {
   BasicInformation: undefined;
@@ -17,11 +18,12 @@ export type RootStackParamList = {
   Style_G: undefined;
   Congrats: undefined;
   Main: undefined;
+  ProductPage: undefined;
   Search: undefined;
   Comment: undefined;
+  WritePage: undefined;
   Mypage: undefined;
   BottomTabNavigator: undefined;
-  ProductPage: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -56,24 +58,29 @@ const App = () => {
           options={{headerShown: false}}
         />
         <Stack.Screen
+          name="ProductPage"
+          component={ProductPage}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
           name="Search"
           component={Search}
-          options={{headerTitle: ''}}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Comment"
           component={Comment}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="WritePage"
+          component={WritePage}
           options={{headerTitle: ''}}
         />
         <Stack.Screen
           name="Mypage"
           component={Mypage}
-          options={{headerTitle: ''}}
-        />
-        <Stack.Screen
-          name="ProductPage"
-          component={ProductPage}
-          options={{headerTitle: ''}}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     </NavigationContainer>
