@@ -11,6 +11,7 @@ import Comment from './android/app/src/screens/Main/Comment';
 import Mypage from './android/app/src/screens/Main/Mypage';
 import ProductPage from './android/app/src/screens/Main/ProductPage';
 import WritePage from './android/app/src/screens/Main/WritePage';
+import CommentReview from './android/app/src/screens/Main/CommentReview';
 
 export type RootStackParamList = {
   BasicInformation: undefined;
@@ -21,6 +22,7 @@ export type RootStackParamList = {
   ProductPage: undefined;
   Search: undefined;
   Comment: undefined;
+  CommentReview: undefined;
   WritePage: undefined;
   Mypage: undefined;
   BottomTabNavigator: undefined;
@@ -71,6 +73,11 @@ const App = () => {
           name="Comment"
           component={Comment}
           options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="CommentReview"
+          component={CommentReview}
+          options={{headerTitle: ''}}
         />
         <Stack.Screen
           name="WritePage"

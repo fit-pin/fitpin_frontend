@@ -123,9 +123,11 @@ const Comment: React.FC = () => {
 
   const renderItem: ListRenderItem<Product> = ({item}) => (
     <View style={styles.resultContainer}>
-      <View style={styles.imgRectangle}>
+      <TouchableOpacity
+        style={styles.imgRectangle}
+        onPress={() => navigation.navigate('CommentReview')}>
         <Image source={item.image} style={styles.productImage} />
-      </View>
+      </TouchableOpacity>
       <View style={styles.bottomRectangle}>
         <View style={styles.textContainer}>
           <View style={styles.brandAndPrice}>
