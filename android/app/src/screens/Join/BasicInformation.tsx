@@ -47,9 +47,11 @@ export default function BasicInformation() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        {[...Array(4)].map((_, index) => (
-          <Circle key={index} isActive={index === 0} />
+      <View style={styles.pageButtonContainer}>
+        {[1, 2, 3, 4].map((pageNumber, index) => (
+          <View key={pageNumber} style={styles.pageButton}>
+            <Circle isActive={index === 0} />
+          </View>
         ))}
       </View>
 
@@ -123,30 +125,30 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: width * 0.15,
     marginTop: height * 0.02,
-    top: '-3%',
+    top: '1%',
     left: '-4%',
   },
 
-  row: {
+  pageButtonContainer: {
     position: 'relative',
-    top: '-5.5%',
-    right: '20%',
+    top: '-14%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginHorizontal: '8.5%',
+    right: '14.5%',
+  },
+
+  pageButton: {
+    marginHorizontal: '2%',
   },
 
   circle: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    margin: width * 0.02,
-    marginBottom: height * 0.05,
-    marginHorizontal: '2%',
   },
 
   activeCircle: {
-    backgroundColor: '#d9d9d9',
+    backgroundColor: '#D9D9D9',
   },
 
   blackCircle: {
@@ -155,8 +157,8 @@ const styles = StyleSheet.create({
 
   Basicstyle: {
     position: 'relative',
-    top: '-5%',
-    left: '-18%',
+    top: '-2%',
+    right: '19.5%',
     fontSize: 18,
     color: '#000',
     textAlign: 'left',
@@ -168,7 +170,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    top: '-5%',
+    top: '4%',
   },
 
   buttonContainer: {
@@ -209,6 +211,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: width * 0.02,
     marginBottom: height * 0.03,
     alignSelf: 'center',
+    top: '6%',
   },
 
   button: {
@@ -216,9 +219,9 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     paddingHorizontal: width * 0.1,
     borderRadius: 31,
-    marginTop: height * 0.01,
     width: '80%',
-    height: '9%',
+    height: '8%',
+    top: '6%',
   },
 
   buttonText: {

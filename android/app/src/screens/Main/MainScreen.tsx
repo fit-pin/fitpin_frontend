@@ -249,13 +249,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: '4%',
+    paddingHorizontal: '1%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: '4%',
+    paddingHorizontal: '4%',
   },
   headerText: {
     fontSize: 24,
@@ -286,14 +287,17 @@ const styles = StyleSheet.create({
     marginTop: '2%',
     marginBottom: '4%',
     fontWeight: 'bold',
+    paddingHorizontal: '4%',
   },
   sections: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
+    paddingHorizontal: '4%',
   },
   sectionButton: {
     padding: 8,
+    paddingHorizontal: '4%',
   },
   sectionText: {
     fontSize: 16,
@@ -308,6 +312,7 @@ const styles = StyleSheet.create({
     marginBottom: '3%',
     alignItems: 'center',
     position: 'relative',
+    paddingHorizontal: '4%',
   },
   boxContent: {
     flexDirection: 'row',
@@ -341,6 +346,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: '5%',
+    paddingHorizontal: '4%',
   },
   productCardContainer: {
     width: '48%',

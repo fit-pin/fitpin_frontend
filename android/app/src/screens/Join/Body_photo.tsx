@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   pageButtonContainer: {
     position: 'relative',
-    top: '17%',
+    top: '21%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     marginHorizontal: '8.5%',
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     position: 'relative',
-    top: '35%',
+    top: '45%',
     marginHorizontal: '10%',
   },
   rectangleContainer: {
@@ -152,11 +152,11 @@ const styles = StyleSheet.create({
     marginHorizontal: '8%',
     backgroundColor: '#000',
     width: '85%',
-    height: '9%',
+    height: '8%',
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '12%',
+    marginTop: '15%',
     bottom: '4.5%',
   },
   longButtonText: {

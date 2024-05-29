@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: '1%',
   },
   headerContainer: {
-    marginTop: '8%',
+    marginTop: '20%',
     paddingHorizontal: '6%',
   },
   headerText: {
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EBEBEB',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 170,
+    height: 250,
     borderRadius: 15,
     zIndex: 1,
     marginTop: '-3%',

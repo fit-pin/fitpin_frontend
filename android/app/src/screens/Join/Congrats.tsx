@@ -17,7 +17,7 @@ export default function Congrats() {
   const navigation = useNavigation<CongratsNavigationProp>();
 
   // 이미지
-  const congratsImage = require('../../assets/img/congrats.png');
+  const congratsImage = require('../../assets/img/join/congrats.png');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   pageButtonContainer: {
     position: 'relative',
-    top: '17%',
+    top: '21%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     marginHorizontal: '8.5%',
@@ -114,11 +114,11 @@ const styles = StyleSheet.create({
     marginHorizontal: '8%',
     backgroundColor: '#000',
     width: '85%',
-    height: '9%',
+    height: '8%',
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '50%',
+    marginTop: '65%',
     bottom: '4.5%',
   },
   longButtonText: {

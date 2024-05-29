@@ -1,19 +1,29 @@
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
+import Splash from './android/app/src/screens/Start/Splash';
+import Start from './android/app/src/screens/Start/Start';
+import LognSignin from './android/app/src/screens/Join/LognSignin';
+import Signin from './android/app/src/screens/Join/Signin';
+import Login from './android/app/src/screens/Join/Login';
 import BasicInformation from '././android/app/src/screens/Join/BasicInformation';
 import Body_photo from './android/app/src/screens/Join/Body_photo';
 import Style_G from './android/app/src/screens/Join/Style_G';
 import Congrats from './android/app/src/screens/Join/Congrats';
 import Main from './android/app/src/screens/Main/MainScreen';
+import ProductPage from './android/app/src/screens/Main/ProductPage';
 import Search from './android/app/src/screens/Main/Search';
 import Comment from './android/app/src/screens/Main/Comment';
-import Mypage from './android/app/src/screens/Main/Mypage';
-import ProductPage from './android/app/src/screens/Main/ProductPage';
-import WritePage from './android/app/src/screens/Main/WritePage';
 import CommentReview from './android/app/src/screens/Main/CommentReview';
+import WritePage from './android/app/src/screens/Main/WritePage';
+import Mypage from './android/app/src/screens/Main/Mypage';
 
 export type RootStackParamList = {
+  Splash: undefined;
+  Start: undefined;
+  LognSignin: undefined;
+  Signin: undefined;
+  Login: undefined;
   BasicInformation: undefined;
   Body_photo: undefined;
   Style_G: undefined;
@@ -33,11 +43,36 @@ const Stack = createStackNavigator<RootStackParamList>();
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="BasicInformation">
+      <Stack.Navigator initialRouteName="Splash">
+        <Stack.Screen
+          name="Splash"
+          component={Splash}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Start"
+          component={Start}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="LognSignin"
+          component={LognSignin}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Signin"
+          component={Signin}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{headerShown: false}}
+        />
         <Stack.Screen
           name="BasicInformation"
           component={BasicInformation}
-          options={{headerTitle: ''}}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Body_photo"

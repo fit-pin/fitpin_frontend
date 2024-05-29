@@ -127,9 +127,8 @@ const ProductPage = () => {
           />
         </View>
         <Text style={styles.tryOnText}>입어보기</Text>
-        {/* 수선 전*/}
+        {/* 수선 이미지*/}
         <View style={styles.roundedRect}>
-          <Text style={styles.Before}>Before</Text>
           <Image
             source={require('../../assets/img/main/top/top1.png')}
             style={styles.innerImage}
@@ -138,14 +137,6 @@ const ProductPage = () => {
         {isTailoringChecked && (
           <View>
             {/* 수선 후 */}
-            <View style={styles.roundedRect}>
-              <Text style={styles.After}>After</Text>
-              <Image
-                source={require('../../assets/img/main/top/top1.png')}
-                style={styles.innerImage}
-              />
-            </View>
-
             <View style={{flexDirection: 'row'}}>
               {/* 총장 부분 */}
               <View style={styles.buttoncontainer}>
@@ -241,6 +232,9 @@ const ProductPage = () => {
                 </View>
               </View>
             </View>
+            <TouchableOpacity style={styles.customButton}>
+              <Text style={styles.customButtonText}>수선하기</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -401,20 +395,11 @@ const styles = StyleSheet.create({
     padding: '2%',
     alignItems: 'center',
     marginTop: '5%',
-  },
-  Before: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    right: '40%',
-  },
-  After: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    right: '40%',
+    height: 260,
   },
   innerImage: {
     width: '50%',
-    height: 200,
+    height: 250,
   },
   buttoncontainer: {
     top: '30%',
@@ -431,7 +416,7 @@ const styles = StyleSheet.create({
   },
   buttontitle: {
     color: '#000',
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 'bold',
     marginRight: '15%',
   },
@@ -472,6 +457,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
+  customButton: {
+    flex: 1,
+    padding: '2.5%',
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    width: '100%',
+    top: '17%',
+    borderWidth: 1.5,
+    borderColor: '#000',
+    marginBottom: '4%',
+  },
+  customButtonText: {
+    color: '#000',
+    fontSize: 19,
+    fontWeight: 'bold',
+  },
   cartButtonBottom: {
     flex: 1,
     marginRight: '2%',
@@ -490,12 +492,12 @@ const styles = StyleSheet.create({
   },
   cartButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   buyButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   selectedSizeButton: {
