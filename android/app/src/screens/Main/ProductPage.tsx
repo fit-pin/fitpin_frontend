@@ -9,8 +9,17 @@ import {
   ScrollView,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+
+type ProductPageoNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'ProductPage'
+>;
 
 const ProductPage = () => {
+  const navigation = useNavigation<ProductPageoNavigationProp>();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
@@ -35,7 +44,9 @@ const ProductPage = () => {
       <View style={styles.header}>
         <Text style={styles.platformName}>Musinsa</Text>
         <View style={styles.cartButtonWrapper}>
-          <TouchableOpacity style={styles.cartButton}>
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => navigation.navigate('Cart')}>
             <Image
               source={require('../../assets/img/main/product/basket.png')}
               style={styles.cartImage}
@@ -242,10 +253,14 @@ const ProductPage = () => {
       {/* 아래 버튼 */}
       <View style={styles.bottomSection}>
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.cartButtonBottom}>
+          <TouchableOpacity
+            style={styles.cartButtonBottom}
+            onPress={() => navigation.navigate('Cart')}>
             <Text style={styles.cartButtonText}>장바구니 담기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buyButton}>
+          <TouchableOpacity
+            style={styles.buyButton}
+            onPress={() => navigation.navigate('Order')}>
             <Text style={styles.buyButtonText}>바로 구매</Text>
           </TouchableOpacity>
         </View>

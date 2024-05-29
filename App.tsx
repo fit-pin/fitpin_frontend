@@ -9,14 +9,23 @@ import Login from './android/app/src/screens/Join/Login';
 import BasicInformation from '././android/app/src/screens/Join/BasicInformation';
 import Body_photo from './android/app/src/screens/Join/Body_photo';
 import Style_G from './android/app/src/screens/Join/Style_G';
+import Style_B from './android/app/src/screens/Join/Style_B';
 import Congrats from './android/app/src/screens/Join/Congrats';
 import Main from './android/app/src/screens/Main/MainScreen';
 import ProductPage from './android/app/src/screens/Main/ProductPage';
-import Search from './android/app/src/screens/Main/Search';
-import Comment from './android/app/src/screens/Main/Comment';
-import CommentReview from './android/app/src/screens/Main/CommentReview';
-import WritePage from './android/app/src/screens/Main/WritePage';
-import Mypage from './android/app/src/screens/Main/Mypage';
+import Cart from './android/app/src/screens/Main/Cart';
+import Order from './android/app/src/screens/Main/Order';
+import Camera from './android/app/src/screens/Main/Camera';
+import Size from './android/app/src/screens/Main/Size';
+import Search from './android/app/src/screens/Search/Search';
+import Comment from './android/app/src/screens/Comment/Comment';
+import CommentReview from './android/app/src/screens/Comment/CommentReview';
+import WritePage from './android/app/src/screens/Comment/WritePage';
+import Mypage from './android/app/src/screens/Mypage/Mypage';
+import Purchase from './android/app/src/screens/Mypage/Purchase';
+import Remeasure from './android/app/src/screens/Mypage/Remeasure';
+import Fit_box from './android/app/src/screens/Mypage/Fit_box';
+import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -27,14 +36,23 @@ export type RootStackParamList = {
   BasicInformation: undefined;
   Body_photo: undefined;
   Style_G: undefined;
+  Style_B: undefined;
   Congrats: undefined;
   Main: undefined;
   ProductPage: undefined;
+  Cart: undefined;
+  Order: undefined;
+  Camera: undefined;
+  Size: undefined;
   Search: undefined;
   Comment: undefined;
   CommentReview: undefined;
   WritePage: undefined;
   Mypage: undefined;
+  Purchase: undefined;
+  Remeasure: undefined;
+  Fit_box: undefined;
+  WriteComment: undefined;
   BottomTabNavigator: undefined;
 };
 
@@ -72,16 +90,21 @@ const App = () => {
         <Stack.Screen
           name="BasicInformation"
           component={BasicInformation}
-          options={{headerShown: false}}
+          options={{headerShown: false}} //상단에 화살표 안 보이게
         />
         <Stack.Screen
           name="Body_photo"
           component={Body_photo}
-          options={{headerTitle: ''}}
+          options={{headerTitle: ''}} //상단에 화살표 보이게
         />
         <Stack.Screen
           name="Style_G"
           component={Style_G}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Style_B"
+          component={Style_B}
           options={{headerTitle: ''}}
         />
         <Stack.Screen
@@ -92,12 +115,32 @@ const App = () => {
         <Stack.Screen
           name="Main"
           component={Main}
-          options={{headerShown: false}}
+          options={{headerShown: false}} //MainScreen.tsx
         />
         <Stack.Screen
           name="ProductPage"
           component={ProductPage}
           options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Cart"
+          component={Cart}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Order"
+          component={Order}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Camera"
+          component={Camera}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Size"
+          component={Size}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Search"
@@ -123,6 +166,26 @@ const App = () => {
           name="Mypage"
           component={Mypage}
           options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Purchase"
+          component={Purchase}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Remeasure"
+          component={Remeasure}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="Fit_box"
+          component={Fit_box}
+          options={{headerTitle: ''}}
+        />
+        <Stack.Screen
+          name="WriteComment"
+          component={WriteComment}
+          options={{headerTitle: ''}}
         />
       </Stack.Navigator>
     </NavigationContainer>

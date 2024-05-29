@@ -2,15 +2,23 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, Image, StyleSheet} from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+
+type MypageNavigationProp = StackNavigationProp<RootStackParamList, 'Mypage'>;
 
 const Mypage = () => {
+  const navigation = useNavigation<MypageNavigationProp>();
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.platformName}>마이페이지</Text>
         <View style={styles.cartButtonWrapper}>
-          <TouchableOpacity style={styles.cartButton}>
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => navigation.navigate('Cart')}>
             <Image
               source={require('../../assets/img/main/shop.png')}
               style={styles.cartImage}
@@ -38,7 +46,11 @@ const Mypage = () => {
           source={require('../../assets/img/mypage/buy.png')}
           style={styles.image}
         />
-        <Text style={styles.text}>구매내역</Text>
+        <Text
+          style={styles.text}
+          onPress={() => navigation.navigate('Purchase')}>
+          구매내역
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -46,7 +58,11 @@ const Mypage = () => {
           source={require('../../assets/img/mypage/camera.png')}
           style={styles.image}
         />
-        <Text style={styles.text}>체형 재측정</Text>
+        <Text
+          style={styles.text}
+          onPress={() => navigation.navigate('Remeasure')}>
+          체형 재측정
+        </Text>
       </View>
       <View style={styles.line} />
 
@@ -56,7 +72,11 @@ const Mypage = () => {
           source={require('../../assets/img/mypage/fitbox.png')}
           style={styles.image}
         />
-        <Text style={styles.text}>핏 보관함</Text>
+        <Text
+          style={styles.text}
+          onPress={() => navigation.navigate('Fit_box')}>
+          핏 보관함
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -64,7 +84,11 @@ const Mypage = () => {
           source={require('../../assets/img/mypage/fitcomment.png')}
           style={styles.image}
         />
-        <Text style={styles.text}>내가 작성한 핏 코멘트</Text>
+        <Text
+          style={styles.text}
+          onPress={() => navigation.navigate('WriteComment')}>
+          내가 작성한 핏 코멘트
+        </Text>
       </View>
       <View style={styles.line} />
 

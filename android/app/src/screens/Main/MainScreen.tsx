@@ -1,4 +1,4 @@
-import React, {Component, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -98,66 +98,62 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
   );
 };
 
-export default class MainScreen extends Component {
-  state = {
-    selectedSection: '상의',
-    showProductGrid: true,
-    products: [
-      {
-        title: '폴로 랄프 로렌',
-        description: '데님 셔츠 - 블루',
-        price: '219.000₩',
-        image: require('../../assets/img/main/top/top1.png'),
-      },
-      {
-        title: '에스이오',
-        description: '럭비 저지 탑',
-        price: '168.000₩',
-        image: require('../../assets/img/main/top/top2.png'),
-      },
-      {
-        title: '폴로 랄프 로렌3',
-        description: '데님 셔츠 - 블루3',
-        price: '419.000₩',
-        image: require('../../assets/img/main/top/top2.png'),
-      },
-      {
-        title: '폴로 랄프 로렌4',
-        description: '데님 셔츠 - 블루4',
-        price: '519.000₩',
-        image: require('../../assets/img/main/top/top2.png'),
-      },
-    ],
-    bottomProducts: [
-      {
-        title: '위캔더스',
-        description: '데님 팬츠',
-        price: '198,000₩',
-        image: require('../../assets/img/main/bottom/bottom1.png'),
-      },
-      {
-        title: '제품2',
-        description: '하의 제품 설명',
-        price: '129.000₩',
-        image: require('../../assets/img/main/bottom/bottom1.png'),
-      },
-      {
-        title: '제품3',
-        description: '하의 제품 설명',
-        price: '149.000₩',
-        image: require('../../assets/img/main/bottom/bottom1.png'),
-      },
-    ],
-  };
+const Main: React.FC = () => {
+  const navigation = useNavigation<MainScreenNavigationProp>();
+  const [selectedSection, setSelectedSection] = React.useState('상의');
+  const [showProductGrid, setShowProductGrid] = React.useState(true);
 
-  renderProductGrid = () => {
-    if (this.state.showProductGrid) {
-      let productsToShow: any[] = [];
-      if (this.state.selectedSection === '상의') {
-        productsToShow = this.state.products;
-      } else if (this.state.selectedSection === '하의') {
-        productsToShow = this.state.bottomProducts;
-      }
+  const products = [
+    {
+      title: '폴로 랄프 로렌',
+      description: '데님 셔츠 - 블루',
+      price: '219.000₩',
+      image: require('../../assets/img/main/top/top1.png'),
+    },
+    {
+      title: '에스이오',
+      description: '럭비 저지 탑',
+      price: '168.000₩',
+      image: require('../../assets/img/main/top/top2.png'),
+    },
+    {
+      title: '폴로 랄프 로렌3',
+      description: '데님 셔츠 - 블루3',
+      price: '419.000₩',
+      image: require('../../assets/img/main/top/top2.png'),
+    },
+    {
+      title: '폴로 랄프 로렌4',
+      description: '데님 셔츠 - 블루4',
+      price: '519.000₩',
+      image: require('../../assets/img/main/top/top2.png'),
+    },
+  ];
+  const bottomProducts = [
+    {
+      title: '위캔더스',
+      description: '데님 팬츠',
+      price: '198,000₩',
+      image: require('../../assets/img/main/bottom/bottom1.png'),
+    },
+    {
+      title: '제품2',
+      description: '하의 제품 설명',
+      price: '129.000₩',
+      image: require('../../assets/img/main/bottom/bottom1.png'),
+    },
+    {
+      title: '제품3',
+      description: '하의 제품 설명',
+      price: '149.000₩',
+      image: require('../../assets/img/main/bottom/bottom1.png'),
+    },
+  ];
+
+  const renderProductGrid = () => {
+    if (showProductGrid) {
+      const productsToShow =
+        selectedSection === '상의' ? products : bottomProducts;
       return (
         <View style={styles.productGrid}>
           {productsToShow.map((product, index) => (
@@ -174,76 +170,74 @@ export default class MainScreen extends Component {
     }
   };
 
-  render() {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView>
-          <View style={styles.header}>
-            <Text style={styles.headerText}>FitPin</Text>
-            <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.iconButton}>
-                <Image
-                  source={require('../../assets/img/main/camera.png')}
-                  style={styles.icon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}>
-                <Image
-                  source={require('../../assets/img/main/shop.png')}
-                  style={styles.icon}
-                />
-              </TouchableOpacity>
-            </View>
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>FitPin</Text>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('Size')}>
+              {/* 임시로 사이즈 페이지 보려고 size로 한거기에 카메라 부분 다 완성되면 onPress={() => navigation.navigate('Camera')}> */}
+              <Image
+                source={require('../../assets/img/main/camera.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('Cart')}>
+              <Image
+                source={require('../../assets/img/main/shop.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
           </View>
-          <View style={styles.line} />
-          <Text style={styles.subtitle}>
-            000님의 체형과 취향 모두를 만족하는 옷이에요
-          </Text>
-          <View style={styles.sections}>
-            {boxes.map((box, index) => (
-              <View key={index} style={styles.roundedBox}>
-                {box.recommended && <BlinkingText>추천</BlinkingText>}
-                <View style={styles.boxContent}>
-                  <Text style={styles.boxText}>{box.text}</Text>
-                  <Image source={box.image} style={styles.boxImage} />
-                </View>
+        </View>
+        <View style={styles.line} />
+        <Text style={styles.subtitle}>
+          000님의 체형과 취향 모두를 만족하는 옷이에요
+        </Text>
+        <View style={styles.sections}>
+          {boxes.map((box, index) => (
+            <View key={index} style={styles.roundedBox}>
+              {box.recommended && <BlinkingText>추천</BlinkingText>}
+              <View style={styles.boxContent}>
+                <Text style={styles.boxText}>{box.text}</Text>
+                <Image source={box.image} style={styles.boxImage} />
               </View>
-            ))}
-          </View>
-          <View style={styles.sections}>
-            {sections.map(section => (
-              <TouchableOpacity
-                key={section}
-                style={styles.sectionButton}
-                onPress={() =>
-                  this.setState({
-                    selectedSection: section,
-                    showProductGrid: true,
-                  })
-                }>
-                <Text
-                  style={[
-                    styles.sectionText,
-                    // eslint-disable-next-line react-native/no-inline-styles
-                    {
-                      color:
-                        this.state.selectedSection === section
-                          ? '#000'
-                          : '#919191',
-                    },
-                  ]}>
-                  {section}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {this.renderProductGrid()}
-        </ScrollView>
-        <BottomTabNavigator />
-      </SafeAreaView>
-    );
-  }
-}
+            </View>
+          ))}
+        </View>
+        <View style={styles.sections}>
+          {sections.map(section => (
+            <TouchableOpacity
+              key={section}
+              style={styles.sectionButton}
+              onPress={() => {
+                setSelectedSection(section);
+                setShowProductGrid(true);
+              }}>
+              <Text
+                style={[
+                  styles.sectionText,
+                  // eslint-disable-next-line react-native/no-inline-styles
+                  {
+                    color: selectedSection === section ? '#000' : '#919191',
+                  },
+                ]}>
+                {section}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {renderProductGrid()}
+      </ScrollView>
+      <BottomTabNavigator />
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -421,3 +415,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+export default Main;

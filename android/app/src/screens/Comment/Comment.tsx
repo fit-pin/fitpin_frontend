@@ -75,7 +75,9 @@ const Comment: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.platformName}>옷에 대한 정보를 공유해요</Text>
         <View style={styles.cartButtonWrapper}>
-          <TouchableOpacity style={styles.cartButton}>
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => navigation.navigate('Cart')}>
             <Image
               source={require('../../assets/img/main/shop.png')}
               style={styles.cartImage}

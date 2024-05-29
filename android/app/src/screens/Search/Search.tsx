@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: '1%',
   },
   headerContainer: {
-    marginTop: '20%',
+    marginTop: '17%',
     paddingHorizontal: '6%',
   },
   headerText: {
