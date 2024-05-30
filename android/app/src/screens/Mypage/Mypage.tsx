@@ -12,104 +12,108 @@ const Mypage = () => {
   const navigation = useNavigation<MypageNavigationProp>();
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.platformName}>마이페이지</Text>
-        <View style={styles.cartButtonWrapper}>
-          <TouchableOpacity
-            style={styles.cartButton}
-            onPress={() => navigation.navigate('Cart')}>
-            <Image
-              source={require('../../assets/img/main/shop.png')}
-              style={styles.cartImage}
-            />
-          </TouchableOpacity>
+      <View style={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.platformName}>마이페이지</Text>
+          <View style={styles.cartButtonWrapper}>
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={() => navigation.navigate('Cart')}>
+              <Image
+                source={require('../../assets/img/main/shop.png')}
+                style={styles.cartImage}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {/* 프로필 */}
-      <View style={styles.section}>
-        <Image
-          source={require('../../assets/img/mypage/profile.png')}
-          style={styles.profile}
-        />
-        <View style={styles.textWrapper}>
-          <Text style={styles.name}>오주희</Text>
-          <Text style={styles.email}>ohjuhee@example.com</Text>
+        {/* 프로필 */}
+        <View style={styles.section}>
+          <Image
+            source={require('../../assets/img/mypage/profile.png')}
+            style={styles.profile}
+          />
+          <View style={styles.textWrapper}>
+            <Text style={styles.name}>오주희</Text>
+            <Text style={styles.email}>ohjuhee@example.com</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.line} />
+        <View style={styles.line} />
 
-      {/* 구매내역 / 체형재측정 */}
-      <View style={[styles.section, {marginBottom: -20}]}>
-        <Image
-          source={require('../../assets/img/mypage/buy.png')}
-          style={styles.image}
-        />
-        <Text
-          style={styles.text}
-          onPress={() => navigation.navigate('Purchase')}>
-          구매내역
-        </Text>
-      </View>
+        {/* 구매내역 / 체형재측정 */}
+        <View style={[styles.section, {marginBottom: -20}]}>
+          <Image
+            source={require('../../assets/img/mypage/buy.png')}
+            style={styles.image}
+          />
+          <Text
+            style={styles.text}
+            onPress={() => navigation.navigate('Purchase')}>
+            구매내역
+          </Text>
+        </View>
 
-      <View style={styles.section}>
-        <Image
-          source={require('../../assets/img/mypage/camera.png')}
-          style={styles.image}
-        />
-        <Text
-          style={styles.text}
-          onPress={() => navigation.navigate('Remeasure')}>
-          체형 재측정
-        </Text>
-      </View>
-      <View style={styles.line} />
+        <View style={styles.section}>
+          <Image
+            source={require('../../assets/img/mypage/camera.png')}
+            style={styles.image}
+          />
+          <Text
+            style={styles.text}
+            onPress={() => navigation.navigate('Remeasure')}>
+            체형 재측정
+          </Text>
+        </View>
+        <View style={styles.line} />
 
-      {/* 핏보관함 / 내가 작성한 핏 코멘트 */}
-      <View style={[styles.section, {marginBottom: -20}]}>
-        <Image
-          source={require('../../assets/img/mypage/fitbox.png')}
-          style={styles.image}
-        />
-        <Text
-          style={styles.text}
-          onPress={() => navigation.navigate('Fit_box')}>
-          핏 보관함
-        </Text>
-      </View>
+        {/* 핏보관함 / 내가 작성한 핏 코멘트 */}
+        <View style={[styles.section, {marginBottom: -20}]}>
+          <Image
+            source={require('../../assets/img/mypage/fitbox.png')}
+            style={styles.image}
+          />
+          <Text
+            style={styles.text}
+            onPress={() => navigation.navigate('Fit_box')}>
+            핏 보관함
+          </Text>
+        </View>
 
-      <View style={styles.section}>
-        <Image
-          source={require('../../assets/img/mypage/fitcomment.png')}
-          style={styles.image}
-        />
-        <Text
-          style={styles.text}
-          onPress={() => navigation.navigate('WriteComment')}>
-          내가 작성한 핏 코멘트
-        </Text>
-      </View>
-      <View style={styles.line} />
+        <View style={styles.section}>
+          <Image
+            source={require('../../assets/img/mypage/fitcomment.png')}
+            style={styles.image}
+          />
+          <Text
+            style={styles.text}
+            onPress={() => navigation.navigate('WriteComment')}>
+            내가 작성한 핏 코멘트
+          </Text>
+        </View>
+        <View style={styles.line} />
 
-      {/* 로그아웃 / 회원탈퇴 */}
-      <View style={[styles.section, {marginBottom: -20}]}>
-        <Image
-          source={require('../../assets/img/mypage/logout.png')}
-          style={styles.image}
-        />
-        <Text style={styles.logout}>로그아웃</Text>
-      </View>
+        {/* 로그아웃 / 회원탈퇴 */}
+        <View style={[styles.section, {marginBottom: -20}]}>
+          <Image
+            source={require('../../assets/img/mypage/logout.png')}
+            style={styles.image}
+          />
+          <Text style={styles.logout}>로그아웃</Text>
+        </View>
 
-      <View style={styles.section}>
-        <Image
-          source={require('../../assets/img/mypage/leave.png')}
-          style={styles.image}
-        />
-        <Text style={styles.withdrawal}>회원탈퇴</Text>
+        <View style={styles.section}>
+          <Image
+            source={require('../../assets/img/mypage/leave.png')}
+            style={styles.image}
+          />
+          <Text style={styles.withdrawal}>회원탈퇴</Text>
+        </View>
+        <View style={styles.line} />
       </View>
-      <View style={styles.line} />
-      <BottomTabNavigator />
+      <View>
+        <BottomTabNavigator />
+      </View>
     </View>
   );
 };
@@ -118,13 +122,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
     paddingHorizontal: '1%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: '15%',
+    marginTop: '11%',
     paddingHorizontal: '5%',
   },
   platformName: {
@@ -152,8 +159,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: '5%',
     padding: '6.5%',
-    marginTop: '2.65%',
-    marginBottom: '2.65%',
+    marginTop: '3%',
+    marginBottom: '3%',
   },
   profile: {
     width: 60,

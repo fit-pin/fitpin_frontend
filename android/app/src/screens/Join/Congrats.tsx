@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   },
   firstLine: {
     position: 'relative',
-    top: '17%',
+    top: '19%',
     marginHorizontal: '10%',
     fontSize: 25,
     color: '#000',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    top: '23%',
+    top: '24%',
     marginHorizontal: '10%',
   },
   image: {
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
   },
   additionalText: {
     position: 'relative',
-    top: '26%',
-    marginTop: '2%',
+    top: '28%',
+    marginTop: '3%',
     marginHorizontal: '10%',
     fontSize: 18,
     color: '#555555',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '65%',
+    marginTop: '70%',
     bottom: '4.5%',
   },
   longButtonText: {

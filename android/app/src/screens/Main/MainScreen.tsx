@@ -234,7 +234,9 @@ const Main: React.FC = () => {
         </View>
         {renderProductGrid()}
       </ScrollView>
-      <BottomTabNavigator />
+      <View>
+        <BottomTabNavigator />
+      </View>
     </SafeAreaView>
   );
 };

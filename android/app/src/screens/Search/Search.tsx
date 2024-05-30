@@ -91,7 +91,9 @@ const Search = () => {
           </View>
         </View>
       </ScrollView>
-      <BottomTabNavigator />
+      <View>
+        <BottomTabNavigator />
+      </View>
     </SafeAreaView>
   );
 };

@@ -161,7 +161,9 @@ const Comment: React.FC = () => {
           style={styles.writeIcon}
         />
       </TouchableOpacity>
-      <BottomTabNavigator />
+      <View>
+        <BottomTabNavigator />
+      </View>
     </SafeAreaView>
   );
 };
