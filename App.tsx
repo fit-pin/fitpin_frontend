@@ -171,7 +171,7 @@ const App = () => {
         <Stack.Screen
           name="Purchase"
           component={Purchase}
-          options={{headerTitle: ''}}
+          options={{headerTitle: '구매내역'}}
         />
         <Stack.Screen
           name="Remeasure"
