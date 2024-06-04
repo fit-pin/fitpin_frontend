@@ -27,6 +27,7 @@ import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 
+
 export type RootStackParamList = {
   Splash: undefined;
   Start: undefined;
@@ -125,12 +126,12 @@ const App = () => {
         <Stack.Screen
           name="Cart"
           component={Cart}
-          options={{headerTitle: ''}}
+          options={{headerTitle: '장바구니'}}
         />
         <Stack.Screen
           name="Order"
           component={Order}
-          options={{headerTitle: ''}}
+          options={{headerTitle: '주문 / 결제'}}
         />
         <Stack.Screen
           name="Camera"
