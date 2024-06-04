@@ -1,14 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Platform, TouchableOpacity, Image } from 'react-native';
-import { RNCamera } from 'react-native-camera';
-import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
-import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+import React, {useState, useEffect, useRef} from 'react';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Platform,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+import {RNCamera} from 'react-native-camera';
+import {
+  request,
+  PERMISSIONS,
+  RESULTS,
+  openSettings,
+} from 'react-native-permissions';
+import {ViewPropTypes} from 'deprecated-react-native-prop-types';
 
 const Camera = () => {
   const [hasPermission, setHasPermission] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [confirmedPhotoUri, setConfirmedPhotoUri] = useState<string | null>(null);
+  const [confirmedPhotoUri, setConfirmedPhotoUri] = useState<string | null>(
+    null,
+  );
   const cameraRef = useRef<RNCamera | null>(null);
 
   const requestCameraPermission = async () => {
@@ -47,13 +61,15 @@ const Camera = () => {
   if (permissionDenied) {
     return (
       <View style={styles.container}>
-        <Text>Camera permission was denied permanently. Please enable it in the app settings.</Text>
+        <Text>
+          Camera permission was denied permanently. Please enable it in the app
+          settings.
+        </Text>
         <TouchableOpacity
           onPress={() => {
             openSettings().catch(() => console.warn('Cannot open settings'));
           }}
-          style={styles.settingsButton}
-        >
+          style={styles.settingsButton}>
           <Text style={styles.buttonText}>Open Settings</Text>
         </TouchableOpacity>
       </View>
@@ -70,8 +86,9 @@ const Camera = () => {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const options = { quality: 0.5, base64: true };
+      const options = {quality: 0.5, base64: true};
       const data = await cameraRef.current.takePictureAsync(options);
+      // TODO: 여기서 DB 연동 처리
       setPhotoUri(data.uri);
     }
   };
@@ -88,9 +105,11 @@ const Camera = () => {
   if (photoUri) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: photoUri }} style={styles.preview} />
+        <Image source={{uri: photoUri}} style={styles.preview} />
         <View style={styles.bottomControls}>
-          <TouchableOpacity style={styles.actionButton} onPress={confirmPicture}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={confirmPicture}>
             <Text style={styles.buttonText}>확인</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>
@@ -104,7 +123,7 @@ const Camera = () => {
   if (confirmedPhotoUri) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: confirmedPhotoUri }} style={styles.preview} />
+        <Image source={{uri: confirmedPhotoUri}} style={styles.preview} />
         <View style={styles.bottomControls}>
           <Text style={styles.buttonText}>저장된 사진</Text>
         </View>
