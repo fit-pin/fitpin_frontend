@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+
 const Purchase = () => {
   const [isChecked, setIsChecked] = useState(true);
 
@@ -88,8 +91,6 @@ const Purchase = () => {
   );
 };
 
-const screenWidth = Dimensions.get('window').width;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -99,43 +100,43 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   date: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#000',
-    marginTop: 20,
-    marginLeft: 20,
+    marginTop: screenHeight * 0.02,
+    marginLeft: screenWidth * 0.05,
   },
   completed: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#929292',
-    marginLeft: 20,
+    marginLeft: screenWidth * 0.05,
     fontWeight: 'bold',
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
+    paddingVertical: screenHeight * 0.02,
+    paddingHorizontal: screenWidth * 0.02,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    marginVertical: 5,
+    marginVertical: screenHeight * 0.01,
   },
   divider: {
-    height: 5,
+    height: screenHeight * 0.007,
     backgroundColor: '#f4f4f4',
-    marginVertical: 10,
+    marginVertical: screenHeight * 0.02,
   },
   textContainer: {
     position: 'absolute',
     top: 0,
-    left: 16,
+    left: screenWidth * 0.04,
     zIndex: 1,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#787878',
     fontWeight: 'bold',
-    marginLeft: 7,
+    marginLeft: screenWidth * 0.02,
   },
   imageContainer: {
     width: screenWidth * 0.3,
@@ -143,9 +144,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f4f4',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
-    marginTop: 10,
-    marginLeft: 10,
+    marginRight: screenWidth * 0.04,
+    marginTop: screenHeight * 0.01,
+    marginLeft: screenWidth * 0.02,
     borderRadius: 27,
   },
   itemImage: {
@@ -157,105 +158,105 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    fontSize: 20,
+    fontSize: screenWidth * 0.05,
     color: '#000',
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: screenHeight * 0.01,
   },
   itemDescription: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#494949',
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: screenHeight * 0.01,
   },
   itemSize: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#787878',
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: screenHeight * 0.01,
   },
   itemQuantity: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#8b8b8b',
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: screenHeight * 0.02,
   },
   quantityAndPrice: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: screenHeight * 0.01,
   },
   quantityControl: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f4f4f4',
     borderRadius: 12,
-    paddingVertical: 3,
-    paddingHorizontal: 10,
+    paddingVertical: screenHeight * 0.003,
+    paddingHorizontal: screenWidth * 0.03,
   },
   quantityButton: {
-    paddingVertical: 2,
-    paddingHorizontal: 15,
+    paddingVertical: screenHeight * 0.002,
+    paddingHorizontal: screenWidth * 0.04,
   },
   quantityButtonText: {
-    fontSize: 17,
+    fontSize: screenWidth * 0.04,
     color: '#000',
     fontWeight: 'bold',
   },
   itemQuantityText: {
-    fontSize: 17,
-    marginHorizontal: 5,
+    fontSize: screenWidth * 0.04,
+    marginHorizontal: screenWidth * 0.01,
     color: '#000',
     fontWeight: 'bold',
   },
   itemPrice: {
-    fontSize: 20,
+    fontSize: screenWidth * 0.05,
     color: '#000',
     fontWeight: 'bold',
-    marginLeft: 15,
+    marginLeft: screenWidth * 0.04,
   },
   subTextContainer: {
-    marginLeft: 16,
-    marginBottom: 20,
+    marginLeft: screenWidth * 0.04,
+    marginBottom: screenHeight * 0.03,
   },
   subText: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#787878',
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: screenHeight * 0.04,
   },
   tailorCheckBoxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   tailorText: {
-    fontSize: 16,
+    fontSize: screenWidth * 0.04,
     color: '#2D3FE3',
     fontWeight: 'bold',
-    marginLeft: 5,
-    marginBottom: 5,
+    marginLeft: screenWidth * 0.01,
+    marginBottom: screenHeight * 0.01,
   },
   tailorSize: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#787878',
-    marginLeft: 10,
+    marginLeft: screenWidth * 0.02,
   },
   tailorCostContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginRight: 10,
+    marginRight: screenWidth * 0.02,
   },
   tailorCost: {
-    fontSize: 15,
+    fontSize: screenWidth * 0.04,
     color: '#787878',
-    marginTop: 10,
-    marginRight: 10,
+    marginTop: screenHeight * 0.01,
+    marginRight: screenWidth * 0.02,
   },
   sizeChart: {
     width: '90%',
-    height: 20,
+    height: screenHeight * 0.02,
     marginVertical: '2%',
-    marginLeft: 15,
+    marginLeft: screenWidth * 0.02,
   },
 });
 
