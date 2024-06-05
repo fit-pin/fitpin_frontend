@@ -41,12 +41,14 @@ export default function Body_photo() {
       <Text style={styles.secondLine}>당신에게 맞는 핏을 추천해드립니다.</Text>
       <Text style={styles.thirdLine}>체형 사진</Text>
       <View style={styles.imageContainer}>
-        <TouchableOpacity style={styles.rectangleContainer}>
+        <TouchableOpacity style={styles.rectangleContainer}
+        onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleContainer}>
+        <TouchableOpacity style={styles.rectangleContainer}
+        onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>

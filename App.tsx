@@ -176,17 +176,17 @@ const App = () => {
         <Stack.Screen
           name="Remeasure"
           component={Remeasure}
-          options={{headerTitle: ''}}
+          options={{headerTitle: '체형 재측정'}}
         />
         <Stack.Screen
           name="Fit_box"
           component={Fit_box}
-          options={{headerTitle: ''}}
+          options={{headerTitle: '핏 보관함'}}
         />
         <Stack.Screen
           name="WriteComment"
           component={WriteComment}
-          options={{headerTitle: ''}}
+          options={{headerTitle: '내가 작성한 핏 코멘트'}}
         />
       </Stack.Navigator>
     </NavigationContainer>
