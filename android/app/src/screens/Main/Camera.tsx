@@ -14,7 +14,9 @@ import {
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
-import {ViewPropTypes} from 'deprecated-react-native-prop-types';
+import path from 'path';
+import {ArRequest} from '../../utills/Request';
+import {AR_URL} from '../../Constant';
 
 const Camera = () => {
   const [hasPermission, setHasPermission] = useState(false);
@@ -86,14 +88,35 @@ const Camera = () => {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const options = {quality: 0.5, base64: true};
+      const options = {
+        quality: 0.5,
+        base64: false,
+      };
+
       const data = await cameraRef.current.takePictureAsync(options);
-      // TODO: 여기서 DB 연동 처리
+
+      // 요청 FormData 만들기
+      const formData = new FormData();
+      const name = data.uri.split('/').pop();
+      formData.append('anaFile', {
+        uri: data.uri,
+        name: name,
+        type: 'image/jpeg',
+      } as FormDataValue);
+      formData.append('personKey', '174');
+
+      await ArRequest(path.join(AR_URL, 'bodymea'), formData)
+        .then(async res => {
+          console.log(await res.json());
+          // TODO: 여기에서 측정값 DB 에 넘기는거 해야함
+        })
+        .catch(e => console.log(e));
+
       setPhotoUri(data.uri);
     }
   };
 
-  const confirmPicture = () => {
+  const confirmPicture = async () => {
     setConfirmedPhotoUri(photoUri);
     setPhotoUri(null);
   };
@@ -137,7 +160,7 @@ const Camera = () => {
         ref={cameraRef}
         style={styles.preview}
         type={RNCamera.Constants.Type.back}
-        flashMode={RNCamera.Constants.FlashMode.on}
+        flashMode={RNCamera.Constants.FlashMode.off}
         captureAudio={false}
       />
       <View style={styles.bottomControls}>
@@ -149,10 +172,6 @@ const Camera = () => {
       </View>
     </View>
   );
-};
-
-Camera.propTypes = {
-  ...ViewPropTypes,
 };
 
 const styles = StyleSheet.create({
