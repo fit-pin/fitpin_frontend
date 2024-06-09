@@ -105,7 +105,7 @@ const Camera = () => {
       } as FormDataValue);
       formData.append('personKey', '174');
 
-      await ArRequest(path.join(AR_URL, 'bodymea'), formData)
+      ArRequest(path.join(AR_URL, 'bodymea'), formData)
         .then(async res => {
           console.log(await res.json());
           // TODO: 여기에서 측정값 DB 에 넘기는거 해야함
