@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.08,
     color: '#9D9D9D',
     fontWeight: 'bold',
+    marginBottom: '0.2%',
   },
 
   text2: {
@@ -87,9 +88,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
     marginLeft: width * 0.08,
-    marginTop: height * 0.01,
-    marginBottom: '4%',
-    width: 350,
+    marginTop: height * 0.03,
+    marginBottom: '7%',
+    width: 365,
     height: 65,
   },
 

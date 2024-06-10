@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {
   TouchableOpacity,
@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import {RootStackParamList} from '../../../../../App.tsx';
 
+type BodyPhotoRouteProp = RouteProp<RootStackParamList, 'Body_photo'>;
+
 type BodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
   'Body_photo'
@@ -17,6 +19,16 @@ type BodyPhotoNavigationProp = StackNavigationProp<
 
 export default function Body_photo() {
   const navigation = useNavigation<BodyPhotoNavigationProp>();
+  const route = useRoute<BodyPhotoRouteProp>();
+  const {gender} = route.params || {};
+
+  const handleNextPress = () => {
+    if (gender === 'female') {
+      navigation.navigate('Style_G');
+    } else if (gender === 'male') {
+      navigation.navigate('Style_B');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -41,22 +53,22 @@ export default function Body_photo() {
       <Text style={styles.secondLine}>당신에게 맞는 핏을 추천해드립니다.</Text>
       <Text style={styles.thirdLine}>체형 사진</Text>
       <View style={styles.imageContainer}>
-        <TouchableOpacity style={styles.rectangleContainer}
-        onPress={() => navigation.navigate('Camera')}>
+        <TouchableOpacity
+          style={styles.rectangleContainer}
+          onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleContainer}
-        onPress={() => navigation.navigate('Camera')}>
+        <TouchableOpacity
+          style={styles.rectangleContainer}
+          onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.longButton}
-        onPress={() => navigation.navigate('Style_G')}>
+      <TouchableOpacity style={styles.longButton} onPress={handleNextPress}>
         <Text style={styles.longButtonText}>계속하기</Text>
       </TouchableOpacity>
     </SafeAreaView>

@@ -1,3 +1,4 @@
+// BasicInformation.js
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -43,6 +44,13 @@ export default function BasicInformation() {
   const handleMalePress = () => {
     setIsFemaleSelected(false);
     setIsMaleSelected(true);
+  };
+
+  const handleContinuePress = () => {
+    // 성별 선택 상태를 Body_photo 페이지로 전달
+    navigation.navigate('Body_photo', {
+      gender: isFemaleSelected ? 'female' : isMaleSelected ? 'male' : null,
+    });
   };
 
   return (
@@ -102,9 +110,7 @@ export default function BasicInformation() {
         keyboardType="numeric"
       />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Body_photo')}>
+      <TouchableOpacity style={styles.button} onPress={handleContinuePress}>
         <Text style={styles.buttonText}>계속하기</Text>
       </TouchableOpacity>
     </View>
@@ -118,7 +124,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
   },
-
   label: {
     fontSize: width * 0.04,
     color: '#878787',
@@ -128,7 +133,6 @@ const styles = StyleSheet.create({
     top: '1%',
     left: '-4%',
   },
-
   pageButtonContainer: {
     position: 'relative',
     top: '-14%',
@@ -136,25 +140,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     right: '14.5%',
   },
-
   pageButton: {
     marginHorizontal: '2%',
   },
-
   circle: {
     width: 10,
     height: 10,
     borderRadius: 5,
   },
-
   activeCircle: {
     backgroundColor: '#D9D9D9',
   },
-
   blackCircle: {
     backgroundColor: '#000',
   },
-
   Basicstyle: {
     position: 'relative',
     top: '-2%',
@@ -164,7 +163,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     fontWeight: 'bold',
   },
-
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -172,12 +170,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     top: '4%',
   },
-
   buttonContainer: {
     alignItems: 'center',
     marginHorizontal: width * 0.05,
   },
-
   circleButton: {
     width: width * 0.2,
     height: width * 0.2,
@@ -186,23 +182,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   circleButtonSelected: {
     borderColor: '#000000',
     borderWidth: 2,
   },
-
   icon: {
     width: width * 0.1,
     height: width * 0.1,
   },
-
   genderLabel: {
     marginTop: height * 0.01,
     fontSize: width * 0.04,
     color: '#000000',
   },
-
   input: {
     width: '80%',
     height: height * 0.07,
@@ -213,7 +205,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     top: '6%',
   },
-
   button: {
     backgroundColor: '#000000',
     paddingVertical: height * 0.02,
@@ -223,7 +214,6 @@ const styles = StyleSheet.create({
     height: '8%',
     top: '6%',
   },
-
   buttonText: {
     fontSize: width * 0.05,
     color: '#ffffff',

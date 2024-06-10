@@ -1,4 +1,5 @@
-import React from 'react';
+import {StackNavigationProp} from '@react-navigation/stack';
+import React, {useState} from 'react';
 import {
   Text,
   View,
@@ -7,25 +8,60 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import {RootStackParamList} from '../../../../../App';
+import {useNavigation} from '@react-navigation/native';
 
 const congratsImages = [
   require('../../assets/img/join/style_b/1.jpg'),
   require('../../assets/img/join/style_b/2.jpg'),
   require('../../assets/img/join/style_b/3.jpg'),
   require('../../assets/img/join/style_b/4.jpg'),
+  require('../../assets/img/join/style_b/3.jpg'),
+  require('../../assets/img/join/style_b/4.jpg'),
 ];
 
+type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
+
 export default function Style_G() {
-  const styleTexts = ['스트릿', '에슬레져', '미니멀', '테일러'];
+  const navigation = useNavigation<StyleGNavigationProp>();
+  const styleTexts = [
+    '스트릿',
+    '레트로',
+    '미니멀',
+    '빈티지',
+    '스타일1',
+    '스타일2',
+  ];
+
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+
+  // 이미지 클릭 시
+  const handleImagePress = (style: string) => {
+    setSelectedStyles(prevSelectedStyles => {
+      if (prevSelectedStyles.includes(style)) {
+        return prevSelectedStyles.filter(item => item !== style);
+      } else {
+        return [...prevSelectedStyles, style];
+      }
+    });
+  };
+
+  const isSelected = (style: string) => selectedStyles.includes(style);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.pageButtonContainer}>
-          {[1, 2, 3, 4].map(pageNumber => (
+          {[1, 2, 3, 4].map((pageNumber, index) => (
             <TouchableOpacity
               key={pageNumber}
               style={[styles.pageButton, styles.activeButton]}>
-              <View style={[styles.circle, styles.activeCircle]} />
+              <View
+                style={[
+                  styles.circle,
+                  index === 2 ? styles.blackCircle : styles.activeCircle,
+                ]}
+              />
             </TouchableOpacity>
           ))}
         </View>
@@ -53,14 +89,25 @@ export default function Style_G() {
         <Text style={styles.fitText2}>스타일</Text>
         <View style={styles.rectangleRow2}>
           {styleTexts.map((item, index) => (
-            <View key={item} style={styles.rectangleContainer2}>
+            <TouchableOpacity
+              key={item}
+              style={[
+                styles.rectangleContainer2,
+                isSelected(item) && styles.selectedContainer,
+              ]}
+              onPress={() => handleImagePress(item)}>
               <Image source={congratsImages[index]} style={styles.imageStyle} />
               <Text style={styles.rectangleText}>#{item}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity style={styles.longButton}>
-          <Text style={styles.longButtonText}>2개 이상 선택하기</Text>
+        <TouchableOpacity
+          style={styles.longButton}
+          onPress={() => {
+            console.log(`Selected styles: ${selectedStyles}`);
+            navigation.navigate('Congrats', {selectedStyles});
+          }}>
+          <Text style={styles.longButtonText}>4개 선택하기</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -77,7 +124,7 @@ const styles = StyleSheet.create({
   },
   pageButtonContainer: {
     position: 'relative',
-    top: '22%',
+    top: '7%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
     marginHorizontal: '8.5%',
@@ -89,10 +136,12 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#000',
   },
   activeCircle: {
     backgroundColor: '#D9D9D9',
+  },
+  blackCircle: {
+    backgroundColor: '#000',
   },
   activeButton: {
     backgroundColor: 'transparent',
@@ -103,7 +152,7 @@ const styles = StyleSheet.create({
   styleSelectionText: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '11%',
+    top: '5%',
     fontSize: 25,
     color: '#000',
     fontWeight: 'bold',
@@ -115,13 +164,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#878787',
     textAlign: 'left',
-    top: '12.5%',
+    top: '7%',
     bottom: '-2%',
   },
   fitText: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '15%',
+    top: '10%',
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
@@ -130,7 +179,7 @@ const styles = StyleSheet.create({
   fitText2: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '20%',
+    top: '15%',
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
@@ -139,13 +188,13 @@ const styles = StyleSheet.create({
   rectangleRow: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '39%',
+    top: '28%',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   rectangleContainer: {
     position: 'relative',
-    top: '2%',
+    top: '5%',
     width: '30%',
     height: 38,
     backgroundColor: '#FFFFFF',
@@ -165,7 +214,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginHorizontal: '5%',
-    marginTop: '50%',
+    marginTop: '44%',
   },
   rectangleContainer2: {
     position: 'relative',
@@ -178,20 +227,27 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: '5%',
     margin: '2%',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  selectedContainer: {
+    borderColor: '#D9D9D9',
+    borderWidth: 2,
   },
   rectangleText: {
     fontSize: 15,
     color: '#000',
     textAlign: 'right',
-    top: '5%',
+    top: '3%',
     right: '35%',
     fontWeight: 'bold',
+    marginBottom: '5%',
   },
   line: {
     position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    top: '18.5%',
+    top: '13%',
     width: '100%',
   },
   longButton: {
@@ -215,8 +271,5 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
     borderRadius: 10,
-  },
-  text: {
-    fontFamily: 'GmarketSansTTFMedium',
   },
 });

@@ -1,6 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, Text, TouchableOpacity, Image, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -10,6 +17,43 @@ type MypageNavigationProp = StackNavigationProp<RootStackParamList, 'Mypage'>;
 
 const Mypage = () => {
   const navigation = useNavigation<MypageNavigationProp>();
+
+  const handleLogout = () => {
+    Alert.alert(
+      '로그아웃',
+      '로그아웃 하시겠습니까?',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '확인',
+          onPress: () => console.log('Logout confirmed'),
+        },
+      ],
+      {cancelable: false},
+    );
+  };
+
+  const handleWithdrawal = () => {
+    Alert.alert(
+      '계정 삭제',
+      '정말 삭제하시겠습니까?',
+      [
+        {
+          text: '취소',
+          style: 'cancel',
+        },
+        {
+          text: '확인',
+          onPress: () => console.log('Withdrawal confirmed'),
+        },
+      ],
+      {cancelable: false},
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -50,7 +94,7 @@ const Mypage = () => {
           <Text
             style={styles.text}
             onPress={() => navigation.navigate('Purchase')}>
-            구매내역
+            주문내역
           </Text>
         </View>
 
@@ -94,21 +138,23 @@ const Mypage = () => {
         <View style={styles.line} />
 
         {/* 로그아웃 / 회원탈퇴 */}
-        <View style={[styles.section, {marginBottom: -20}]}>
+        <TouchableOpacity
+          style={[styles.section, {marginBottom: -20}]}
+          onPress={handleLogout}>
           <Image
             source={require('../../assets/img/mypage/logout.png')}
             style={styles.image}
           />
           <Text style={styles.logout}>로그아웃</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.section}>
+        <TouchableOpacity style={styles.section} onPress={handleWithdrawal}>
           <Image
             source={require('../../assets/img/mypage/leave.png')}
             style={styles.image}
           />
-          <Text style={styles.withdrawal}>회원탈퇴</Text>
-        </View>
+          <Text style={styles.withdrawal}>계정 삭제</Text>
+        </TouchableOpacity>
         <View style={styles.line} />
       </View>
       <View>

@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
+import React, {useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Dimensions,
+} from 'react-native';
+import {RootStackParamList} from '../../../../../App.tsx';
+
+type OrderProp = StackNavigationProp<RootStackParamList, 'Order'>;
 import CheckBox from '@react-native-community/checkbox';
 
 const screenWidth = Dimensions.get('window').width;
 
 const Order = () => {
+  const navigation = useNavigation<OrderProp>();
   const [isChecked, setIsChecked] = useState(true);
 
   // 각 상품의 수량을 별도로 관리
@@ -12,13 +27,19 @@ const Order = () => {
   const [quantity2, setQuantity2] = useState(1);
 
   // 수량 증가 함수
-  const increaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
+  const increaseQuantity = (
+    setQuantity: React.Dispatch<React.SetStateAction<number>>,
+  ) => {
     setQuantity((prevQuantity: number) => prevQuantity + 1);
   };
 
   // 수량 감소 함수
-  const decreaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
-    setQuantity((prevQuantity: number) => (prevQuantity > 1 ? prevQuantity - 1 : 1)); // 최소값 1
+  const decreaseQuantity = (
+    setQuantity: React.Dispatch<React.SetStateAction<number>>,
+  ) => {
+    setQuantity((prevQuantity: number) =>
+      prevQuantity > 1 ? prevQuantity - 1 : 1,
+    ); // 최소값 1
   };
 
   return (
@@ -29,7 +50,10 @@ const Order = () => {
         <TextInput style={styles.input} placeholder="" />
         <Text style={styles.sectionTitle2}>주소</Text>
         <View style={styles.inputWithButton}>
-          <TextInput style={styles.inputWithButtonField} placeholder="우편번호" />
+          <TextInput
+            style={styles.inputWithButtonField}
+            placeholder="우편번호"
+          />
           <TouchableOpacity style={styles.inputButton}>
             <Text style={styles.inputButtonText}>주소찾기</Text>
           </TouchableOpacity>
@@ -56,11 +80,15 @@ const Order = () => {
             <Text style={styles.itemQuantity}>수량 : {quantity1}</Text>
             <View style={styles.quantityAndPrice}>
               <View style={styles.quantityControl}>
-                <TouchableOpacity style={styles.quantityButton} onPress={() => decreaseQuantity(setQuantity1)}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => decreaseQuantity(setQuantity1)}>
                   <Text style={styles.quantityButtonText}>-</Text>
                 </TouchableOpacity>
                 <Text style={styles.itemQuantityText}>{quantity1}</Text>
-                <TouchableOpacity style={styles.quantityButton} onPress={() => increaseQuantity(setQuantity1)}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => increaseQuantity(setQuantity1)}>
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -88,11 +116,15 @@ const Order = () => {
             <Text style={styles.itemQuantity}>수량 : {quantity2}</Text>
             <View style={styles.quantityAndPrice}>
               <View style={styles.quantityControl}>
-                <TouchableOpacity style={styles.quantityButton} onPress={() => decreaseQuantity(setQuantity2)}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => decreaseQuantity(setQuantity2)}>
                   <Text style={styles.quantityButtonText}>-</Text>
                 </TouchableOpacity>
                 <Text style={styles.itemQuantityText}>{quantity2}</Text>
-                <TouchableOpacity style={styles.quantityButton} onPress={() => increaseQuantity(setQuantity2)}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => increaseQuantity(setQuantity2)}>
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -108,7 +140,9 @@ const Order = () => {
             <Text style={styles.tailorText}>수선해서 구매하기</Text>
             <CheckBox value={isChecked} onValueChange={setIsChecked} />
           </View>
-          <Text style={styles.tailorCost}>수선 비용 : 20,000원</Text>
+          {isChecked && (
+            <Text style={styles.tailorCost}>수선 비용 : 20,000원</Text>
+          )}
         </View>
       </View>
 
@@ -121,18 +155,25 @@ const Order = () => {
           <Text style={styles.totalLabel}>총 상품 금액</Text>
           <Text style={styles.totalValue}>438,000원</Text>
         </View>
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>총 예상 수선 금액</Text>
-          <Text style={styles.totalValue}>20,000원</Text>
-        </View>
+        {isChecked && (
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalLabel}>총 예상 수선 금액</Text>
+            <Text style={styles.totalValue}>20,000원</Text>
+          </View>
+        )}
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>배송비</Text>
           <Text style={styles.totalValue}>2,000원</Text>
         </View>
-        <TouchableOpacity style={styles.payButton}>
+        <TouchableOpacity
+          style={styles.payButton}
+          onPress={() => navigation.navigate('OrderComplete')}>
           <View style={styles.payButtonContent}>
             <View style={styles.payButtonImageContainer}>
-              <Image source={require('../../assets/img/main/payment.png')} style={styles.payButtonImage} />
+              <Image
+                source={require('../../assets/img/main/payment.png')}
+                style={styles.payButtonImage}
+              />
             </View>
             <Text style={styles.payButtonText}>결제하기</Text>
           </View>
@@ -229,7 +270,7 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 20,
-    color: '#000',  
+    color: '#000',
     fontWeight: 'bold',
     marginBottom: 5,
   },
