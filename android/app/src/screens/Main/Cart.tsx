@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../../App.tsx';
 
+const screenWidth = Dimensions.get('window').width;
+
 const Cart = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  // 각 아이템의 수량을 관리하기 위한 상태
+  const [quantity1, setQuantity1] = useState(1);
+  const [quantity2, setQuantity2] = useState(1);
+
+  // 수량 증가 함수
+  const increaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
+    setQuantity((prevQuantity: number) => prevQuantity + 1);
+  };
+
+  // 수량 감소 함수
+  const decreaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
+    setQuantity((prevQuantity: number) => (prevQuantity > 1 ? prevQuantity - 1 : 1)); // 최소값 1
+  };
 
   return (
     <View style={styles.container}>
@@ -20,14 +36,14 @@ const Cart = () => {
             <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
             <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
             <Text style={styles.itemSize}>Size : M</Text>
-            <Text style={styles.itemQuantity}>수량 : 1</Text>
+            <Text style={styles.itemQuantity}>수량 : {quantity1}</Text>
             <View style={styles.quantityAndPrice}>
               <View style={styles.quantityControl}>
-                <TouchableOpacity style={styles.quantityButton}>
+                <TouchableOpacity style={styles.quantityButton} onPress={() => decreaseQuantity(setQuantity1)}>
                   <Text style={styles.quantityButtonText}>-</Text>
                 </TouchableOpacity>
-                <Text style={styles.itemQuantityText}>1</Text>
-                <TouchableOpacity style={styles.quantityButton}>
+                <Text style={styles.itemQuantityText}>{quantity1}</Text>
+                <TouchableOpacity style={styles.quantityButton} onPress={() => increaseQuantity(setQuantity1)}>
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -51,14 +67,14 @@ const Cart = () => {
               <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
               <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
               <Text style={styles.itemSize}>Size : M</Text>
-              <Text style={styles.itemQuantity}>수량 : 1</Text>
+              <Text style={styles.itemQuantity}>수량 : {quantity2}</Text>
               <View style={styles.quantityAndPrice}>
                 <View style={styles.quantityControl}>
-                  <TouchableOpacity style={styles.quantityButton}>
+                  <TouchableOpacity style={styles.quantityButton} onPress={() => decreaseQuantity(setQuantity2)}>
                     <Text style={styles.quantityButtonText}>-</Text>
                   </TouchableOpacity>
-                  <Text style={styles.itemQuantityText}>1</Text>
-                  <TouchableOpacity style={styles.quantityButton}>
+                  <Text style={styles.itemQuantityText}>{quantity2}</Text>
+                  <TouchableOpacity style={styles.quantityButton} onPress={() => increaseQuantity(setQuantity2)}>
                     <Text style={styles.quantityButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
@@ -84,8 +100,6 @@ const Cart = () => {
     </View>
   );
 };
-
-const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
   container: {
