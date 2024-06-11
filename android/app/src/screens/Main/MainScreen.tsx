@@ -105,7 +105,7 @@ const Main: React.FC = () => {
 
   const products = [
     {
-      title: '폴로 랄프2',
+      title: '폴로 랄프',
       description: '데님 셔츠',
       price: '219.000₩',
       image: require('../../assets/img/main/top/top1.png'),

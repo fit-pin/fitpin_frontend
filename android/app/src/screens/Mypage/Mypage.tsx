@@ -86,7 +86,7 @@ const Mypage = () => {
         <View style={styles.line} />
 
         {/* 구매내역 / 체형재측정 */}
-        <View style={[styles.section, {marginBottom: -20}]}>
+        <View style={[styles.section, {marginBottom: -30}]}>
           <Image
             source={require('../../assets/img/mypage/buy.png')}
             style={styles.image}
@@ -112,7 +112,7 @@ const Mypage = () => {
         <View style={styles.line} />
 
         {/* 핏보관함 / 내가 작성한 핏 코멘트 */}
-        <View style={[styles.section, {marginBottom: -20}]}>
+        <View style={[styles.section, {marginBottom: -30}]}>
           <Image
             source={require('../../assets/img/mypage/fitbox.png')}
             style={styles.image}
@@ -137,9 +137,9 @@ const Mypage = () => {
         </View>
         <View style={styles.line} />
 
-        {/* 로그아웃 / 회원탈퇴 */}
+        {/* 로그아웃 / 계정 삭제 */}
         <TouchableOpacity
-          style={[styles.section, {marginBottom: -20}]}
+          style={[styles.section, {marginBottom: -30}]}
           onPress={handleLogout}>
           <Image
             source={require('../../assets/img/mypage/logout.png')}

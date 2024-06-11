@@ -22,7 +22,7 @@ const congratsImages = [
 
 type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
 
-export default function Style_G() {
+export default function Style_B() {
   const navigation = useNavigation<StyleGNavigationProp>();
   const styleTexts = [
     '스트릿',
@@ -32,10 +32,8 @@ export default function Style_G() {
     '스타일1',
     '스타일2',
   ];
-
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
 
-  // 이미지 클릭 시
   const handleImagePress = (style: string) => {
     setSelectedStyles(prevSelectedStyles => {
       if (prevSelectedStyles.includes(style)) {
@@ -188,7 +186,7 @@ const styles = StyleSheet.create({
   rectangleRow: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '28%',
+    top: '32%',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -208,13 +206,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     textAlign: 'center',
+    top: '-6%',
   },
   rectangleRow2: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginHorizontal: '5%',
-    marginTop: '44%',
+    marginTop: '50%',
   },
   rectangleContainer2: {
     position: 'relative',
@@ -258,7 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '15%',
+    marginTop: '18%',
     bottom: '4.5%',
   },
   longButtonText: {
