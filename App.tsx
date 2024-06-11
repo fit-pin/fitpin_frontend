@@ -15,6 +15,7 @@ import Main from './android/app/src/screens/Main/MainScreen';
 import ProductPage from './android/app/src/screens/Main/ProductPage';
 import Cart from './android/app/src/screens/Main/Cart';
 import Order from './android/app/src/screens/Main/Order';
+import OrderComplete from './android/app/src/screens/Main/OrderComplete';
 import Camera from './android/app/src/screens/Main/Camera';
 import Size from './android/app/src/screens/Main/Size';
 import Search from './android/app/src/screens/Search/Search';
@@ -27,7 +28,6 @@ import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 
-
 export type RootStackParamList = {
   Splash: undefined;
   Start: undefined;
@@ -35,14 +35,15 @@ export type RootStackParamList = {
   Signin: undefined;
   Login: undefined;
   BasicInformation: undefined;
-  Body_photo: undefined;
+  Body_photo: {gender: 'female' | 'male' | null};
   Style_G: undefined;
   Style_B: undefined;
-  Congrats: undefined;
+  Congrats: {selectedStyles: string[]};
   Main: undefined;
   ProductPage: undefined;
   Cart: undefined;
   Order: undefined;
+  OrderComplete: undefined;
   Camera: undefined;
   Size: undefined;
   Search: undefined;
@@ -126,12 +127,27 @@ const App = () => {
         <Stack.Screen
           name="Cart"
           component={Cart}
-          options={{headerTitle: '장바구니'}}
+          options={{
+            headerTitle: '장바구니',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
         />
         <Stack.Screen
           name="Order"
           component={Order}
-          options={{headerTitle: '주문 / 결제'}}
+          options={{
+            headerTitle: '주문 / 결제',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
+        />
+        <Stack.Screen
+          name="OrderComplete"
+          component={OrderComplete}
+          options={{headerTitle: ''}}
         />
         <Stack.Screen
           name="Camera"
@@ -171,22 +187,42 @@ const App = () => {
         <Stack.Screen
           name="Purchase"
           component={Purchase}
-          options={{headerTitle: '구매내역'}}
+          options={{
+            headerTitle: '주문내역',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
         />
         <Stack.Screen
           name="Remeasure"
           component={Remeasure}
-          options={{headerTitle: '체형 재측정'}}
+          options={{
+            headerTitle: '체형 재측정',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
         />
         <Stack.Screen
           name="Fit_box"
           component={Fit_box}
-          options={{headerTitle: '핏 보관함'}}
+          options={{
+            headerTitle: '핏 보관함',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
         />
         <Stack.Screen
           name="WriteComment"
           component={WriteComment}
-          options={{headerTitle: '내가 작성한 핏 코멘트'}}
+          options={{
+            headerTitle: '내가 작성한 핏 코멘트',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

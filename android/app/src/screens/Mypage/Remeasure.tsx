@@ -1,10 +1,20 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, SafeAreaView, View, Image } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  View,
+  Image,
+} from 'react-native';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
-type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Remeasure'>;
+type MainScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Remeasure'
+>;
 
 const Remeasure = () => {
   const navigation = useNavigation<MainScreenNavigationProp>();
@@ -14,8 +24,9 @@ const Remeasure = () => {
       <Text style={styles.secondLine}>당신에게 맞는 핏을 추천해드립니다.</Text>
       <Text style={styles.thirdLine}>체형 사진 업로드</Text>
       <View style={styles.imageContainer}>
-        <TouchableOpacity style={styles.rectangleContainer}
-        onPress={() => navigation.navigate('Camera')}>
+        <TouchableOpacity
+          style={styles.rectangleContainer}
+          onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Image
               source={require('../../assets/img/write/camera.png')}
@@ -27,8 +38,9 @@ const Remeasure = () => {
             />
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleContainer}
-        onPress={() => navigation.navigate('Camera')}>
+        <TouchableOpacity
+          style={styles.rectangleContainer}
+          onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Image
               source={require('../../assets/img/write/camera.png')}
@@ -46,7 +58,7 @@ const Remeasure = () => {
       </TouchableOpacity>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -115,7 +127,7 @@ const styles = StyleSheet.create({
     marginHorizontal: '10%',
   },
   rectangleContainer: {
-    width: '45%',
+    width: '48%',
     height: '55%',
     marginHorizontal: '2.5%',
     backgroundColor: '#F0F0F0',

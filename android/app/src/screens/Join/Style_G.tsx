@@ -1,5 +1,5 @@
 import {StackNavigationProp} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {
   Text,
   View,
@@ -16,13 +16,36 @@ const congratsImages = [
   require('../../assets/img/join/style_g/2.png'),
   require('../../assets/img/join/style_g/3.png'),
   require('../../assets/img/join/style_g/4.png'),
+  require('../../assets/img/join/style_g/3.png'),
+  require('../../assets/img/join/style_g/4.png'),
 ];
 
 type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
 
 export default function Style_G() {
   const navigation = useNavigation<StyleGNavigationProp>();
-  const styleTexts = ['스트릿', '레트로', '미니멀', '빈티지'];
+  const styleTexts = [
+    '스트릿',
+    '레트로',
+    '미니멀',
+    '빈티지',
+    '스타일1',
+    '스타일2',
+  ];
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+
+  const handleImagePress = (style: string) => {
+    setSelectedStyles(prevSelectedStyles => {
+      if (prevSelectedStyles.includes(style)) {
+        return prevSelectedStyles.filter(item => item !== style);
+      } else {
+        return [...prevSelectedStyles, style];
+      }
+    });
+  };
+
+  const isSelected = (style: string) => selectedStyles.includes(style);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -64,16 +87,25 @@ export default function Style_G() {
         <Text style={styles.fitText2}>스타일</Text>
         <View style={styles.rectangleRow2}>
           {styleTexts.map((item, index) => (
-            <View key={item} style={styles.rectangleContainer2}>
+            <TouchableOpacity
+              key={item}
+              style={[
+                styles.rectangleContainer2,
+                isSelected(item) && styles.selectedContainer,
+              ]}
+              onPress={() => handleImagePress(item)}>
               <Image source={congratsImages[index]} style={styles.imageStyle} />
               <Text style={styles.rectangleText}>#{item}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
         <TouchableOpacity
           style={styles.longButton}
-          onPress={() => navigation.navigate('Congrats')}>
-          <Text style={styles.longButtonText}>2개 이상 선택하기</Text>
+          onPress={() => {
+            console.log(`Selected styles: ${selectedStyles}`);
+            navigation.navigate('Congrats', {selectedStyles});
+          }}>
+          <Text style={styles.longButtonText}>4개 선택하기</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -145,7 +177,7 @@ const styles = StyleSheet.create({
   fitText2: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '17%',
+    top: '15%',
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
@@ -154,13 +186,13 @@ const styles = StyleSheet.create({
   rectangleRow: {
     position: 'relative',
     marginHorizontal: '10%',
-    top: '28%',
+    top: '32%',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   rectangleContainer: {
     position: 'relative',
-    top: '2%',
+    top: '5%',
     width: '30%',
     height: 38,
     backgroundColor: '#FFFFFF',
@@ -174,13 +206,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     textAlign: 'center',
+    top: '-6%',
   },
   rectangleRow2: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginHorizontal: '5%',
-    marginTop: '44%',
+    marginTop: '50%',
   },
   rectangleContainer2: {
     position: 'relative',
@@ -193,31 +226,38 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: '5%',
     margin: '2%',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  selectedContainer: {
+    borderColor: '#D9D9D9',
+    borderWidth: 2,
   },
   rectangleText: {
     fontSize: 15,
     color: '#000',
     textAlign: 'right',
-    top: '5%',
+    top: '3%',
     right: '35%',
     fontWeight: 'bold',
+    marginBottom: '5%',
   },
   line: {
     position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    top: '15%',
+    top: '13%',
     width: '100%',
   },
   longButton: {
     marginHorizontal: '8%',
     backgroundColor: '#000',
     width: '85%',
-    height: '5.5%',
+    height: '5%',
     borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '15%',
+    marginTop: '18%',
     bottom: '4.5%',
   },
   longButtonText: {
