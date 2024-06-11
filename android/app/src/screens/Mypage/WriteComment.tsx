@@ -54,7 +54,7 @@ const WriteComment = () => {
         </View>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/img/main/street.png')}
+            source={require('../../assets/img/main/style/street.png')}
             style={styles.image}
           />
         </View>
@@ -70,7 +70,7 @@ const WriteComment = () => {
         </View>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/img/main/vintage.png')}
+            source={require('../../assets/img/main/style/vintage.png')}
             style={styles.image}
           />
         </View>

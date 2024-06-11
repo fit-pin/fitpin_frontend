@@ -20,22 +20,47 @@ const sections: string[] = ['상의', '하의', '아우터', '원피스'];
 const boxes: {text: string; image: any; recommended: boolean}[] = [
   {
     text: '스트릿 \nStreet',
-    image: require('../../assets/img/main/street.png'),
+    image: require('../../assets/img/main/style/street.png'),
     recommended: true,
   },
   {
     text: '캐주얼 \nCasual',
-    image: require('../../assets/img/main/casual.png'),
-    recommended: false,
-  },
-  {
-    text: '미니멀 \nMinimal',
-    image: require('../../assets/img/main/minimal.png'),
+    image: require('../../assets/img/main/style/casual.png'),
     recommended: false,
   },
   {
     text: '빈티지 \nVintage',
-    image: require('../../assets/img/main/vintage.png'),
+    image: require('../../assets/img/main/style/vintage.png'),
+    recommended: false,
+  },
+  {
+    text: '레트로 \nRetro',
+    image: require('../../assets/img/main/style/retro.png'),
+    recommended: false,
+  },
+  {
+    text: '프레피 \nPreppy',
+    image: require('../../assets/img/main/style/preppy.png'),
+    recommended: false,
+  },
+  {
+    text: '페미닌 \nFeminine',
+    image: require('../../assets/img/main/style/feminine.png'),
+    recommended: false,
+  },
+  {
+    text: '에슬레저 \nAthleisure',
+    image: require('../../assets/img/main/style/athleisure.png'),
+    recommended: false,
+  },
+  {
+    text: '테일러 \nTailor',
+    image: require('../../assets/img/main/style/tailor.png'),
+    recommended: false,
+  },
+  {
+    text: '아메카지 \nAmekaji',
+    image: require('../../assets/img/main/style/amekaji.png'),
     recommended: false,
   },
 ];
@@ -200,7 +225,7 @@ const Main: React.FC = () => {
           000님의 체형과 취향 모두를 만족하는 옷이에요
         </Text>
         <View style={styles.sections}>
-          {boxes.map((box, index) => (
+          {boxes.slice(0, 4).map((box, index) => (
             <View key={index} style={styles.roundedBox}>
               {box.recommended && <BlinkingText>추천</BlinkingText>}
               <View style={styles.boxContent}>
@@ -418,4 +443,5 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
 export default Main;
