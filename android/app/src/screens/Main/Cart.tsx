@@ -8,9 +8,10 @@ const screenWidth = Dimensions.get('window').width;
 const Cart = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  // 각 아이템의 수량을 관리하기 위한 상태
+  // 각 아이템의 수량과 가격을 관리하기 위한 상태
   const [quantity1, setQuantity1] = useState(1);
   const [quantity2, setQuantity2] = useState(1);
+  const unitPrice = 219000; // 개당 가격
 
   // 수량 증가 함수
   const increaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
@@ -21,6 +22,9 @@ const Cart = () => {
   const decreaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
     setQuantity((prevQuantity: number) => (prevQuantity > 1 ? prevQuantity - 1 : 1)); // 최소값 1
   };
+
+  // 총 가격 계산
+  const totalPrice = unitPrice * (quantity1 + quantity2);
 
   return (
     <View style={styles.container}>
@@ -47,7 +51,7 @@ const Cart = () => {
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.itemPrice}>219,000원</Text>
+              <Text style={styles.itemPrice}>{(unitPrice * quantity1).toLocaleString()}원</Text>
             </View>
           </View>
         </View>
@@ -78,7 +82,7 @@ const Cart = () => {
                     <Text style={styles.quantityButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.itemPrice}>219,000원</Text>
+                <Text style={styles.itemPrice}>{(unitPrice * quantity2).toLocaleString()}원</Text>
               </View>
             </View>
           </View>
@@ -91,7 +95,7 @@ const Cart = () => {
       <View style={styles.footer}>
         <View style={styles.footerTextContainer}>
           <Text style={styles.footerText}>예상 결제 금액</Text>
-          <Text style={styles.footerPrice}>458,000원</Text>
+          <Text style={styles.footerPrice}>{totalPrice.toLocaleString()}원</Text>
         </View>
         <TouchableOpacity style={styles.orderButton} onPress={() => navigation.navigate('Order')}>
           <Text style={styles.orderButtonText}>주문하기</Text>

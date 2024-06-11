@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, Image, Dimensions, ScrollView } from 'react-native';
 
 const FitBox = () => {
   const images = [
@@ -10,7 +10,7 @@ const FitBox = () => {
   ];
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.contentContainer}>
       <View style={styles.row}>
         {images.slice(0, 2).map((image, index) => (
           <Image key={index} source={image} style={styles.image} />
@@ -21,16 +21,18 @@ const FitBox = () => {
           <Image key={index} source={image} style={styles.image} />
         ))}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const screenWidth = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
-  container: {
+  scrollContainer: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  contentContainer: {
     padding: 10,
   },
   row: {

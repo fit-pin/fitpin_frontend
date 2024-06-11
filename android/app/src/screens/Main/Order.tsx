@@ -4,12 +4,21 @@ import CheckBox from '@react-native-community/checkbox';
 
 const screenWidth = Dimensions.get('window').width;
 
+// 금액 포맷 함수
+const formatPrice = (price: number) => {
+  return price.toLocaleString('ko-KR') + '원';
+};
+
 const Order = () => {
   const [isChecked, setIsChecked] = useState(true);
 
   // 각 상품의 수량을 별도로 관리
   const [quantity1, setQuantity1] = useState(1);
   const [quantity2, setQuantity2] = useState(1);
+
+  // 각 상품의 단가
+  const price1 = 219000;
+  const price2 = 219000;
 
   // 수량 증가 함수
   const increaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
@@ -20,6 +29,10 @@ const Order = () => {
   const decreaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
     setQuantity((prevQuantity: number) => (prevQuantity > 1 ? prevQuantity - 1 : 1)); // 최소값 1
   };
+
+  // 총 금액 계산
+  const totalPrice = (quantity1 * price1) + (quantity2 * price2);
+  const formattedTotalPrice = formatPrice(totalPrice);
 
   return (
     <ScrollView style={styles.container}>
@@ -64,7 +77,7 @@ const Order = () => {
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.itemPrice}>219,000원</Text>
+              <Text style={styles.itemPrice}>{formatPrice(quantity1 * price1)}</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.removeButton}>
@@ -96,7 +109,7 @@ const Order = () => {
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.itemPrice}>219,000원</Text>
+              <Text style={styles.itemPrice}>{formatPrice(quantity2 * price2)}</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.removeButton}>
@@ -115,11 +128,11 @@ const Order = () => {
       <View style={styles.section}>
         <View style={styles.totalAmountContainer}>
           <Text style={styles.totalAmountLabel}>총 결제 금액</Text>
-          <Text style={styles.totalAmountValue}>460,000원</Text>
+          <Text style={styles.totalAmountValue}>{formattedTotalPrice}</Text>
         </View>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>총 상품 금액</Text>
-          <Text style={styles.totalValue}>438,000원</Text>
+          <Text style={styles.totalValue}>{formattedTotalPrice}</Text>
         </View>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>총 예상 수선 금액</Text>
