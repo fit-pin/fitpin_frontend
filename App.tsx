@@ -39,7 +39,7 @@ export type RootStackParamList = {
   Style_G: undefined;
   Style_B: undefined;
   Congrats: {selectedStyles: string[]};
-  Main: {selectedStyles: string[]};
+  Main: undefined;
   ProductPage: undefined;
   Cart: undefined;
   Order: undefined;

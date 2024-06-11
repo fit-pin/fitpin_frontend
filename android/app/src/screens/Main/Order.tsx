@@ -10,6 +10,14 @@ import {
   Dimensions,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
+import {RootStackParamList} from '../../../../../App';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+
+type OrderNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'BasicInformation'
+>;
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -19,6 +27,7 @@ const formatPrice = (price: number) => {
 };
 
 const Order = () => {
+  const navigation = useNavigation<OrderNavigationProp>();
   const [isChecked, setIsChecked] = useState(true);
 
   // 각 상품의 수량을 별도로 관리
@@ -185,7 +194,10 @@ const Order = () => {
                 style={styles.payButtonImage}
               />
             </View>
-            <Text style={styles.payButtonText}>결제하기</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('OrderComplete')}>
+              <Text style={styles.payButtonText}>결제하기</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </View>
@@ -330,7 +342,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   itemPrice: {
-    fontSize: 20,
+    fontSize: 17,
     color: '#000',
     fontWeight: 'bold',
     marginLeft: 25,
