@@ -7,17 +7,14 @@ import {
   View,
   Image,
 } from 'react-native';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App.tsx';
 
 type CongratsNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
-type CongratsRouteProp = RouteProp<RootStackParamList, 'Congrats'>;
 
 export default function Congrats() {
   const navigation = useNavigation<CongratsNavigationProp>();
-  const route = useRoute<CongratsRouteProp>();
-  const {selectedStyles} = route.params;
 
   const congratsImage = require('../../assets/img/join/congrats.png');
 
@@ -46,7 +43,7 @@ export default function Congrats() {
       <Text style={styles.additionalText}>당신의 핏을 찾아보세요</Text>
       <TouchableOpacity
         style={styles.longButton}
-        onPress={() => navigation.navigate('Main', {selectedStyles})}>
+        onPress={() => navigation.navigate('Main')}>
         <Text style={styles.longButtonText}>시작하기</Text>
       </TouchableOpacity>
     </SafeAreaView>
