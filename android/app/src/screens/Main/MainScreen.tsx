@@ -105,8 +105,8 @@ const Main: React.FC = () => {
 
   const products = [
     {
-      title: '폴로 랄프 로렌',
-      description: '데님 셔츠 - 블루',
+      title: '폴로 랄프',
+      description: '데님 셔츠',
       price: '219.000₩',
       image: require('../../assets/img/main/top/top1.png'),
     },
@@ -117,14 +117,14 @@ const Main: React.FC = () => {
       image: require('../../assets/img/main/top/top2.png'),
     },
     {
-      title: '폴로 랄프 로렌3',
-      description: '데님 셔츠 - 블루3',
+      title: '폴로 랄프',
+      description: '데님 셔츠',
       price: '419.000₩',
       image: require('../../assets/img/main/top/top2.png'),
     },
     {
-      title: '폴로 랄프 로렌4',
-      description: '데님 셔츠 - 블루4',
+      title: '폴로 랄프',
+      description: '데님 셔츠',
       price: '519.000₩',
       image: require('../../assets/img/main/top/top2.png'),
     },
@@ -343,6 +343,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: '5%',
     paddingHorizontal: '4%',
+    marginBottom: '10%',
   },
   productCardContainer: {
     width: '48%',

@@ -14,6 +14,7 @@ import {
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
+import path from 'path';
 import {ArRequest} from '../../utills/Request';
 import {AR_URL} from '../../Constant';
 
@@ -104,8 +105,7 @@ const Camera = () => {
       } as FormDataValue);
       formData.append('personKey', '174');
 
-      const url = `${AR_URL}/bodymea`;
-      ArRequest(url, formData)
+      ArRequest(path.join(AR_URL, 'bodymea'), formData)
         .then(async res => {
           console.log(await res.json());
           // TODO: 여기에서 측정값 DB 에 넘기는거 해야함
