@@ -17,6 +17,8 @@ import Cart from './android/app/src/screens/Main/Cart';
 import Order from './android/app/src/screens/Main/Order';
 import OrderComplete from './android/app/src/screens/Main/OrderComplete';
 import Camera from './android/app/src/screens/Main/Camera';
+import CameraBodyPhoto from './android/app/src/screens/Main/CameraBodyPhoto';
+import CameraRemeasure from './android/app/src/screens/Main/CameraRemeasure';
 import Size from './android/app/src/screens/Main/Size';
 import Search from './android/app/src/screens/Search/Search';
 import Comment from './android/app/src/screens/Comment/Comment';
@@ -45,6 +47,8 @@ export type RootStackParamList = {
   Order: undefined;
   OrderComplete: undefined;
   Camera: undefined;
+  CameraBodyPhoto: undefined;
+  CameraRemeasure: undefined;
   Size: undefined;
   Search: undefined;
   Comment: undefined;
@@ -152,6 +156,16 @@ const App = () => {
         <Stack.Screen
           name="Camera"
           component={Camera}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen 
+          name = "CameraBodyPhoto"
+          component={CameraBodyPhoto}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen 
+          name = "CameraRemeasure"
+          component={CameraRemeasure}
           options={{headerShown: false}}
         />
         <Stack.Screen

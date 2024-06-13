@@ -26,7 +26,7 @@ const Remeasure = () => {
       <View style={styles.imageContainer}>
         <TouchableOpacity
           style={styles.rectangleContainer}
-          onPress={() => navigation.navigate('Camera')}>
+          onPress={() => navigation.navigate('CameraRemeasure')}>
           <View style={styles.plusButton}>
             <Image
               source={require('../../assets/img/write/camera.png')}
@@ -40,7 +40,7 @@ const Remeasure = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.rectangleContainer}
-          onPress={() => navigation.navigate('Camera')}>
+          onPress={() => navigation.navigate('CameraRemeasure')}>
           <View style={styles.plusButton}>
             <Image
               source={require('../../assets/img/write/camera.png')}

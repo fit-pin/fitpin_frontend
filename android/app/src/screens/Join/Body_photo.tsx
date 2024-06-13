@@ -42,13 +42,13 @@ export default function Body_photo() {
       <Text style={styles.thirdLine}>체형 사진</Text>
       <View style={styles.imageContainer}>
         <TouchableOpacity style={styles.rectangleContainer}
-        onPress={() => navigation.navigate('Camera')}>
+        onPress={() => navigation.navigate('CameraBodyPhoto')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.rectangleContainer}
-        onPress={() => navigation.navigate('Camera')}>
+        onPress={() => navigation.navigate('CameraBodyPhoto')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
