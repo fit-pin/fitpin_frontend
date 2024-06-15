@@ -24,6 +24,7 @@ import CommentReview from './android/app/src/screens/Comment/CommentReview';
 import WritePage from './android/app/src/screens/Comment/WritePage';
 import Mypage from './android/app/src/screens/Mypage/Mypage';
 import Purchase from './android/app/src/screens/Mypage/Purchase';
+import My_Fit from './android/app/src/screens/Mypage/My_Fit';
 import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
@@ -52,6 +53,7 @@ export type RootStackParamList = {
   WritePage: undefined;
   Mypage: undefined;
   Purchase: undefined;
+  My_Fit: undefined;
   Remeasure: undefined;
   Fit_box: undefined;
   WriteComment: undefined;
@@ -189,6 +191,16 @@ const App = () => {
           component={Purchase}
           options={{
             headerTitle: '주문내역',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
+        />
+        <Stack.Screen
+          name="My_Fit"
+          component={My_Fit}
+          options={{
+            headerTitle: '내 체형 정보',
             headerTitleStyle: {
               fontWeight: 'bold',
             },
