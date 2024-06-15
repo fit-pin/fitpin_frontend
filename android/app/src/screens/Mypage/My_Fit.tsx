@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   measurementLabel: {
     fontSize: 20,
-    marginBottom: 40,
+    marginBottom: 33,
     color: '#000',
   },
   userfitValue: {
