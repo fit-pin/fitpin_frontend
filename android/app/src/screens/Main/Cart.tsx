@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../../App.tsx';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {RootStackParamList} from '../../../../../App.tsx';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -14,13 +23,18 @@ const Cart = () => {
   const unitPrice = 219000; // 개당 가격
 
   // 수량 증가 함수
+  // eslint-disable-next-line prettier/prettier
   const increaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
     setQuantity((prevQuantity: number) => prevQuantity + 1);
   };
 
   // 수량 감소 함수
-  const decreaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
-    setQuantity((prevQuantity: number) => (prevQuantity > 1 ? prevQuantity - 1 : 1)); // 최소값 1
+  const decreaseQuantity = (
+    setQuantity: React.Dispatch<React.SetStateAction<number>>,
+  ) => {
+    setQuantity((prevQuantity: number) =>
+      prevQuantity > 1 ? prevQuantity - 1 : 1,
+    ); // 최소값 1
   };
 
   // 총 가격 계산
@@ -43,15 +57,21 @@ const Cart = () => {
             <Text style={styles.itemQuantity}>수량 : {quantity1}</Text>
             <View style={styles.quantityAndPrice}>
               <View style={styles.quantityControl}>
-                <TouchableOpacity style={styles.quantityButton} onPress={() => decreaseQuantity(setQuantity1)}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => decreaseQuantity(setQuantity1)}>
                   <Text style={styles.quantityButtonText}>-</Text>
                 </TouchableOpacity>
                 <Text style={styles.itemQuantityText}>{quantity1}</Text>
-                <TouchableOpacity style={styles.quantityButton} onPress={() => increaseQuantity(setQuantity1)}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => increaseQuantity(setQuantity1)}>
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.itemPrice}>{(unitPrice * quantity1).toLocaleString()}원</Text>
+              <Text style={styles.itemPrice}>
+                {(unitPrice * quantity1).toLocaleString()}원
+              </Text>
             </View>
           </View>
         </View>
@@ -60,7 +80,7 @@ const Cart = () => {
           <View style={styles.textContainer}>
             <Text style={styles.sectionTitle}>수선 ver</Text>
           </View>
-          <View style={[styles.item, { borderBottomWidth: 0 }]}>
+          <View style={[styles.item, {borderBottomWidth: 0}]}>
             <View style={styles.imageContainer}>
               <Image
                 source={require('../../assets/img/main/top/top1.png')}
@@ -74,15 +94,21 @@ const Cart = () => {
               <Text style={styles.itemQuantity}>수량 : {quantity2}</Text>
               <View style={styles.quantityAndPrice}>
                 <View style={styles.quantityControl}>
-                  <TouchableOpacity style={styles.quantityButton} onPress={() => decreaseQuantity(setQuantity2)}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => decreaseQuantity(setQuantity2)}>
                     <Text style={styles.quantityButtonText}>-</Text>
                   </TouchableOpacity>
                   <Text style={styles.itemQuantityText}>{quantity2}</Text>
-                  <TouchableOpacity style={styles.quantityButton} onPress={() => increaseQuantity(setQuantity2)}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => increaseQuantity(setQuantity2)}>
                     <Text style={styles.quantityButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.itemPrice}>{(unitPrice * quantity2).toLocaleString()}원</Text>
+                <Text style={styles.itemPrice}>
+                  {(unitPrice * quantity2).toLocaleString()}원
+                </Text>
               </View>
             </View>
           </View>
@@ -95,9 +121,13 @@ const Cart = () => {
       <View style={styles.footer}>
         <View style={styles.footerTextContainer}>
           <Text style={styles.footerText}>예상 결제 금액</Text>
-          <Text style={styles.footerPrice}>{totalPrice.toLocaleString()}원</Text>
+          <Text style={styles.footerPrice}>
+            {totalPrice.toLocaleString()}원
+          </Text>
         </View>
-        <TouchableOpacity style={styles.orderButton} onPress={() => navigation.navigate('Order')}>
+        <TouchableOpacity
+          style={styles.orderButton}
+          onPress={() => navigation.navigate('Order')}>
           <Text style={styles.orderButtonText}>주문하기</Text>
         </TouchableOpacity>
       </View>

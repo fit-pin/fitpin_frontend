@@ -1,5 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, Dimensions, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
 
 const WriteComment = () => {
   return (
@@ -9,7 +16,8 @@ const WriteComment = () => {
           <Text style={styles.title}>폴로 랄프 로렌 - 데님셔츠</Text>
           <Text style={styles.size}>M</Text>
           <Text style={styles.comment}>
-            제가 산 사이즈는 M이고 평소에는 L을 입는데 이 옷은 M사이즈도 크게 느껴졌다
+            제가 산 사이즈는 M이고 평소에는 L을 입는데 이 옷은 M사이즈도 크게
+            느껴졌다
           </Text>
         </View>
         <View style={styles.imageContainer}>
@@ -46,7 +54,7 @@ const WriteComment = () => {
         </View>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/img/main/street.png')}
+            source={require('../../assets/img/main/style/street.png')}
             style={styles.image}
           />
         </View>
@@ -62,7 +70,7 @@ const WriteComment = () => {
         </View>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/img/main/vintage.png')}
+            source={require('../../assets/img/main/style/vintage.png')}
             style={styles.image}
           />
         </View>
@@ -113,7 +121,7 @@ const styles = StyleSheet.create({
     color: '#767676',
   },
   imageContainer: {
-    width: screenWidth * 0.22,  
+    width: screenWidth * 0.22,
     height: screenWidth * 0.22,
     backgroundColor: '#f4f4f4',
     justifyContent: 'center',

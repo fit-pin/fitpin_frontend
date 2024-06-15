@@ -7,30 +7,31 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import {RootStackParamList} from '../../../../../App';
 import {useNavigation} from '@react-navigation/native';
 
 const congratsImages = [
   require('../../assets/img/join/style_b/1.jpg'),
-  require('../../assets/img/join/style_b/2.jpg'),
+  require('../../assets/img/join/style_b/2.png'),
   require('../../assets/img/join/style_b/3.jpg'),
   require('../../assets/img/join/style_b/4.jpg'),
-  require('../../assets/img/join/style_b/3.jpg'),
-  require('../../assets/img/join/style_b/4.jpg'),
+  require('../../assets/img/join/style_b/5.png'),
+  require('../../assets/img/join/style_b/6.jpg'),
 ];
 
 type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
 
-export default function Style_B() {
+export default function Style_G() {
   const navigation = useNavigation<StyleGNavigationProp>();
   const styleTexts = [
     '스트릿',
-    '레트로',
-    '미니멀',
     '빈티지',
-    '스타일1',
-    '스타일2',
+    '캐주얼',
+    '테일러',
+    '아메카지',
+    '에슬레저',
   ];
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
 
@@ -45,6 +46,15 @@ export default function Style_B() {
   };
 
   const isSelected = (style: string) => selectedStyles.includes(style);
+
+  const handleButtonPress = () => {
+    if (selectedStyles.length === 4) {
+      console.log(`Selected styles: ${selectedStyles}`);
+      navigation.navigate('Congrats', {selectedStyles});
+    } else {
+      Alert.alert('선택 오류', '4개의 스타일을 선택해주세요.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -96,15 +106,10 @@ export default function Style_B() {
               onPress={() => handleImagePress(item)}>
               <Image source={congratsImages[index]} style={styles.imageStyle} />
               <Text style={styles.rectangleText}>#{item}</Text>
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
-        <TouchableOpacity
-          style={styles.longButton}
-          onPress={() => {
-            console.log(`Selected styles: ${selectedStyles}`);
-            navigation.navigate('Congrats', {selectedStyles});
-          }}>
+        <TouchableOpacity style={styles.longButton} onPress={handleButtonPress}>
           <Text style={styles.longButtonText}>4개 선택하기</Text>
         </TouchableOpacity>
       </ScrollView>

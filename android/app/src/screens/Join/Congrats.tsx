@@ -16,7 +16,6 @@ type CongratsNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 export default function Congrats() {
   const navigation = useNavigation<CongratsNavigationProp>();
 
-  // 이미지
   const congratsImage = require('../../assets/img/join/congrats.png');
 
   return (
@@ -71,7 +70,6 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#000',
   },
   activeCircle: {
     backgroundColor: '#D9D9D9',

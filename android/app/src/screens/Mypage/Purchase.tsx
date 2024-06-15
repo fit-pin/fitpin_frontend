@@ -1,19 +1,25 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import CheckBox from '@react-native-community/checkbox';
+/* eslint-disable react-native/no-inline-styles */
+import React from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const Purchase = () => {
-  const [isChecked, setIsChecked] = useState(true);
-
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
         <Text style={styles.date}>2024.04.10</Text>
         <Text style={styles.completed}>구매완료</Text>
-        <View style={[styles.item, { borderBottomWidth: 0 }]}>
+        <View style={[styles.item, {borderBottomWidth: 0}]}>
           <View style={styles.imageContainer}>
             <Image
               source={require('../../assets/img/main/top/top1.png')}
@@ -45,7 +51,7 @@ const Purchase = () => {
         <View>
           <Text style={styles.date}>2024.04.10</Text>
           <Text style={styles.completed}>구매 / 수선 완료</Text>
-          <View style={[styles.item, { borderBottomWidth: 0 }]}>
+          <View style={[styles.item, {borderBottomWidth: 0}]}>
             <View style={styles.imageContainer}>
               <Image
                 source={require('../../assets/img/main/top/top1.png')}
@@ -73,8 +79,7 @@ const Purchase = () => {
           </View>
           <View style={styles.subTextContainer}>
             <View style={styles.tailorCheckBoxContainer}>
-              <Text style={styles.tailorText}>수선해서 구매하기</Text>
-              <CheckBox value={isChecked} onValueChange={setIsChecked} />
+              <Text style={styles.tailorText}>수선해서 구매</Text>
             </View>
             <Text style={styles.tailorSize}>수선한 사이즈</Text>
             <Image
