@@ -160,13 +160,13 @@ const App = () => {
           component={Camera}
           options={{headerShown: false}}
         />
-        <Stack.Screen 
-          name = "CameraBodyPhoto"
+        <Stack.Screen
+          name="CameraBodyPhoto"
           component={CameraBodyPhoto}
           options={{headerShown: false}}
         />
-        <Stack.Screen 
-          name = "CameraRemeasure"
+        <Stack.Screen
+          name="CameraRemeasure"
           component={CameraRemeasure}
           options={{headerShown: false}}
         />
