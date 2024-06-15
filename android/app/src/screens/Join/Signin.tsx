@@ -8,10 +8,30 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-
+import {reqPost} from '../../utills/Request';
+import {DATA_URL} from '../../Constant';
+import path from 'path';
 const {width, height} = Dimensions.get('window');
 
+async function test() {
+  // 요청 body 만드는거
+  const body = {
+    userEmail: 'test1234',
+    userPwd: '1234',
+    userName: 'zoo',
+    userPwdConfirm: '1234',
+  };
+
+  const res = await reqPost(
+    path.join(DATA_URL, 'api', 'members', 'register'),
+    body,
+  );
+  console.log(res.name); // 이름
+}
+
 const Signin = () => {
+  test();
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Fitpin.</Text>

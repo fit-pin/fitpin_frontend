@@ -84,7 +84,7 @@ const Mypage = () => {
         </View>
         <View style={styles.line} />
 
-        {/* 구매내역 / 체형재측정 */}
+        {/* 구매내역 / 내 체형 정보 */}
         <View style={[styles.section, {marginBottom: -30}]}>
           <Image
             source={require('../../assets/img/mypage/buy.png')}
@@ -104,8 +104,8 @@ const Mypage = () => {
           />
           <Text
             style={styles.text}
-            onPress={() => navigation.navigate('Remeasure')}>
-            체형 재측정
+            onPress={() => navigation.navigate('My_Fit')}>
+            내 체형 정보
           </Text>
         </View>
         <View style={styles.line} />
