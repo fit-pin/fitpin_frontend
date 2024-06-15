@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, Image, Dimensions} from 'react-native';
+import {StyleSheet, View, Image, Dimensions, ScrollView} from 'react-native';
 
 const FitBox = () => {
   const images = [
@@ -10,7 +10,9 @@ const FitBox = () => {
   ];
 
   return (
-    <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.contentContainer}>
       <View style={styles.row}>
         {images.slice(0, 2).map((image, index) => (
           <Image key={index} source={image} style={styles.image} />

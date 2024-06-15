@@ -106,7 +106,7 @@ export default function Style_G() {
               onPress={() => handleImagePress(item)}>
               <Image source={congratsImages[index]} style={styles.imageStyle} />
               <Text style={styles.rectangleText}>#{item}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
         <TouchableOpacity style={styles.longButton} onPress={handleButtonPress}>
