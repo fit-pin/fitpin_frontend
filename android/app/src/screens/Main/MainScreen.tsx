@@ -203,7 +203,7 @@ const Main: React.FC = () => {
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => navigation.navigate('Camera')}>
+              onPress={() => navigation.navigate('CameraBodyPhoto')}>
               {/* 임시로 사이즈 페이지 보려고 size로 한거기에 카메라 부분 다 완성되면 onPress={() => navigation.navigate('Camera')}> */}
               <Image
                 source={require('../../assets/img/main/camera.png')}
