@@ -13,11 +13,6 @@
  *  .catch(err => console.log(err));
  */
 export async function reqGet(url: string): Promise<any> {
-  // url 에 /있는지 판단
-  if (url.slice(-1) !== '/') {
-    url = url + '/';
-  }
-
   const res = await fetch(url, {
     headers: {
       Accept: 'application/json',
@@ -43,11 +38,6 @@ export async function reqGet(url: string): Promise<any> {
  *  .catch(err => console.log(err));
  */
 export async function reqPost(url: string, body: object): Promise<any> {
-  // url 에 /있는지 판단
-  if (url.slice(-1) !== '/') {
-    url = url + '/';
-  }
-
   const res = await fetch(url, {
     method: 'post',
     headers: {
