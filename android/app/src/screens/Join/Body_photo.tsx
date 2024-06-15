@@ -55,14 +55,14 @@ export default function Body_photo() {
       <View style={styles.imageContainer}>
         <TouchableOpacity
           style={styles.rectangleContainer}
-          onPress={() => navigation.navigate('CameraBodyPhoto')}>
+          onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.rectangleContainer}
-          onPress={() => navigation.navigate('CameraBodyPhoto')}>
+          onPress={() => navigation.navigate('Camera')}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
