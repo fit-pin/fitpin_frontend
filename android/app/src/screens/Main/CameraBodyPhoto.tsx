@@ -1,49 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Platform, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, Text, Platform, TouchableOpacity, Image, Alert } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
+import RNFS from 'react-native-fs';
 
 const CameraBodyPhoto = () => {
   const [hasPermission, setHasPermission] = useState(false);
-  const [permissionDenied, setPermissionDenied] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [confirmedPhotoUri, setConfirmedPhotoUri] = useState<string | null>(null);
   const cameraRef = useRef<RNCamera | null>(null);
 
+  // 카메라 권한 요청
   const requestCameraPermission = async () => {
-    const result = Platform.OS === 'android' ? await request(PERMISSIONS.ANDROID.CAMERA) : await request(PERMISSIONS.IOS.CAMERA);
+    const result = Platform.OS === 'android'
+      ? await request(PERMISSIONS.ANDROID.CAMERA)
+      : await request(PERMISSIONS.IOS.CAMERA);
+
     if (result === RESULTS.GRANTED) {
       setHasPermission(true);
-    } else if (result === RESULTS.DENIED) {
+    } else {
       setHasPermission(false);
-    } else if (result === RESULTS.BLOCKED || result === RESULTS.UNAVAILABLE) {
-      setPermissionDenied(true);
+      if (result === RESULTS.BLOCKED || result === RESULTS.UNAVAILABLE) {
+        Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
+      }
     }
   };
 
+  // 권한 요청 호출
   useEffect(() => {
     requestCameraPermission();
   }, []);
 
-  if (permissionDenied) {
+  if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Text>Camera permission was denied permanently. Please enable it in the app settings.</Text>
-        <TouchableOpacity onPress={() => openSettings().catch(() => console.warn('Cannot open settings'))} style={styles.settingsButton}>
+        <Text>No access to camera</Text>
+        <TouchableOpacity
+          onPress={() => openSettings().catch(() => console.warn('Cannot open settings'))}
+          style={styles.settingsButton}>
           <Text style={styles.buttonText}>Open Settings</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  if (!hasPermission) {
-    return (
-      <View style={styles.container}>
-        <Text>No access to camera</Text>
-      </View>
-    );
-  }
-
+  // 사진 촬영
   const takePicture = async () => {
     if (cameraRef.current) {
       const data = await cameraRef.current.takePictureAsync({ quality: 0.5, base64: false });
@@ -51,15 +52,40 @@ const CameraBodyPhoto = () => {
     }
   };
 
-  const confirmPicture = async () => {
-    setConfirmedPhotoUri(photoUri);
-    setPhotoUri(null);
+  // 로컬 저장 경로 생성
+  const getLocalFilePath = (fileName: string) => {
+    const dir = Platform.OS === 'android' ? RNFS.ExternalDirectoryPath : RNFS.DocumentDirectoryPath;
+    return `${dir}/${fileName}`;
   };
 
+  // 사진 로컬 저장
+  const saveToLocalStorage = async (uri: string) => {
+    const fileName = uri.split('/').pop();
+    const newPath = getLocalFilePath(fileName!);
+    try {
+      await RNFS.moveFile(uri, newPath);
+      Alert.alert('Success', 'Photo saved to local storage.');
+      setConfirmedPhotoUri(`file://${newPath}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save photo.');
+      console.error(error);
+    }
+  };
+
+  // 확인 버튼 클릭 시 로컬에 저장
+  const confirmPicture = () => {
+    if (photoUri) {
+      saveToLocalStorage(photoUri);
+      setPhotoUri(null);
+    }
+  };
+
+  // 취소 버튼 클릭 시 다시 촬영
   const retakePicture = () => {
     setPhotoUri(null);
   };
 
+  // 사진이 찍힌 경우 UI
   if (photoUri) {
     return (
       <View style={styles.container}>
@@ -76,6 +102,7 @@ const CameraBodyPhoto = () => {
     );
   }
 
+  // 사진이 로컬에 저장된 경우 UI
   if (confirmedPhotoUri) {
     return (
       <View style={styles.container}>
