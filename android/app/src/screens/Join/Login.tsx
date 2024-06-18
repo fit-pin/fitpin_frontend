@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import {reqPost} from '../../utills/Request';
+import {reqGet, reqPost} from '../../utills/Request';
 import {DATA_URL} from '../../Constant';
 import {useUser} from '../UserContext';
 import type {RootStackParamList} from '../../../../../App';
@@ -20,7 +20,16 @@ const {width, height} = Dimensions.get('window');
 
 const Login = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const {setUserEmail} = useUser();
+  const {
+    setUserEmail,
+    setUserPwd,
+    setUserName,
+    setUserGender,
+    setUserHeight,
+    setUserWeight,
+    setUserFit,
+    setSelectedStyles,
+  } = useUser();
 
   const [userEmail, setUserEmailLocal] = useState('');
   const [userPwd, setUserPwdLocal] = useState('');
@@ -56,14 +65,49 @@ const Login = () => {
       const res = await reqPost(path.join(DATA_URL, 'api', 'login'), body);
 
       if (res.userEmail) {
-        // 이메일 저장
+        // 정보 저장
         setUserEmail(userEmail);
+        setUserPwd(userPwd);
+        setUserName(res.userName);
+        setUserGender(res.userGender);
+        setUserHeight(res.userHeight);
+        setUserWeight(res.userWeight);
+        setUserFit(res.userFit);
+        console.log(res); // 응답 확인
+
+        // 선택한 4개의 스타일 정보 가져오기
+        getStyleInfo();
+      } else if (res.message) {
+        Alert.alert('응답', res.message);
+      } else {
+        Alert.alert('오류', '로그인 중 문제가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
+    }
+  };
+
+  const getStyleInfo = async () => {
+    try {
+      const res = await reqGet(
+        path.join(DATA_URL, 'api', 'GetUserPreferStyle', userEmail),
+      );
+
+      if (res) {
+        // 선호 스타일 정보를 selectedStyles 배열에 저장
+        const styles = res.map(
+          (item: {preferStyle: string}) => item.preferStyle,
+        );
+        setSelectedStyles(styles);
+
+        console.log(styles);
         // 메인페이지로 이동
         navigation.navigate('Main');
       } else if (res.message) {
         Alert.alert('응답', res.message);
       } else {
-        Alert.alert('오류', '로그인 중 문제가 발생했습니다.');
+        Alert.alert('오류', '문제가 발생했습니다.');
       }
     } catch (error) {
       console.error('Error during login:', error);
