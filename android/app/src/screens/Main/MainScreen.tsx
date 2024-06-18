@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -13,6 +13,9 @@ import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
+import { DATA_URL } from '../../Constant.ts';
+import { reqGet } from '../../utills/Request.ts';
+import path from 'path';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -124,6 +127,51 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 
 const Main: React.FC = () => {
+  const [oneStyle, setoneStyle] = useState("1");
+  const [twoStyle, settwoStyle] = useState("2");
+  const [thrStyle, setthrStyle] = useState("3");
+  const [fouStyle, setfouStyle] = useState("4");
+
+  //boxes배열에서 text의 value값만 저장
+  const koreanTexts = boxes.map(box => {
+    const koreanText = box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
+    return koreanText;
+  });
+
+  //회원이 정한 스타일을 저장할 임시배열 생성
+  const removebox = boxes.slice(0,4);
+
+  useEffect(() => {
+    const fetchInfo = async() => {
+      try {
+        const response = await reqGet(path.join(DATA_URL, 'api', 'GetUserPreferStyle', 'dada0713@naver.com'));
+        setoneStyle(response[0].preferStyle);
+        settwoStyle(response[1].preferStyle);
+        setthrStyle(response[2].preferStyle);
+        setfouStyle(response[3].preferStyle);
+      } catch (error) {
+        console.error('Error fetching user body info:', error);
+      }
+    }
+    fetchInfo();
+  }, []);
+
+  const styleArray = [];
+  styleArray.push(oneStyle,twoStyle,thrStyle,fouStyle);
+
+  let i,j;
+  //회원이 정한 스타일을 저장함
+  for(i = 0; i < 4; i++){
+    for(j = 0; j < 9; j++){
+      if(styleArray[i] == koreanTexts[j]){
+        removebox[i].text = boxes[j].text;
+        removebox[i].image = boxes[j].image;
+        removebox[i].recommended = boxes[j].recommended;
+        continue;
+      }
+    }
+  }
+
   const navigation = useNavigation<MainScreenNavigationProp>();
   const [selectedSection, setSelectedSection] = React.useState('상의');
   const [showProductGrid, setShowProductGrid] = React.useState(true);
@@ -225,7 +273,7 @@ const Main: React.FC = () => {
           000님의 체형과 취향 모두를 만족하는 옷이에요
         </Text>
         <View style={styles.sections}>
-          {boxes.slice(0, 4).map((box, index) => (
+          {removebox.slice(0, 4).map((box, index) => (
             <View key={index} style={styles.roundedBox}>
               {box.recommended && <BlinkingText>추천</BlinkingText>}
               <View style={styles.boxContent}>
