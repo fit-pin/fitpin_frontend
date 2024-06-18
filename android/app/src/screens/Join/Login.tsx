@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -6,18 +6,69 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
+import {reqPost} from '../../utills/Request';
+import {DATA_URL} from '../../Constant';
+import {useUser} from '../UserContext';
 import type {RootStackParamList} from '../../../../../App';
+import path from 'path';
 
 const {width, height} = Dimensions.get('window');
 
 const Login = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const {setUserEmail} = useUser();
 
-  const handleLoginPress = () => {
-    navigation.navigate('BasicInformation');
+  const [userEmail, setUserEmailLocal] = useState('');
+  const [userPwd, setUserPwdLocal] = useState('');
+
+  const validateEmail = (email: string) => {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+  };
+
+  const validateForm = () => {
+    if (!userEmail || !userPwd) {
+      Alert.alert('오류', '모든 정보를 입력해주세요.');
+      return false;
+    }
+    if (!validateEmail(userEmail)) {
+      Alert.alert('오류', '유효한 이메일 주소를 입력해주세요.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleLoginPress = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    const body = {
+      userEmail,
+      userPwd,
+    };
+
+    try {
+      const res = await reqPost(path.join(DATA_URL, 'api', 'login'), body);
+
+      if (res.userEmail) {
+        // 이메일 저장
+        setUserEmail(userEmail);
+        // 메인페이지로 이동
+        navigation.navigate('Main');
+      } else if (res.message) {
+        Alert.alert('응답', res.message);
+      } else {
+        Alert.alert('오류', '로그인 중 문제가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
+    }
   };
 
   return (
@@ -32,12 +83,16 @@ const Login = () => {
         placeholder="E-mail"
         keyboardType="email-address"
         autoCapitalize="none"
+        value={userEmail}
+        onChangeText={setUserEmailLocal}
       />
       <Text style={styles.label}>비밀번호</Text>
       <TextInput
         style={styles.input}
         placeholder="Password"
         secureTextEntry={true}
+        value={userPwd}
+        onChangeText={setUserPwdLocal}
       />
       <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
         <Text style={styles.buttonText}>로그인</Text>
@@ -61,7 +116,6 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.07,
     fontWeight: 'bold',
   },
-
   loginStyle: {
     fontSize: width * 0.06,
     color: '#000000',
@@ -70,7 +124,6 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.01,
     fontWeight: 'bold',
   },
-
   label: {
     fontSize: width * 0.04,
     color: '#878787',

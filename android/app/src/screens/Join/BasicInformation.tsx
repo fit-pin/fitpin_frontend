@@ -43,8 +43,12 @@ export default function BasicInformation() {
   const navigation = useNavigation<BasicInformationNavigationProp>();
   const [isFemaleSelected, setIsFemaleSelected] = useState(false);
   const [isMaleSelected, setIsMaleSelected] = useState(false);
-  const [inputHeight, setInputHeight] = useState(userHeight.toString());
-  const [inputWeight, setInputWeight] = useState(userWeight.toString());
+  const [inputHeight, setInputHeight] = useState(
+    userHeight ? userHeight.toString() : '',
+  );
+  const [inputWeight, setInputWeight] = useState(
+    userWeight ? userWeight.toString() : '',
+  );
 
   const handleFemalePress = () => {
     setIsFemaleSelected(true);
