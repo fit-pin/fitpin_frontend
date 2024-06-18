@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {
   TouchableOpacity,
@@ -7,10 +7,11 @@ import {
   StyleSheet,
   SafeAreaView,
   View,
+  ToastAndroid,
 } from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {RootStackParamList} from '../../../../../App.tsx';
-
-type BodyPhotoRouteProp = RouteProp<RootStackParamList, 'Body_photo'>;
+import {useUser} from '../UserContext.tsx';
 
 type BodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -19,15 +20,32 @@ type BodyPhotoNavigationProp = StackNavigationProp<
 
 export default function Body_photo() {
   const navigation = useNavigation<BodyPhotoNavigationProp>();
-  const route = useRoute<BodyPhotoRouteProp>();
-  const {gender} = route.params || {};
+  const context = useUser();
 
   const handleNextPress = () => {
-    if (gender === 'female') {
+    if (context.userGender === 'female') {
       navigation.navigate('Style_G');
-    } else if (gender === 'male') {
+    } else {
       navigation.navigate('Style_B');
     }
+  };
+
+  const handleSelectImg = async () => {
+    const reqImg = await launchImageLibrary({
+      mediaType: 'photo',
+      includeBase64: false,
+    });
+
+    const uri = reqImg.assets!![0].uri;
+    if (!uri) {
+      ToastAndroid.show(
+        '사진을 인식할 수 없습니다. 다시 선택하세요',
+        ToastAndroid.SHORT,
+      );
+      return;
+    }
+
+    navigation.navigate('Loading', {uri: uri});
   };
 
   return (
@@ -62,7 +80,7 @@ export default function Body_photo() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.rectangleContainer}
-          onPress={() => navigation.navigate('Camera')}>
+          onPress={handleSelectImg}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>

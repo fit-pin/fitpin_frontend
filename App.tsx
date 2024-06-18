@@ -30,6 +30,7 @@ import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 import {UserProvider} from './android/app/src/screens/UserContext';
+import Loading from './android/app/src/screens/Join/Loading';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -37,7 +38,7 @@ export type RootStackParamList = {
   Signin: undefined;
   Login: undefined;
   BasicInformation: undefined;
-  Body_photo: {gender: 'female' | 'male' | null};
+  Body_photo: undefined;
   Style_G: undefined;
   Style_B: undefined;
   Congrats: {selectedStyles: string[]};
@@ -61,6 +62,7 @@ export type RootStackParamList = {
   Fit_box: undefined;
   WriteComment: undefined;
   BottomTabNavigator: undefined;
+  Loading: {uri: string};
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -94,6 +96,15 @@ const App = () => {
             name="BasicInformation"
             component={BasicInformation}
             options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="Loading"
+            component={Loading}
+            options={{
+              headerShown: false,
+              headerLeft: () => null,
+              gestureEnabled: false,
+            }}
           />
           <Stack.Screen
             name="Body_photo"

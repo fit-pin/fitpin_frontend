@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,10 @@ import CheckBox from '@react-native-community/checkbox';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
+import {AR_URL, DATA_URL} from '../../Constant.ts';
+import path from 'path';
+import {ArRequest, reqGet} from '../../utills/Request.ts';
+import {useUser} from '../UserContext.tsx';
 
 type ProductPageoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -26,6 +30,11 @@ const ProductPage = () => {
   const [chest, setChest] = useState(0);
   const [sleeve, setSleeve] = useState(0);
   const [isTailoringChecked, setIsTailoringChecked] = useState(false);
+  const [imgUri, setImgUri] = useState<string>(() => {
+    const image = require('../../assets/img/main/top/top1.png');
+    return Image.resolveAssetSource(image).uri;
+  });
+  const {userHeight, userEmail} = useUser();
 
   const handleIncrementLength = () => setLength(length + 1);
   const handleDecrementLength = () => length > 0 && setLength(length - 1);
@@ -37,6 +46,45 @@ const ProductPage = () => {
   const handleIncrementSleeve = () => setSleeve(sleeve + 1);
   const handleDecrementSleeve = () => sleeve > 0 && setSleeve(sleeve - 1);
   const handleSizeSelect = (size: string) => setSelectedSize(size);
+
+  const handleSetimg = async () => {
+    // 요청 FormData 만들기
+    const formData = new FormData();
+
+    if (!userEmail || !userHeight) {
+      console.log('이메일, 유저키 없음');
+      throw Error('이메일, 유저키 없음');
+    }
+
+    const reqfile = await reqGet(
+      path.join(DATA_URL, 'api', 'userForm', userEmail),
+    );
+
+    formData.append('clothesImg', {
+      uri: path.join(AR_URL, 'mills'),
+      name: 'test.png',
+      type: 'image/png',
+    } as FormDataValue);
+    formData.append('clothesType', 'TOP');
+    formData.append('fileName', reqfile.fileName);
+    formData.append('personKey', userHeight);
+    formData.append('clothesLenth', '0');
+
+    const res = await ArRequest(path.join(AR_URL, 'try-on'), formData);
+    const blob = await res.blob();
+
+    const fileReaderInstance = new FileReader();
+    fileReaderInstance.readAsDataURL(blob);
+    fileReaderInstance.onload = () => {
+      const base64data = fileReaderInstance.result;
+      setImgUri(base64data as string);
+    };
+  };
+
+  useEffect(() => {
+    handleSetimg();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imgUri]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -140,10 +188,7 @@ const ProductPage = () => {
         <Text style={styles.tryOnText}>입어보기</Text>
         {/* 수선 이미지*/}
         <View style={styles.roundedRect}>
-          <Image
-            source={require('../../assets/img/main/top/top1.png')}
-            style={styles.innerImage}
-          />
+          <Image style={styles.innerImage} source={{uri: imgUri}} />
         </View>
         {isTailoringChecked && (
           <View>
