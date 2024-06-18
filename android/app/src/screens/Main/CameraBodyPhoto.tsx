@@ -3,12 +3,20 @@ import { View, StyleSheet, Text, Platform, TouchableOpacity, Image, Alert } from
 import { RNCamera } from 'react-native-camera';
 import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
+
+type CameraBodyPhotoNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'CameraBodyPhoto'
+>;
 
 const CameraBodyPhoto = () => {
   const [hasPermission, setHasPermission] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [confirmedPhotoUri, setConfirmedPhotoUri] = useState<string | null>(null);
   const cameraRef = useRef<RNCamera | null>(null);
+  const navigation = useNavigation<CameraBodyPhotoNavigationProp>();
 
   // 카메라 권한 요청
   const requestCameraPermission = async () => {
@@ -53,29 +61,34 @@ const CameraBodyPhoto = () => {
   };
 
   // 로컬 저장 경로 생성
-  const getLocalFilePath = (fileName: string) => {
-    const dir = Platform.OS === 'android' ? RNFS.ExternalDirectoryPath : RNFS.DocumentDirectoryPath;
+  const getLocalFilePath = async (fileName: string) => {
+    const dir = Platform.OS === 'android' ? `${RNFS.ExternalDirectoryPath}/FitBox` : `${RNFS.DocumentDirectoryPath}/FitBox`;
+    await RNFS.mkdir(dir); // 폴더 생성
     return `${dir}/${fileName}`;
   };
 
   // 사진 로컬 저장
   const saveToLocalStorage = async (uri: string) => {
     const fileName = uri.split('/').pop();
-    const newPath = getLocalFilePath(fileName!);
+    const newPath = await getLocalFilePath(fileName!);
     try {
       await RNFS.moveFile(uri, newPath);
       Alert.alert('Success', 'Photo saved to local storage.');
-      setConfirmedPhotoUri(`file://${newPath}`);
+      return `file://${newPath}`;
     } catch (error) {
       Alert.alert('Error', 'Failed to save photo.');
       console.error(error);
+      return null;
     }
   };
 
   // 확인 버튼 클릭 시 로컬에 저장
-  const confirmPicture = () => {
+  const confirmPicture = async () => {
     if (photoUri) {
-      saveToLocalStorage(photoUri);
+      const localUri = await saveToLocalStorage(photoUri);
+      if (localUri) {
+        navigation.navigate('Fit_box', { newPhotoUri: localUri });
+      }
       setPhotoUri(null);
     }
   };
@@ -97,18 +110,6 @@ const CameraBodyPhoto = () => {
           <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>
             <Text style={styles.buttonText}>취소</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  // 사진이 로컬에 저장된 경우 UI
-  if (confirmedPhotoUri) {
-    return (
-      <View style={styles.container}>
-        <Image source={{ uri: confirmedPhotoUri }} style={styles.preview} />
-        <View style={styles.bottomControls}>
-          <Text style={styles.buttonText}>저장된 사진</Text>
         </View>
       </View>
     );
