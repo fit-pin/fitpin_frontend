@@ -1,127 +1,239 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
-  Text,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
   View,
+  Text,
   Image,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Alert,
+  Animated,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import type {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App.tsx';
+import {useUser} from '../UserContext';
+import {DATA_URL} from '../../Constant';
+import {reqPost} from '../../utills/Request';
+import path from 'path';
 
-type CongratsNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
+const {width, height} = Dimensions.get('window');
 
-export default function Congrats() {
-  const navigation = useNavigation<CongratsNavigationProp>();
+const Congrats = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const {
+    userName,
+    userEmail,
+    userGender,
+    userHeight,
+    userWeight,
+    userFit,
+    style,
+    selectedStyles,
+  } = useUser();
 
-  const congratsImage = require('../../assets/img/join/congrats.png');
+  const imageOpacity = useRef(new Animated.Value(0)).current;
+  const text1Opacity = useRef(new Animated.Value(0)).current;
+  const text2Opacity = useRef(new Animated.Value(0)).current;
+  const text3Opacity = useRef(new Animated.Value(0)).current;
+  const text4Opacity = useRef(new Animated.Value(0)).current;
+  const buttonOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    console.log('User Context:', {
+      userName,
+      userEmail,
+      userGender,
+      userHeight,
+      userWeight,
+      userFit,
+      style,
+      selectedStyles,
+    });
+
+    Animated.sequence([
+      Animated.timing(imageOpacity, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.parallel([
+        Animated.timing(text1Opacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(text2Opacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(text3Opacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(text4Opacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.timing(buttonOpacity, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [
+    userName,
+    userEmail,
+    userGender,
+    userHeight,
+    userWeight,
+    userFit,
+    style,
+    selectedStyles,
+    imageOpacity,
+    text1Opacity,
+    text2Opacity,
+    text3Opacity,
+    text4Opacity,
+    buttonOpacity,
+  ]);
+
+  const handlePress = async () => {
+    if (!userEmail) {
+      Alert.alert('오류', '유저 이메일이 필요합니다.');
+      return;
+    }
+
+    const body = {
+      userName,
+      userEmail,
+      userGender: userGender === 'male' ? '남' : '여',
+      userHeight,
+      userWeight,
+      userFit,
+      style: selectedStyles.map(preferStyle => ({
+        userEmail,
+        preferStyle,
+      })),
+    };
+
+    try {
+      const res = await reqPost(
+        path.join(DATA_URL, 'api', 'members', 'basicInfo', userEmail),
+        body,
+      );
+
+      console.log('Server response:', res);
+
+      if (res.message && res.message.includes('선호 스타일 등록 완료!')) {
+        navigation.navigate('Main');
+      } else if (res.message) {
+        Alert.alert('응답', res.message);
+      } else {
+        Alert.alert('오류', '정보 전송 중 문제가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Error during information submission:', error);
+      Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.pageButtonContainer}>
-        {[1, 2, 3, 4].map((pageNumber, index) => (
-          <TouchableOpacity
-            key={pageNumber}
-            style={[styles.pageButton, styles.activeButton]}>
-            <View
-              style={[
-                styles.circle,
-                index === 3 ? styles.blackCircle : styles.activeCircle,
-              ]}
-            />
-          </TouchableOpacity>
-        ))}
+    <View style={styles.container}>
+      <Animated.View style={[styles.imageContainer, {opacity: imageOpacity}]}>
+        <Image
+          source={require('../../assets/img/join/start.png')}
+          style={styles.image}
+        />
+      </Animated.View>
+
+      <View style={styles.textContainer}>
+        <Animated.Text style={[styles.text, {opacity: text1Opacity}]}>
+          Find
+        </Animated.Text>
+        <Animated.Text style={[styles.text, {opacity: text2Opacity}]}>
+          Your
+        </Animated.Text>
+        <Animated.Text style={[styles.text2, {opacity: text3Opacity}]}>
+          Fit
+        </Animated.Text>
+        <Animated.Text style={[styles.text2, {opacity: text4Opacity}]}>
+          Pin
+        </Animated.Text>
       </View>
-      <Text style={styles.firstLine}>환영합니다</Text>
-      <View style={styles.imageContainer}>
-        <Image source={congratsImage} style={styles.image} />
-      </View>
-      <Text style={styles.additionalText}>모든 단계가 끝났습니다!</Text>
-      <Text style={styles.additionalText}>이제 버튼을 눌러</Text>
-      <Text style={styles.additionalText}>당신의 핏을 찾아보세요</Text>
-      <TouchableOpacity
-        style={styles.longButton}
-        onPress={() => navigation.navigate('Main')}>
-        <Text style={styles.longButtonText}>시작하기</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+
+      <Animated.View style={{opacity: buttonOpacity}}>
+        <TouchableOpacity style={styles.button} onPress={handlePress}>
+          <Text style={styles.buttonText}>시작하기</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: '#fff',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
   },
-  pageButtonContainer: {
-    position: 'relative',
-    top: '21%',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginHorizontal: '8.5%',
-  },
-  pageButton: {
-    marginHorizontal: '2%',
-  },
-  circle: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  activeCircle: {
-    backgroundColor: '#D9D9D9',
-  },
-  blackCircle: {
-    backgroundColor: '#000',
-  },
-  activeButton: {
-    backgroundColor: 'transparent',
-  },
-  firstLine: {
-    position: 'relative',
-    top: '19%',
-    marginHorizontal: '10%',
-    fontSize: 25,
-    color: '#000',
-    textAlign: 'left',
-    fontWeight: 'bold',
-  },
+
   imageContainer: {
-    position: 'relative',
-    top: '24%',
-    marginHorizontal: '10%',
-  },
-  image: {
-    width: 156,
-    height: 156,
-  },
-  additionalText: {
-    position: 'relative',
-    top: '28%',
-    marginTop: '3%',
-    marginHorizontal: '10%',
-    fontSize: 18,
-    color: '#555555',
-    fontWeight: 'bold',
-    textAlign: 'left',
-  },
-  longButton: {
-    marginHorizontal: '8%',
-    backgroundColor: '#000',
-    width: '85%',
-    height: '8%',
-    borderRadius: 31,
+    flex: 3,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '70%',
-    bottom: '4.5%',
   },
-  longButtonText: {
-    fontSize: 18,
+
+  image: {
+    width: width,
+    resizeMode: 'cover',
+  },
+
+  textContainer: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingLeft: width * 0.08,
+  },
+
+  text: {
+    fontSize: width * 0.08,
+    color: '#9D9D9D',
     fontWeight: 'bold',
-    color: '#fff',
+    marginBottom: '0.2%',
+  },
+
+  text2: {
+    fontSize: width * 0.08,
+    color: '#000000',
+    fontWeight: 'bold',
+  },
+
+  button: {
+    backgroundColor: '#000000',
+    paddingVertical: height * 0.02,
+    paddingHorizontal: width * 0.1,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginLeft: width * 0.08,
+    marginTop: height * 0.03,
+    marginBottom: '7%',
+    width: 320,
+    height: 65,
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: width * 0.05,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
+
+export default Congrats;

@@ -17,7 +17,7 @@ const Splash = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handlePress = () => {
-    navigation.navigate('Start');
+    navigation.navigate('LognSignin');
   };
 
   return (
