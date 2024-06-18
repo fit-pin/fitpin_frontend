@@ -5,7 +5,7 @@ import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permis
 import RNFS from 'react-native-fs';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
+import { RootStackParamList } from '../../../../../App';
 
 type CameraBodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -61,16 +61,16 @@ const CameraBodyPhoto = () => {
   };
 
   // 로컬 저장 경로 생성
-  const getLocalFilePath = async (fileName: string) => {
+  const getLocalFilePath = async () => {
     const dir = Platform.OS === 'android' ? `${RNFS.ExternalDirectoryPath}/FitBox` : `${RNFS.DocumentDirectoryPath}/FitBox`;
     await RNFS.mkdir(dir); // 폴더 생성
-    return `${dir}/${fileName}`;
+    const timestamp = new Date().toISOString().replace(/[:.-]/g, ''); // 파일명에 타임스탬프 추가
+    return `${dir}/photo_${timestamp}.jpg`;
   };
 
   // 사진 로컬 저장
   const saveToLocalStorage = async (uri: string) => {
-    const fileName = uri.split('/').pop();
-    const newPath = await getLocalFilePath(fileName!);
+    const newPath = await getLocalFilePath();
     try {
       await RNFS.moveFile(uri, newPath);
       Alert.alert('Success', 'Photo saved to local storage.');

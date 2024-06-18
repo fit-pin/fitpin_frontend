@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Dimensions, ScrollView, Platform } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
+import { RootStackParamList } from '../../../../../App';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
 
@@ -23,7 +23,11 @@ const Fit_box = () => {
         const dir = Platform.OS === 'android' ? `${RNFS.ExternalDirectoryPath}/FitBox` : `${RNFS.DocumentDirectoryPath}/FitBox`;
         const files = await RNFS.readDir(dir);
         const imageFiles = files.filter((file) => file.name.endsWith('.jpg') || file.name.endsWith('.png'));
-        const imageUris = imageFiles.map((file) => `file://${file.path}`);
+
+        // 파일명을 기준으로 정렬 (오래된 사진이 뒤로)
+        const sortedImageFiles = imageFiles.sort((a, b) => (a.name < b.name ? 1 : -1));
+
+        const imageUris = sortedImageFiles.map((file) => `file://${file.path}`);
         setImages(imageUris);
       } catch (error) {
         console.error('Error loading saved images:', error);
