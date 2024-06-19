@@ -22,6 +22,8 @@ const congratsImages = [
   require('../../assets/img/join/style_g/6.png'),
 ];
 
+const checkmarkImage = require('../../assets/img/join/checkmark.png');
+
 type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
 
 export default function Style_G() {
@@ -65,11 +67,14 @@ export default function Style_G() {
 
   const handleButtonPress = () => {
     if (selectedStyles.length === 4 && selectedFit) {
-      console.log('Final Selected Styles:', selectedStyles);
+      const sortedSelectedStyles = styleTexts.filter(style =>
+        selectedStyles.includes(style),
+      );
+      console.log('Final Selected Styles:', sortedSelectedStyles);
       console.log('Final Selected Fit:', selectedFit);
-      setSelectedStyles(selectedStyles); // 저장된 스타일들
+      setSelectedStyles(sortedSelectedStyles); // 저장된 스타일들
       setUserFit(selectedFit); // 저장된 핏
-      navigation.navigate('Congrats', {selectedStyles});
+      navigation.navigate('Congrats', {selectedStyles: sortedSelectedStyles});
     } else {
       Alert.alert('선택 오류', '4개의 스타일과 1개의 핏을 선택해주세요.');
     }
@@ -120,13 +125,18 @@ export default function Style_G() {
           {styleTexts.map((item, index) => (
             <TouchableOpacity
               key={item}
-              style={[
-                styles.rectangleContainer2,
-                isSelected(item) && styles.selectedContainer,
-              ]}
+              style={styles.rectangleContainer2}
               onPress={() => handleImagePress(item)}>
               <Image source={congratsImages[index]} style={styles.imageStyle} />
-              <Text style={styles.rectangleText}>#{item}</Text>
+              <View style={styles.textContainer}>
+                <Text style={styles.rectangleText}>#{item}</Text>
+                {isSelected(item) && (
+                  <Image
+                    source={checkmarkImage}
+                    style={styles.checkmarkStyle}
+                  />
+                )}
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -229,14 +239,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   selectedFitContainer: {
-    borderColor: '#000',
+    borderColor: '#494949',
     borderWidth: 2,
   },
   styleText: {
     fontSize: 16,
     color: '#000',
     textAlign: 'center',
-    top: '-6%',
+    top: '-3%',
   },
   rectangleRow2: {
     flexDirection: 'row',
@@ -251,7 +261,7 @@ const styles = StyleSheet.create({
     height: 250,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderRadius: 20,
     overflow: 'hidden',
     padding: '5%',
@@ -266,11 +276,21 @@ const styles = StyleSheet.create({
   rectangleText: {
     fontSize: 15,
     color: '#000',
-    textAlign: 'right',
-    top: '3%',
-    right: '35%',
+    textAlign: 'left',
+    top: '6%',
+    left: '5%',
     fontWeight: 'bold',
     marginBottom: '5%',
+  },
+  textContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkmarkStyle: {
+    width: 22,
+    height: 22,
+    marginLeft: 5,
+    top: '4%',
   },
   line: {
     position: 'relative',
