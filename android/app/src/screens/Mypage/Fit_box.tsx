@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, Dimensions, ScrollView, Modal, TouchableOpacity, Platform, Text } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import React, {useState, useEffect} from 'react';
+import {
+  StyleSheet,
+  View,
+  Image,
+  Dimensions,
+  ScrollView,
+  Modal,
+  TouchableOpacity,
+  Platform,
+  Text,
+} from 'react-native';
+import {useRoute, RouteProp} from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import { RootStackParamList } from '../../../../../App';
+import {RootStackParamList} from '../../../../../App';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
 
@@ -14,21 +24,28 @@ const Fit_box = () => {
 
   useEffect(() => {
     if (newPhotoUri) {
-      setImages((prevImages) => [...prevImages, newPhotoUri]);
+      setImages(prevImages => [...prevImages, newPhotoUri]);
     }
   }, [newPhotoUri]);
 
   useEffect(() => {
     const loadSavedImages = async () => {
       try {
-        const dir = Platform.OS === 'android' ? `${RNFS.ExternalDirectoryPath}/FitBox` : `${RNFS.DocumentDirectoryPath}/FitBox`;
+        const dir =
+          Platform.OS === 'android'
+            ? `${RNFS.ExternalDirectoryPath}/FitBox`
+            : `${RNFS.DocumentDirectoryPath}/FitBox`;
         const files = await RNFS.readDir(dir);
-        const imageFiles = files.filter((file) => file.name.endsWith('.jpg') || file.name.endsWith('.png'));
+        const imageFiles = files.filter(
+          file => file.name.endsWith('.jpg') || file.name.endsWith('.png'),
+        );
 
         // 파일명을 기준으로 정렬 (오래된 사진이 뒤로)
-        const sortedImageFiles = imageFiles.sort((a, b) => (a.name < b.name ? 1 : -1));
+        const sortedImageFiles = imageFiles.sort((a, b) =>
+          a.name < b.name ? 1 : -1,
+        );
 
-        const imageUris = sortedImageFiles.map((file) => `file://${file.path}`);
+        const imageUris = sortedImageFiles.map(file => `file://${file.path}`);
         setImages(imageUris);
       } catch (error) {
         console.error('Error loading saved images:', error);
@@ -44,8 +61,10 @@ const Fit_box = () => {
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.row}>
         {images.map((imageUri, index) => (
-          <TouchableOpacity key={index} onPress={() => setSelectedImage(imageUri)}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
+          <TouchableOpacity
+            key={index}
+            onPress={() => setSelectedImage(imageUri)}>
+            <Image source={{uri: imageUri}} style={styles.image} />
           </TouchableOpacity>
         ))}
       </View>
@@ -55,8 +74,10 @@ const Fit_box = () => {
           transparent={true}
           onRequestClose={() => setSelectedImage(null)}>
           <View style={styles.modalContainer}>
-            <Image source={{ uri: selectedImage }} style={styles.fullImage} />
-            <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedImage(null)}>
+            <Image source={{uri: selectedImage}} style={styles.fullImage} />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setSelectedImage(null)}>
               <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>
