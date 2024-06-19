@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, Dimensions, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Image, Dimensions, ScrollView, Modal, TouchableOpacity, Platform, Text } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import { RootStackParamList } from '../../../../../App';
+import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
 
 const Fit_box = () => {
   const [images, setImages] = useState<string[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const route = useRoute<FitBoxRouteProp>();
   const newPhotoUri = route.params?.newPhotoUri;
 
@@ -43,14 +44,30 @@ const Fit_box = () => {
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.row}>
         {images.map((imageUri, index) => (
-          <Image key={index} source={{ uri: imageUri }} style={styles.image} />
+          <TouchableOpacity key={index} onPress={() => setSelectedImage(imageUri)}>
+            <Image source={{ uri: imageUri }} style={styles.image} />
+          </TouchableOpacity>
         ))}
       </View>
+      {selectedImage && (
+        <Modal
+          visible={true}
+          transparent={true}
+          onRequestClose={() => setSelectedImage(null)}>
+          <View style={styles.modalContainer}>
+            <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+            <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedImage(null)}>
+              <Text style={styles.closeButtonText}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
     </ScrollView>
   );
 };
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -70,6 +87,28 @@ const styles = StyleSheet.create({
     height: screenWidth * 0.45,
     borderRadius: 10,
     marginBottom: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  fullImage: {
+    width: screenWidth * 0.9,
+    height: screenHeight * 0.7,
+    borderRadius: 10,
+  },
+  closeButton: {
+    position: 'absolute',
+    bottom: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: '#000',
+    fontSize: 16,
   },
 });
 

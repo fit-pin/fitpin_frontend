@@ -5,7 +5,7 @@ import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permis
 import RNFS from 'react-native-fs';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App';
+import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
 
 type CameraBodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -73,11 +73,9 @@ const CameraBodyPhoto = () => {
     const newPath = await getLocalFilePath();
     try {
       await RNFS.moveFile(uri, newPath);
-      Alert.alert('Success', 'Photo saved to local storage.');
       return `file://${newPath}`;
     } catch (error) {
-      Alert.alert('Error', 'Failed to save photo.');
-      console.error(error);
+      console.error('Failed to save photo.', error);
       return null;
     }
   };
