@@ -1,11 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
+import { DATA_URL } from '../../Constant.ts';
+import { reqGet } from '../../utills/Request.ts';
+import path from 'path';
+
 
 type MyFitNavigationProp = StackNavigationProp<RootStackParamList, 'My_Fit'>;
 const My_Fit = () => {
+    const [userHeight, setUserHeight] = useState(0);
+    const [userWeight, setUserWeight] = useState(0);
+    const [armSize, setArmSize] = useState(0);
+    const [shoulderSize, setShoulderSize] = useState(0);
+    const [bodySize, setBodySize] = useState(0);
+    const [legSize, setLegSize] = useState(0);
+    const [userEmail, setuserEmail] = useState("master@naver.com");
+  
+    useEffect(() => {
+      const fetchInfo = async() => {
+        try {
+          const response = await reqGet(path.join(DATA_URL, 'api', 'userbodyinfo', `${userEmail}`));
+          setUserHeight(response.userHeight);
+          setUserWeight(response.userWeight);
+          setArmSize(response.armSize);
+          setShoulderSize(response.shoulderSize);
+          setBodySize(response.bodySize);
+          setLegSize(response.legSize);
+        } catch (error) {
+          console.error('Error fetching user body info:', error);
+        }
+      }
+      fetchInfo();
+    }, []);
+  
   const navigation = useNavigation<MyFitNavigationProp>();
   return (
     <View style={styles.container}>
@@ -14,26 +43,26 @@ const My_Fit = () => {
       <Text style={styles.thirdLine}>나의 키 / 몸무게</Text>
       <View style={styles.rectangle}>
         <Text style={styles.userfitLabel}>
-          키 : <Text style={styles.userfitValue}>26.65cm</Text>
+          키 : <Text style={styles.userfitValue}>{userHeight}cm</Text>
         </Text>
         <Text style={styles.userfitLabel}>
-          몸무게 : <Text style={styles.userfitValue}>50kg</Text>
+          몸무게 : <Text style={styles.userfitValue}>{userWeight}kg</Text>
         </Text>
       </View>
       <Text style={styles.thirdLine2}>내 체형 정보 확인하기</Text>
       <View style={styles.rectangle2}>
         <View>
           <Text style={styles.measurementLabel}>
-            어깨너비 : <Text style={styles.measurementValue}>26.65cm</Text>
+            어깨너비 : <Text style={styles.measurementValue}>{shoulderSize}cm</Text>
           </Text>
           <Text style={styles.measurementLabel}>
-            소매 길이: <Text style={styles.measurementValue}>50.15cm</Text>
+            소매 길이: <Text style={styles.measurementValue}>{armSize}cm</Text>
           </Text>
           <Text style={styles.measurementLabel}>
-            상체 : <Text style={styles.measurementValue}>46.69cm</Text>
+            상체 : <Text style={styles.measurementValue}>{bodySize}cm</Text>
           </Text>
           <Text style={styles.measurementLabel}>
-            다리 길이: <Text style={styles.measurementValue}>90.55cm</Text>
+            다리 길이: <Text style={styles.measurementValue}>{legSize}cm</Text>
           </Text>
         </View>
       </View>
@@ -112,7 +141,7 @@ const styles = StyleSheet.create({
   },
   measurementLabel: {
     fontSize: 20,
-    marginBottom: 33,
+    marginBottom: 15,
     color: '#000',
   },
   userfitValue: {
