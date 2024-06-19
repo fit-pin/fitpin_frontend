@@ -28,7 +28,7 @@ const Size = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Fit_box')}>
+        onPress={() => navigation.navigate('Fit_box', {})}>
         <Text style={styles.buttonText}>사진 보관하기</Text>
       </TouchableOpacity>
 
