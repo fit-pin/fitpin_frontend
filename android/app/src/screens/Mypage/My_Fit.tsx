@@ -16,11 +16,12 @@ const My_Fit = () => {
     const [shoulderSize, setShoulderSize] = useState(0);
     const [bodySize, setBodySize] = useState(0);
     const [legSize, setLegSize] = useState(0);
+    const [userEmail, setuserEmail] = useState("master@naver.com");
   
     useEffect(() => {
       const fetchInfo = async() => {
         try {
-          const response = await reqGet(path.join(DATA_URL, 'api', 'userbodyinfo', 'master@naver.com'));
+          const response = await reqGet(path.join(DATA_URL, 'api', 'userbodyinfo', `${userEmail}`));
           setUserHeight(response.userHeight);
           setUserWeight(response.userWeight);
           setArmSize(response.armSize);
