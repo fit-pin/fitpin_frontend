@@ -1,6 +1,6 @@
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import Splash from './android/app/src/screens/Start/Splash';
 import LognSignin from './android/app/src/screens/Join/LognSignin';
 import Signin from './android/app/src/screens/Join/Signin';
@@ -41,7 +41,7 @@ export type RootStackParamList = {
   Body_photo: undefined;
   Style_G: undefined;
   Style_B: undefined;
-  Congrats: {selectedStyles: string[]};
+  Congrats: { selectedStyles: string[] };
   Main: undefined;
   ProductPage: undefined;
   Cart: undefined;
@@ -59,7 +59,7 @@ export type RootStackParamList = {
   Purchase: undefined;
   My_Fit: undefined;
   Remeasure: undefined;
-  Fit_box: undefined;
+  Fit_box: {newPhotoUri?: string};
   WriteComment: undefined;
   BottomTabNavigator: undefined;
   Loading: {uri: string};
