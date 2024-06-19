@@ -13,9 +13,10 @@ import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import { DATA_URL } from '../../Constant.ts';
-import { reqGet } from '../../utills/Request.ts';
+import {DATA_URL} from '../../Constant.ts';
+import {reqGet} from '../../utills/Request.ts';
 import path from 'path';
+import {useUser} from '../UserContext.tsx';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -127,13 +128,12 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 
 const Main: React.FC = () => {
-  
   //회원 스타일을 저장하는 변수
-  const [oneStyle, setoneStyle] = useState("1");
-  const [twoStyle, settwoStyle] = useState("2");
-  const [thrStyle, setthrStyle] = useState("3");
-  const [fouStyle, setfouStyle] = useState("4");
-  const [userEmail, setuserEmail] = useState("master@naver.com");
+  const [oneStyle, setoneStyle] = useState('1');
+  const [twoStyle, settwoStyle] = useState('2');
+  const [thrStyle, setthrStyle] = useState('3');
+  const [fouStyle, setfouStyle] = useState('4');
+  const {userEmail} = useUser();
 
   //boxes배열에서 text의 value값만 저장
   const koreanTexts = boxes.map(box => {
@@ -142,9 +142,11 @@ const Main: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchInfo = async() => {
+    const fetchInfo = async () => {
       try {
-        const response = await reqGet(path.join(DATA_URL, 'api', 'GetUserPreferStyle', `${userEmail}`));
+        const response = await reqGet(
+          path.join(DATA_URL, 'api', 'GetUserPreferStyle', `${userEmail}`),
+        );
         setoneStyle(response[0].preferStyle);
         settwoStyle(response[1].preferStyle);
         setthrStyle(response[2].preferStyle);
@@ -152,20 +154,20 @@ const Main: React.FC = () => {
       } catch (error) {
         console.error('Error fetching user body info:', error);
       }
-    }
+    };
     fetchInfo();
-  }, []);
+  }, [userEmail]);
 
   //회원 스타일을 임시적으로 저장할 변수
   const styleArray = [];
-  styleArray.push(oneStyle,twoStyle,thrStyle,fouStyle);
+  styleArray.push(oneStyle, twoStyle, thrStyle, fouStyle);
 
   //받아온 정보를 저장할 변수
   const reboxes = [];
-  let i,j;
-  for(i = 0; i < 4; i++){
-    for(j = 0; j < 9; j++){
-      if(styleArray[i] == koreanTexts[j]){
+  let i, j;
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 9; j++) {
+      if (styleArray[i] === koreanTexts[j]) {
         reboxes.push(boxes[j]);
       }
     }

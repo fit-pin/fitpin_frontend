@@ -1,40 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
-import { DATA_URL } from '../../Constant.ts';
-import { reqGet } from '../../utills/Request.ts';
+import {DATA_URL} from '../../Constant.ts';
+import {reqGet} from '../../utills/Request.ts';
 import path from 'path';
-
+import {useUser} from '../UserContext.tsx';
 
 type MyFitNavigationProp = StackNavigationProp<RootStackParamList, 'My_Fit'>;
 const My_Fit = () => {
-    const [userHeight, setUserHeight] = useState(0);
-    const [userWeight, setUserWeight] = useState(0);
-    const [armSize, setArmSize] = useState(0);
-    const [shoulderSize, setShoulderSize] = useState(0);
-    const [bodySize, setBodySize] = useState(0);
-    const [legSize, setLegSize] = useState(0);
-    const [userEmail, setuserEmail] = useState("master@naver.com");
-  
-    useEffect(() => {
-      const fetchInfo = async() => {
-        try {
-          const response = await reqGet(path.join(DATA_URL, 'api', 'userbodyinfo', `${userEmail}`));
-          setUserHeight(response.userHeight);
-          setUserWeight(response.userWeight);
-          setArmSize(response.armSize);
-          setShoulderSize(response.shoulderSize);
-          setBodySize(response.bodySize);
-          setLegSize(response.legSize);
-        } catch (error) {
-          console.error('Error fetching user body info:', error);
-        }
+  const [userHeight, setUserHeight] = useState(0);
+  const [userWeight, setUserWeight] = useState(0);
+  const [armSize, setArmSize] = useState(0);
+  const [shoulderSize, setShoulderSize] = useState(0);
+  const [bodySize, setBodySize] = useState(0);
+  const [legSize, setLegSize] = useState(0);
+  const {userEmail} = useUser();
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const response = await reqGet(
+          path.join(DATA_URL, 'api', 'userbodyinfo', `${userEmail}`),
+        );
+        setUserHeight(response.userHeight);
+        setUserWeight(response.userWeight);
+        setArmSize(response.armSize);
+        setShoulderSize(response.shoulderSize);
+        setBodySize(response.bodySize);
+        setLegSize(response.legSize);
+      } catch (error) {
+        console.error('Error fetching user body info:', error);
       }
-      fetchInfo();
-    }, []);
-  
+    };
+    fetchInfo();
+  }, [userEmail]);
+
   const navigation = useNavigation<MyFitNavigationProp>();
   return (
     <View style={styles.container}>
@@ -53,7 +55,8 @@ const My_Fit = () => {
       <View style={styles.rectangle2}>
         <View>
           <Text style={styles.measurementLabel}>
-            어깨너비 : <Text style={styles.measurementValue}>{shoulderSize}cm</Text>
+            어깨너비 :{' '}
+            <Text style={styles.measurementValue}>{shoulderSize}cm</Text>
           </Text>
           <Text style={styles.measurementLabel}>
             소매 길이: <Text style={styles.measurementValue}>{armSize}cm</Text>
