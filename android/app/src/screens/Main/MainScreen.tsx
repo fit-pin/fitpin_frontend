@@ -101,7 +101,6 @@ const ProductCard: React.FC<{
 
 const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
   const opacity = useRef(new Animated.Value(1)).current;
-  
   useEffect(() => {
     const blink = () => {
       Animated.sequence([
@@ -133,7 +132,7 @@ const Main: React.FC = () => {
   const [twoStyle, settwoStyle] = useState('2');
   const [thrStyle, setthrStyle] = useState('3');
   const [fouStyle, setfouStyle] = useState('4');
-  const {userEmail} = useUser();
+  const {userEmail, userName} = useUser();
 
   //boxes배열에서 text의 value값만 저장
   const koreanTexts = boxes.map(box => {
@@ -248,7 +247,10 @@ const Main: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.header}>
-          <Text style={styles.headerText}>FitPin</Text>
+          <View>
+            <Text style={styles.headerText}>FitPin</Text>
+            <Text style={styles.headerTextName}>{userName}님</Text>
+          </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.iconButton}
@@ -271,7 +273,7 @@ const Main: React.FC = () => {
         </View>
         <View style={styles.line} />
         <Text style={styles.subtitle}>
-          000님의 체형과 취향 모두를 만족하는 옷이에요
+          회원님의 체형과 취향 모두를 만족하는 옷이에요
         </Text>
         <View style={styles.sections}>
           {reboxes.slice(0, 4).map((box, index) => (
@@ -333,6 +335,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
+  headerTextName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#9e9898',
+  },
   headerIcons: {
     flexDirection: 'row',
   },
@@ -382,7 +389,7 @@ const styles = StyleSheet.create({
     marginBottom: '3%',
     alignItems: 'center',
     position: 'relative',
-    paddingHorizontal: '4%',
+    paddingHorizontal: '3%',
   },
   boxContent: {
     flexDirection: 'row',
@@ -390,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: '1%',
   },
   boxText: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#000',
     flex: 1,
     fontWeight: 'bold',
@@ -398,7 +405,7 @@ const styles = StyleSheet.create({
   },
   boxImage: {
     width: '55%',
-    height: '245%',
+    height: '235%',
     resizeMode: 'contain',
     left: '25%',
   },
