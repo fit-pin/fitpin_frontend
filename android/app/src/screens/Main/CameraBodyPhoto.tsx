@@ -5,7 +5,7 @@ import { request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permis
 import RNFS from 'react-native-fs';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
+import { RootStackParamList } from '../../../../../App';
 
 type CameraBodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,

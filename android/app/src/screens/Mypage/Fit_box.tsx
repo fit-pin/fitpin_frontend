@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Dimensions, ScrollView, Modal, TouchableOpacity, Platform, Text } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import { RootStackParamList } from '../../../../../App'; // 경로를 실제 경로로 맞춰주세요
+import { RootStackParamList } from '../../../../../App';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
 
