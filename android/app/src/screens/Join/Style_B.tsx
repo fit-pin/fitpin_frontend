@@ -1,4 +1,3 @@
-import {StackNavigationProp} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {
   Text,
@@ -9,8 +8,10 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import {RootStackParamList} from '../../../../../App';
 import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useUser} from '../UserContext';
+import {RootStackParamList} from '../../../../../App';
 
 const congratsImages = [
   require('../../assets/img/join/style_b/1.jpg'),
@@ -21,10 +22,12 @@ const congratsImages = [
   require('../../assets/img/join/style_b/6.jpg'),
 ];
 
-type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_G'>;
+type StyleGNavigationProp = StackNavigationProp<RootStackParamList, 'Style_B'>;
 
-export default function Style_G() {
+export default function Style_B() {
   const navigation = useNavigation<StyleGNavigationProp>();
+  const {setUserFit, setSelectedStyles} = useUser(); // Use context
+
   const styleTexts = [
     '스트릿',
     '빈티지',
@@ -33,26 +36,42 @@ export default function Style_G() {
     '아메카지',
     '에슬레저',
   ];
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+
+  const [selectedStyles, setLocalSelectedStyles] = useState<string[]>([]);
+  const [selectedFit, setLocalSelectedFit] = useState<string | null>(null);
 
   const handleImagePress = (style: string) => {
-    setSelectedStyles(prevSelectedStyles => {
+    setLocalSelectedStyles(prevSelectedStyles => {
+      let updatedStyles;
       if (prevSelectedStyles.includes(style)) {
-        return prevSelectedStyles.filter(item => item !== style);
+        updatedStyles = prevSelectedStyles.filter(item => item !== style);
       } else {
-        return [...prevSelectedStyles, style];
+        updatedStyles = [...prevSelectedStyles, style];
       }
+      console.log('Updated Selected Styles:', updatedStyles);
+      return updatedStyles;
+    });
+  };
+
+  const handleFitPress = (fit: string) => {
+    setLocalSelectedFit(prevFit => {
+      const updatedFit = prevFit === fit ? null : fit;
+      console.log('Updated Selected Fit:', updatedFit);
+      return updatedFit;
     });
   };
 
   const isSelected = (style: string) => selectedStyles.includes(style);
 
   const handleButtonPress = () => {
-    if (selectedStyles.length === 4) {
-      console.log(`Selected styles: ${selectedStyles}`);
+    if (selectedStyles.length === 4 && selectedFit) {
+      console.log('Final Selected Styles:', selectedStyles);
+      console.log('Final Selected Fit:', selectedFit);
+      setSelectedStyles(selectedStyles); // 저장된 스타일들
+      setUserFit(selectedFit); // 저장된 핏
       navigation.navigate('Congrats', {selectedStyles});
     } else {
-      Alert.alert('선택 오류', '4개의 스타일을 선택해주세요.');
+      Alert.alert('선택 오류', '4개의 스타일과 1개의 핏을 선택해주세요.');
     }
   };
 
@@ -83,15 +102,17 @@ export default function Style_G() {
         </Text>
         <Text style={styles.fitText}>핏</Text>
         <View style={styles.rectangleRow}>
-          <TouchableOpacity style={styles.rectangleContainer}>
-            <Text style={styles.styleText}>#오버핏</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.rectangleContainer}>
-            <Text style={styles.styleText}>#정핏</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.rectangleContainer}>
-            <Text style={styles.styleText}>#슬림핏</Text>
-          </TouchableOpacity>
+          {['오버핏', '정핏', '슬림핏'].map(fit => (
+            <TouchableOpacity
+              key={fit}
+              style={[
+                styles.rectangleContainer,
+                selectedFit === fit && styles.selectedFitContainer,
+              ]}
+              onPress={() => handleFitPress(fit)}>
+              <Text style={styles.styleText}>#{fit}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
         <View style={styles.line} />
         <Text style={styles.fitText2}>스타일</Text>
@@ -206,6 +227,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 25,
+  },
+  selectedFitContainer: {
+    borderColor: '#000',
+    borderWidth: 2,
   },
   styleText: {
     fontSize: 16,

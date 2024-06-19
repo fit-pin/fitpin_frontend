@@ -1,4 +1,3 @@
-// BasicInformation.js
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -8,11 +7,12 @@ import {
   Text,
   Pressable,
   TextInput,
-  Image,
   Dimensions,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {RootStackParamList} from '../../../../../App.tsx';
+import {useUser} from '../UserContext.tsx';
 
 type BasicInformationNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -32,25 +32,46 @@ const Circle: React.FC<CircleProps> = ({isActive}) => (
 );
 
 export default function BasicInformation() {
+  const {
+    userGender,
+    setUserGender,
+    userHeight,
+    setUserHeight,
+    userWeight,
+    setUserWeight,
+  } = useUser();
   const navigation = useNavigation<BasicInformationNavigationProp>();
   const [isFemaleSelected, setIsFemaleSelected] = useState(false);
   const [isMaleSelected, setIsMaleSelected] = useState(false);
+  const [inputHeight, setInputHeight] = useState(
+    userHeight ? userHeight.toString() : '',
+  );
+  const [inputWeight, setInputWeight] = useState(
+    userWeight ? userWeight.toString() : '',
+  );
 
   const handleFemalePress = () => {
     setIsFemaleSelected(true);
     setIsMaleSelected(false);
+    setUserGender('female');
   };
 
   const handleMalePress = () => {
     setIsFemaleSelected(false);
     setIsMaleSelected(true);
+    setUserGender('male');
   };
 
   const handleContinuePress = () => {
-    // 성별 선택 상태를 Body_photo 페이지로 전달
-    navigation.navigate('Body_photo', {
-      gender: isFemaleSelected ? 'female' : isMaleSelected ? 'male' : null,
-    });
+    setUserHeight(Number(inputHeight));
+    setUserWeight(Number(inputWeight));
+
+    // 콘솔로그 추가
+    console.log('User Height:', inputHeight);
+    console.log('User Weight:', inputWeight);
+    console.log('User Gender:', userGender);
+
+    navigation.navigate('Body_photo');
   };
 
   return (
@@ -102,12 +123,16 @@ export default function BasicInformation() {
         style={styles.input}
         placeholder="키 (cm)"
         keyboardType="numeric"
+        value={inputHeight}
+        onChangeText={setInputHeight}
       />
 
       <TextInput
         style={styles.input}
         placeholder="몸무게 (kg)"
         keyboardType="numeric"
+        value={inputWeight}
+        onChangeText={setInputWeight}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleContinuePress}>

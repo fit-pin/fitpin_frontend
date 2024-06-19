@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -13,6 +13,10 @@ import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
+import {DATA_URL} from '../../Constant.ts';
+import {reqGet} from '../../utills/Request.ts';
+import path from 'path';
+import {useUser} from '../UserContext.tsx';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -97,7 +101,6 @@ const ProductCard: React.FC<{
 
 const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
   const opacity = useRef(new Animated.Value(1)).current;
-
   useEffect(() => {
     const blink = () => {
       Animated.sequence([
@@ -124,6 +127,51 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 
 const Main: React.FC = () => {
+  //회원 스타일을 저장하는 변수
+  const [oneStyle, setoneStyle] = useState('1');
+  const [twoStyle, settwoStyle] = useState('2');
+  const [thrStyle, setthrStyle] = useState('3');
+  const [fouStyle, setfouStyle] = useState('4');
+  const {userEmail, userName} = useUser();
+
+  //boxes배열에서 text의 value값만 저장
+  const koreanTexts = boxes.map(box => {
+    const koreanText = box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
+    return koreanText;
+  });
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const response = await reqGet(
+          path.join(DATA_URL, 'api', 'GetUserPreferStyle', `${userEmail}`),
+        );
+        setoneStyle(response[0].preferStyle);
+        settwoStyle(response[1].preferStyle);
+        setthrStyle(response[2].preferStyle);
+        setfouStyle(response[3].preferStyle);
+      } catch (error) {
+        console.error('Error fetching user body info:', error);
+      }
+    };
+    fetchInfo();
+  }, [userEmail]);
+
+  //회원 스타일을 임시적으로 저장할 변수
+  const styleArray = [];
+  styleArray.push(oneStyle, twoStyle, thrStyle, fouStyle);
+
+  //받아온 정보를 저장할 변수
+  const reboxes = [];
+  let i, j;
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 9; j++) {
+      if (styleArray[i] === koreanTexts[j]) {
+        reboxes.push(boxes[j]);
+      }
+    }
+  }
+
   const navigation = useNavigation<MainScreenNavigationProp>();
   const [selectedSection, setSelectedSection] = React.useState('상의');
   const [showProductGrid, setShowProductGrid] = React.useState(true);
@@ -199,7 +247,10 @@ const Main: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.header}>
-          <Text style={styles.headerText}>FitPin</Text>
+          <View>
+            <Text style={styles.headerText}>FitPin</Text>
+            <Text style={styles.headerTextName}>{userName}님</Text>
+          </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.iconButton}
@@ -222,10 +273,10 @@ const Main: React.FC = () => {
         </View>
         <View style={styles.line} />
         <Text style={styles.subtitle}>
-          000님의 체형과 취향 모두를 만족하는 옷이에요
+          회원님의 체형과 취향 모두를 만족하는 옷이에요
         </Text>
         <View style={styles.sections}>
-          {boxes.slice(0, 4).map((box, index) => (
+          {reboxes.slice(0, 4).map((box, index) => (
             <View key={index} style={styles.roundedBox}>
               {box.recommended && <BlinkingText>추천</BlinkingText>}
               <View style={styles.boxContent}>
@@ -284,6 +335,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
+  headerTextName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#9e9898',
+  },
   headerIcons: {
     flexDirection: 'row',
   },
@@ -333,7 +389,7 @@ const styles = StyleSheet.create({
     marginBottom: '3%',
     alignItems: 'center',
     position: 'relative',
-    paddingHorizontal: '4%',
+    paddingHorizontal: '3%',
   },
   boxContent: {
     flexDirection: 'row',
@@ -341,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: '1%',
   },
   boxText: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#000',
     flex: 1,
     fontWeight: 'bold',
@@ -349,7 +405,7 @@ const styles = StyleSheet.create({
   },
   boxImage: {
     width: '55%',
-    height: '245%',
+    height: '235%',
     resizeMode: 'contain',
     left: '25%',
   },

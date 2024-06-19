@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,30 +7,86 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import {reqPost} from '../../utills/Request';
 import {DATA_URL} from '../../Constant';
 import path from 'path';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+import {useUser} from '../UserContext';
+
+type SigninavigationProp = StackNavigationProp<RootStackParamList, 'Signin'>;
+
 const {width, height} = Dimensions.get('window');
 
-async function test() {
-  // 요청 body 만드는거
-  const body = {
-    userEmail: 'test1234',
-    userPwd: '1234',
-    userName: 'zoo',
-    userPwdConfirm: '1234',
+const Signin = () => {
+  const navigation = useNavigation<SigninavigationProp>();
+  // eslint-disable-next-line prettier/prettier
+  const { setUserName, setUserEmail, setUserPwd } = useUser();
+
+  const [userName, setUserNameLocal] = useState('');
+  const [userEmail, setUserEmailLocal] = useState('');
+  const [userPwd, setUserPwdLocal] = useState('');
+  const [userPwdConfirm, setUserPwdConfirmLocal] = useState('');
+
+  const validateEmail = (email: string) => {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
   };
 
-  const res = await reqPost(
-    path.join(DATA_URL, 'api', 'members', 'register'),
-    body,
-  );
-  console.log(res.name); // 이름
-}
+  const validateForm = () => {
+    if (!userName || !userEmail || !userPwd || !userPwdConfirm) {
+      Alert.alert('오류', '모든 정보를 입력해주세요.');
+      return false;
+    }
+    if (!validateEmail(userEmail)) {
+      Alert.alert('오류', '유효한 이메일 주소를 입력해주세요.');
+      return false;
+    }
+    if (userPwd !== userPwdConfirm) {
+      Alert.alert('오류', '비밀번호가 일치하지 않습니다.');
+      return false;
+    }
+    return true;
+  };
 
-const Signin = () => {
-  test();
+  const handleSignup = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    const body = {
+      userEmail,
+      userPwd,
+      userName,
+      userPwdConfirm,
+    };
+    try {
+      const res = await reqPost(
+        path.join(DATA_URL, 'api', 'members', 'register'),
+        body,
+      );
+      console.log('Server response:', res);
+
+      if (res.message && res.message.includes('회원가입이 완료되었습니다')) {
+        // UserContext에 사용자 정보 저장
+        setUserName(userName);
+        setUserEmail(userEmail);
+        setUserPwd(userPwd);
+
+        // 다음 페이지로 이동
+        navigation.navigate('BasicInformation');
+      } else if (res.message) {
+        Alert.alert('응답', res.message);
+      } else {
+        Alert.alert('오류', '회원가입 중 문제가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Error during registration:', error);
+      Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -44,6 +100,8 @@ const Signin = () => {
         placeholder="Name"
         keyboardType="default"
         autoCapitalize="none"
+        value={userName}
+        onChangeText={setUserNameLocal}
       />
 
       <Text style={styles.label}>이메일</Text>
@@ -53,6 +111,8 @@ const Signin = () => {
           placeholder="E-mail"
           keyboardType="email-address"
           autoCapitalize="none"
+          value={userEmail}
+          onChangeText={setUserEmailLocal}
         />
         <TouchableOpacity style={styles.verifyButton}>
           <Text style={styles.verifyButtonText}>인증하기</Text>
@@ -64,6 +124,8 @@ const Signin = () => {
         style={styles.input}
         placeholder="Password"
         secureTextEntry={true}
+        value={userPwd}
+        onChangeText={setUserPwdLocal}
       />
 
       <Text style={styles.label}>비밀번호 확인</Text>
@@ -71,17 +133,13 @@ const Signin = () => {
         style={styles.input}
         placeholder="Password"
         secureTextEntry={true}
+        value={userPwdConfirm}
+        onChangeText={setUserPwdConfirmLocal}
       />
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={handleSignup}>
         <Text style={styles.buttonText}>가입하기</Text>
       </TouchableOpacity>
-
-      <View style={styles.transparentButtonContainer}>
-        <TouchableOpacity>
-          <Text style={styles.transparentButtonText}>로그인하러 가기</Text>
-        </TouchableOpacity>
-      </View>
     </ScrollView>
   );
 };
@@ -143,18 +201,6 @@ const styles = StyleSheet.create({
     fontSize: width * 0.05,
     color: '#ffffff',
     textAlign: 'center',
-    fontWeight: 'bold',
-  },
-
-  transparentButtonContainer: {
-    width: '73%',
-    alignItems: 'flex-end',
-    marginTop: height * 0.01,
-  },
-
-  transparentButtonText: {
-    fontSize: width * 0.04,
-    color: '#878787',
     fontWeight: 'bold',
   },
 

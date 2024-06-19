@@ -14,9 +14,11 @@ import {
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
-import path from 'path';
-import {ArRequest} from '../../utills/Request';
-import {AR_URL} from '../../Constant';
+import {useNavigation} from '@react-navigation/native';
+import {RootStackParamList} from '../../../../../App';
+import {StackNavigationProp} from '@react-navigation/stack';
+//ViewPropTypes 애러 나는거 해결
+import '../../../src/ignoreWarnings';
 
 const Camera = () => {
   const [hasPermission, setHasPermission] = useState(false);
@@ -26,6 +28,7 @@ const Camera = () => {
     null,
   );
   const cameraRef = useRef<RNCamera | null>(null);
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -95,23 +98,6 @@ const Camera = () => {
 
       const data = await cameraRef.current.takePictureAsync(options);
 
-      // 요청 FormData 만들기
-      const formData = new FormData();
-      const name = data.uri.split('/').pop();
-      formData.append('anaFile', {
-        uri: data.uri,
-        name: name,
-        type: 'image/jpeg',
-      } as FormDataValue);
-      formData.append('personKey', '174');
-
-      ArRequest(path.join(AR_URL, 'bodymea'), formData)
-        .then(async res => {
-          console.log(await res.json());
-          // TODO: 여기에서 측정값 DB 에 넘기는거 해야함
-        })
-        .catch(e => console.log(e));
-
       setPhotoUri(data.uri);
     }
   };
@@ -144,14 +130,8 @@ const Camera = () => {
   }
 
   if (confirmedPhotoUri) {
-    return (
-      <View style={styles.container}>
-        <Image source={{uri: confirmedPhotoUri}} style={styles.preview} />
-        <View style={styles.bottomControls}>
-          <Text style={styles.buttonText}>저장된 사진</Text>
-        </View>
-      </View>
-    );
+    navigation.replace('Loading', {uri: confirmedPhotoUri});
+    return <></>;
   }
 
   return (
