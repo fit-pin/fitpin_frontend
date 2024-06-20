@@ -25,6 +25,7 @@ const Congrats = () => {
     userName,
     userEmail,
     userGender,
+    userPwd,
     userHeight,
     userWeight,
     userFit,
@@ -43,6 +44,7 @@ const Congrats = () => {
     console.log('User Context:', {
       userName,
       userEmail,
+      userPwd,
       userGender,
       userHeight,
       userWeight,
@@ -90,6 +92,7 @@ const Congrats = () => {
   }, [
     userName,
     userEmail,
+    userPwd,
     userGender,
     userHeight,
     userWeight,
