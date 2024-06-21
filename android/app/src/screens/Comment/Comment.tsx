@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
   },
   productImage: {
-    width: '55%',
+    width: '65%',
     height: '90%',
     resizeMode: 'cover',
   },

@@ -20,7 +20,7 @@ import {useUser} from '../UserContext.tsx';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
-const sections: string[] = ['상의', '하의', '아우터', '원피스'];
+const sections: string[] = ['상의', '하의', '아우터', '정장'];
 const boxes: {text: string; image: any; recommended: boolean}[] = [
   {
     text: '스트릿 \nStreet',
@@ -223,10 +223,37 @@ const Main: React.FC = () => {
     },
   ];
 
+  const outerProducts = [
+    {
+      title: '제품1',
+      description: '아우터 제품 설명',
+      price: '298.000₩',
+      image: require('../../assets/img/main/bottom/bottom1.png'),
+    },
+  ];
+
+  const suitproducts = [
+    {
+      title: '제품1',
+      description: '정장 제품 설명',
+      price: '398.000₩',
+      image: require('../../assets/img/main/bottom/bottom1.png'),
+    },
+  ];
+
   const renderProductGrid = () => {
+    let productsToShow: any[] = [];
+    if (selectedSection === '상의') {
+      productsToShow = products;
+    } else if (selectedSection === '하의') {
+      productsToShow = bottomProducts;
+    } else if (selectedSection === '아우터') {
+      productsToShow = outerProducts;
+    } else if (selectedSection === '정장') {
+      productsToShow = suitproducts;
+    }
+
     if (showProductGrid) {
-      const productsToShow =
-        selectedSection === '상의' ? products : bottomProducts;
       return (
         <View style={styles.productGrid}>
           {productsToShow.map((product, index) => (
