@@ -105,12 +105,19 @@ const CameraBodyPhoto = () => {
     }
   };
 
-  // 확인 버튼 클릭 시 로컬에 저장
+  // 확인 버튼 클릭 시 로컬에 저장하고 핏보관함으로 이동
   const confirmPicture = async () => {
     if (photoUri) {
       const localUri = await saveToLocalStorage(photoUri);
       if (localUri) {
-        navigation.navigate('Fit_box', {newPhotoUri: localUri});
+        // navigation.reset() 사용하여 핏보관함으로 이동
+        navigation.reset({
+          index: 1,
+          routes: [
+            { name: 'Main' },
+            { name: 'Fit_box', params: { newPhotoUri: localUri } },
+          ],
+        });
       }
       setPhotoUri(null);
     }

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StyleSheet,
   View,
@@ -9,25 +9,33 @@ import {
   TouchableOpacity,
   Platform,
   Text,
+  BackHandler,
 } from 'react-native';
-import {useRoute, RouteProp} from '@react-navigation/native';
+import {useRoute, RouteProp, useFocusEffect} from '@react-navigation/native';
 import RNFS from 'react-native-fs';
 import {RootStackParamList} from '../../../../../App';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
+type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
 const Fit_box = () => {
   const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const route = useRoute<FitBoxRouteProp>();
+  const navigation = useNavigation<FitBoxNavigationProp>();
   const newPhotoUri = route.params?.newPhotoUri;
+  const cameFromMain = navigation.canGoBack() && !newPhotoUri;
 
+  // 새로운 사진이 추가되었을 때 이미지를 상태에 추가
   useEffect(() => {
     if (newPhotoUri) {
       setImages(prevImages => [...prevImages, newPhotoUri]);
     }
   }, [newPhotoUri]);
 
+  // 기존 저장된 이미지를 로드
   useEffect(() => {
     const loadSavedImages = async () => {
       try {
@@ -40,7 +48,7 @@ const Fit_box = () => {
           file => file.name.endsWith('.jpg') || file.name.endsWith('.png'),
         );
 
-        // 파일명을 기준으로 정렬 (오래된 사진이 뒤로)
+        // 파일명 기준 정렬 (오래된 사진이 뒤로)
         const sortedImageFiles = imageFiles.sort((a, b) =>
           a.name < b.name ? 1 : -1,
         );
@@ -48,12 +56,35 @@ const Fit_box = () => {
         const imageUris = sortedImageFiles.map(file => `file://${file.path}`);
         setImages(imageUris);
       } catch (error) {
-        console.error('Error loading saved images:', error);
+        console.error('이미지를 로드하는 중 오류 발생:', error);
       }
     };
 
     loadSavedImages();
   }, []);
+
+  // 뒤로 가기 버튼 누를 때 조건에 따라 이동
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (newPhotoUri) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+          });
+        } else {
+          navigation.goBack();
+        }
+        return true; // 기본 뒤로 가기 동작 방지
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [navigation, newPhotoUri]),
+  );
 
   return (
     <ScrollView
