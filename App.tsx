@@ -71,7 +71,10 @@ const Stack = createStackNavigator<RootStackParamList>();
 const App = () => {
   useEffect(() => {
     const backAction = () => {
-      Alert.alert('앱을 종료하시겠습니까?', '', [
+      Alert.alert(
+        '종료', 
+        '앱을 종료하시겠습니까?', 
+        [
         { text: '아니오', onPress: () => null, style: 'cancel' },
         { text: '예', onPress: () => BackHandler.exitApp() },
       ]);
