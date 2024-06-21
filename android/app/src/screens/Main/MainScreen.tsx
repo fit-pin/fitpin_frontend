@@ -74,12 +74,13 @@ const ProductCard: React.FC<{
   description: string;
   price: string;
   image: any;
-}> = ({title, description, price, image}) => {
+  brand: string;
+}> = ({title, description, price, image, brand}) => {
   const navigation = useNavigation<MainScreenNavigationProp>();
   return (
     <View style={styles.productCardContainer}>
       <View style={styles.topRectangle}>
-        <Text style={styles.brandText}>Musinsa</Text>
+        <Text style={styles.brandText}>{brand}</Text>
       </View>
       <TouchableOpacity onPress={() => navigation.navigate('ProductPage')}>
         <View style={styles.middleRectangle}>
@@ -182,24 +183,28 @@ const Main: React.FC = () => {
       description: '데님 셔츠',
       price: '219.000₩',
       image: require('../../assets/img/main/top/top1.png'),
+      brand: 'Musinsa',
     },
     {
       title: '에스이오',
       description: '럭비 저지 탑',
       price: '168.000₩',
       image: require('../../assets/img/main/top/top2.png'),
+      brand: 'Ably',
     },
     {
-      title: '폴로 랄프',
-      description: '데님 셔츠',
+      title: '디파이클럽',
+      description: '긴팔 티셔츠',
       price: '419.000₩',
-      image: require('../../assets/img/main/top/top2.png'),
+      image: require('../../assets/img/main/top/top3.png'),
+      brand: 'Eql',
     },
     {
-      title: '폴로 랄프',
-      description: '데님 셔츠',
+      title: '슬로우애시드',
+      description: '스웨트 셔츠',
       price: '519.000₩',
-      image: require('../../assets/img/main/top/top2.png'),
+      image: require('../../assets/img/main/top/top4.png'),
+      brand: 'Musinsa',
     },
   ];
   const bottomProducts = [
@@ -208,36 +213,48 @@ const Main: React.FC = () => {
       description: '데님 팬츠',
       price: '198,000₩',
       image: require('../../assets/img/main/bottom/bottom1.png'),
+      brand: 'Musinsa',
     },
     {
-      title: '제품2',
-      description: '하의 제품 설명',
+      title: '위캔더스',
+      description: '카모 팬츠',
       price: '129.000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
-    },
-    {
-      title: '제품3',
-      description: '하의 제품 설명',
-      price: '149.000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
+      image: require('../../assets/img/main/bottom/bottom2.png'),
+      brand: 'Musinsa',
     },
   ];
 
   const outerProducts = [
     {
-      title: '제품1',
-      description: '아우터 제품 설명',
-      price: '298.000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
+      title: '아노트',
+      description: '윈드브레이커',
+      price: '98.000₩',
+      image: require('../../assets/img/main/outer/outer1.png'),
+      brand: 'Height',
+    },
+    {
+      title: '코드그라피',
+      description: '후드집업',
+      price: '69.900₩',
+      image: require('../../assets/img/main/outer/outer2.png'),
+      brand: 'Height',
     },
   ];
 
   const suitproducts = [
     {
-      title: '제품1',
-      description: '정장 제품 설명',
-      price: '398.000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
+      title: '코어',
+      description: '블레이저',
+      price: '108.000₩',
+      image: require('../../assets/img/main/suit/suit1.png'),
+      brand: 'Height',
+    },
+    {
+      title: '폴로 랄프',
+      description: '수트 자켓',
+      price: '138.000₩',
+      image: require('../../assets/img/main/suit/suit2.png'),
+      brand: 'Musinsa',
     },
   ];
 
@@ -263,6 +280,7 @@ const Main: React.FC = () => {
               description={product.description}
               price={product.price}
               image={product.image}
+              brand={product.brand}
             />
           ))}
         </View>
@@ -492,12 +510,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     left: '7%',
-    bottom: '-20%',
+    bottom: '-15%',
   },
   productImage: {
     width: '80%',
     height: '100%',
     resizeMode: 'contain',
+    top: -4,
   },
   productTitle: {
     fontSize: 15,
