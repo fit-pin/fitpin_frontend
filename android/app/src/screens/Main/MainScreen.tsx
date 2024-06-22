@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -8,15 +8,17 @@ import {
   ScrollView,
   Animated,
   TouchableOpacity,
+  BackHandler,
+  Alert,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import {RootStackParamList} from '../../../../../App.tsx';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {DATA_URL} from '../../Constant.ts';
-import {reqGet} from '../../utills/Request.ts';
+import { RootStackParamList } from '../../../../../App';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { DATA_URL } from '../../Constant';
+import { reqGet } from '../../utills/Request';
 import path from 'path';
-import {useUser} from '../UserContext.tsx';
+import { useUser } from '../UserContext';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -100,7 +102,7 @@ const ProductCard: React.FC<{
   );
 };
 
-const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
+const BlinkingText: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const opacity = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const blink = () => {
@@ -121,21 +123,19 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
   }, [opacity]);
 
   return (
-    <Animated.Text style={[styles.recommendText, {opacity}]}>
+    <Animated.Text style={[styles.recommendText, { opacity }]}>
       {children}
     </Animated.Text>
   );
 };
 
 const Main: React.FC = () => {
-  //회원 스타일을 저장하는 변수
   const [oneStyle, setoneStyle] = useState('1');
   const [twoStyle, settwoStyle] = useState('2');
   const [thrStyle, setthrStyle] = useState('3');
   const [fouStyle, setfouStyle] = useState('4');
-  const {userEmail, userName} = useUser();
+  const { userEmail, userName } = useUser();
 
-  //boxes배열에서 text의 value값만 저장
   const koreanTexts = boxes.map(box => {
     const koreanText = box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
     return koreanText;
@@ -158,15 +158,11 @@ const Main: React.FC = () => {
     fetchInfo();
   }, [userEmail]);
 
-  //회원 스타일을 임시적으로 저장할 변수
-  const styleArray = [];
-  styleArray.push(oneStyle, twoStyle, thrStyle, fouStyle);
+  const styleArray = [oneStyle, twoStyle, thrStyle, fouStyle];
 
-  //받아온 정보를 저장할 변수
   const reboxes = [];
-  let i, j;
-  for (i = 0; i < 4; i++) {
-    for (j = 0; j < 9; j++) {
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 9; j++) {
       if (styleArray[i] === koreanTexts[j]) {
         reboxes.push(boxes[j]);
       }
@@ -174,8 +170,31 @@ const Main: React.FC = () => {
   }
 
   const navigation = useNavigation<MainScreenNavigationProp>();
-  const [selectedSection, setSelectedSection] = React.useState('상의');
-  const [showProductGrid, setShowProductGrid] = React.useState(true);
+  const [selectedSection, setSelectedSection] = useState('상의');
+  const [showProductGrid, setShowProductGrid] = useState(true);
+
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert('종료', '앱을 종료하시겠습니까?', [
+        { text: '아니오', onPress: () => null, style: 'cancel' },
+        { text: '예', onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const handleBackPress = () => {
+      if (navigation.isFocused()) {
+        return backAction();
+      }
+      return false;
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+  }, [navigation]);
 
   const products = [
     {
@@ -299,8 +318,8 @@ const Main: React.FC = () => {
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => navigation.navigate('CameraBodyPhoto')}>
-              {/* 임시로 사이즈 페이지 보려고 size로 한거기에 카메라 부분 다 완성되면 onPress={() => navigation.navigate('Camera')}> */}
+              onPress={() => navigation.navigate('CameraBodyPhoto')}
+            >
               <Image
                 source={require('../../assets/img/main/camera.png')}
                 style={styles.icon}
@@ -308,7 +327,8 @@ const Main: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => navigation.navigate('Cart')}>
+              onPress={() => navigation.navigate('Cart')}
+            >
               <Image
                 source={require('../../assets/img/main/shop.png')}
                 style={styles.icon}
@@ -343,7 +363,6 @@ const Main: React.FC = () => {
               <Text
                 style={[
                   styles.sectionText,
-                  // eslint-disable-next-line react-native/no-inline-styles
                   {
                     color: selectedSection === section ? '#000' : '#919191',
                   },
