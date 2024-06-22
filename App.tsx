@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './android/app/src/screens/Start/Splash';
 import LognSignin from './android/app/src/screens/Join/LognSignin';
 import Signin from './android/app/src/screens/Join/Signin';
@@ -29,7 +29,7 @@ import My_Fit from './android/app/src/screens/Mypage/My_Fit';
 import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
-import { UserProvider } from './android/app/src/screens/UserContext';
+import {UserProvider} from './android/app/src/screens/UserContext';
 import Loading from './android/app/src/screens/Join/Loading';
 
 export type RootStackParamList = {
@@ -41,7 +41,7 @@ export type RootStackParamList = {
   Body_photo: undefined;
   Style_G: undefined;
   Style_B: undefined;
-  Congrats: { selectedStyles: string[] };
+  Congrats: {selectedStyles: string[]};
   Main: undefined;
   ProductPage: undefined;
   Cart: undefined;
@@ -59,10 +59,10 @@ export type RootStackParamList = {
   Purchase: undefined;
   My_Fit: undefined;
   Remeasure: undefined;
-  Fit_box: { newPhotoUri?: string };
+  Fit_box: {newPhotoUri?: string};
   WriteComment: undefined;
   BottomTabNavigator: undefined;
-  Loading: { uri: string };
+  Loading: {uri: string};
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -75,27 +75,27 @@ const App = () => {
           <Stack.Screen
             name="Splash"
             component={Splash}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="LognSignin"
             component={LognSignin}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Signin"
             component={Signin}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Login"
             component={Login}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="BasicInformation"
             component={BasicInformation}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Loading"
@@ -109,32 +109,32 @@ const App = () => {
           <Stack.Screen
             name="Body_photo"
             component={Body_photo}
-            options={{ headerTitle: '' }} // 상단에 화살표 보이게
+            options={{headerTitle: ''}} // 상단에 화살표 보이게
           />
           <Stack.Screen
             name="Style_G"
             component={Style_G}
-            options={{ headerTitle: '' }}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="Style_B"
             component={Style_B}
-            options={{ headerTitle: '' }}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="Congrats"
             component={Congrats}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Main"
             component={Main}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="ProductPage"
             component={ProductPage}
-            options={{ headerTitle: '' }}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="Cart"
@@ -159,52 +159,52 @@ const App = () => {
           <Stack.Screen
             name="OrderComplete"
             component={OrderComplete}
-            options={{ headerTitle: '' }}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="Camera"
             component={Camera}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="CameraBodyPhoto"
             component={CameraBodyPhoto}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="CameraRemeasure"
             component={CameraRemeasure}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Size"
             component={Size}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Search"
             component={Search}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Comment"
             component={Comment}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="CommentReview"
             component={CommentReview}
-            options={{ headerTitle: '' }}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="WritePage"
             component={WritePage}
-            options={{ headerTitle: '' }}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="Mypage"
             component={Mypage}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Purchase"

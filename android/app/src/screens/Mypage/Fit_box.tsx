@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   View,
@@ -9,24 +9,18 @@ import {
   TouchableOpacity,
   Platform,
   Text,
-  BackHandler,
 } from 'react-native';
-import {useRoute, RouteProp, useFocusEffect} from '@react-navigation/native';
+import {useRoute, RouteProp} from '@react-navigation/native';
 import RNFS from 'react-native-fs';
 import {RootStackParamList} from '../../../../../App';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
-type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
 const Fit_box = () => {
   const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const route = useRoute<FitBoxRouteProp>();
-  const navigation = useNavigation<FitBoxNavigationProp>();
   const newPhotoUri = route.params?.newPhotoUri;
-  const cameFromMain = navigation.canGoBack() && !newPhotoUri;
 
   // 새로운 사진이 추가되었을 때 이미지를 상태에 추가
   useEffect(() => {
@@ -62,29 +56,6 @@ const Fit_box = () => {
 
     loadSavedImages();
   }, []);
-
-  // 뒤로 가기 버튼 누를 때 조건에 따라 이동
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => {
-        if (newPhotoUri) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Main' }],
-          });
-        } else {
-          navigation.goBack();
-        }
-        return true; // 기본 뒤로 가기 동작 방지
-      };
-
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      };
-    }, [navigation, newPhotoUri]),
-  );
 
   return (
     <ScrollView

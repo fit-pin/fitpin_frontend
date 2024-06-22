@@ -111,13 +111,7 @@ const CameraBodyPhoto = () => {
       const localUri = await saveToLocalStorage(photoUri);
       if (localUri) {
         // navigation.reset() 사용하여 핏보관함으로 이동
-        navigation.reset({
-          index: 1,
-          routes: [
-            { name: 'Main' },
-            { name: 'Fit_box', params: { newPhotoUri: localUri } },
-          ],
-        });
+        navigation.replace('Fit_box', {newPhotoUri: localUri});
       }
       setPhotoUri(null);
     }
