@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Button, BackHandler, Alert } from 'react-native';
 import Splash from './android/app/src/screens/Start/Splash';
 import LognSignin from './android/app/src/screens/Join/LognSignin';
 import Signin from './android/app/src/screens/Join/Signin';
@@ -69,25 +68,6 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
-  useEffect(() => {
-    const backAction = () => {
-      Alert.alert(
-        '종료', 
-        '앱을 종료하시겠습니까?', 
-        [
-        { text: '아니오', onPress: () => null, style: 'cancel' },
-        { text: '예', onPress: () => BackHandler.exitApp() },
-      ]);
-      return true;
-    };
-
-    BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', backAction);
-    };
-  }, []);
-
   return (
     <UserProvider>
       <NavigationContainer>
