@@ -185,17 +185,20 @@ const Main: React.FC = () => {
   const [showProductGrid, setShowProductGrid] = useState(true);
 
   useEffect(() => {
-    const backAction = () => {
-      Alert.alert('종료', '앱을 종료하시겠습니까?', [
-        {text: '아니오', onPress: () => null, style: 'cancel'},
-        {text: '예', onPress: () => BackHandler.exitApp()},
-      ]);
-      return true;
-    };
-
     const handleBackPress = () => {
       if (navigation.isFocused()) {
-        return backAction();
+        Alert.alert('종료', '앱을 종료하시겠습니까?', [
+          {text: '아니오', onPress: () => null, style: 'cancel'},
+          {
+            text: '예',
+            onPress: () => {
+              BackHandler.exitApp();
+              return true;
+            },
+          },
+        ]);
+
+        return true;
       }
       return false;
     };
