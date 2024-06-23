@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import path from 'path';
 const {width, height} = Dimensions.get('window');
 
 const Login = () => {
-  
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {
     setUserEmail,
@@ -91,7 +90,6 @@ const Login = () => {
       Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
     }
   };
-
 
   const getStyleInfo = async () => {
     try {
