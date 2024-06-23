@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -12,13 +12,13 @@ import {
   Alert,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import { RootStackParamList } from '../../../../../App';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { DATA_URL } from '../../Constant';
-import { reqGet } from '../../utills/Request';
+import {RootStackParamList} from '../../../../../App';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {DATA_URL} from '../../Constant';
+import {reqGet} from '../../utills/Request';
 import path from 'path';
-import { useUser } from '../UserContext';
+import {useUser} from '../UserContext';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -27,7 +27,7 @@ const boxes: {text: string; image: any; recommended: boolean}[] = [
   {
     text: '스트릿 \nStreet',
     image: require('../../assets/img/main/style/street.png'),
-    recommended: true,
+    recommended: false,
   },
   {
     text: '캐주얼 \nCasual',
@@ -102,7 +102,7 @@ const ProductCard: React.FC<{
   );
 };
 
-const BlinkingText: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
   const opacity = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const blink = () => {
@@ -123,7 +123,7 @@ const BlinkingText: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }, [opacity]);
 
   return (
-    <Animated.Text style={[styles.recommendText, { opacity }]}>
+    <Animated.Text style={[styles.recommendText, {opacity}]}>
       {children}
     </Animated.Text>
   );
@@ -134,7 +134,7 @@ const Main: React.FC = () => {
   const [twoStyle, settwoStyle] = useState('2');
   const [thrStyle, setthrStyle] = useState('3');
   const [fouStyle, setfouStyle] = useState('4');
-  const { userEmail, userName } = useUser();
+  const {userEmail, userName} = useUser();
 
   const koreanTexts = boxes.map(box => {
     const koreanText = box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
@@ -161,10 +161,21 @@ const Main: React.FC = () => {
   const styleArray = [oneStyle, twoStyle, thrStyle, fouStyle];
 
   const reboxes = [];
+  const rn = Math.floor(Math.random() * 3 + 0);
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 9; j++) {
       if (styleArray[i] === koreanTexts[j]) {
         reboxes.push(boxes[j]);
+      }
+    }
+  }
+
+  if (reboxes.length === 4) {
+    for (let i = 0; i < 4; i++) {
+      if (i === rn) {
+        reboxes[i].recommended = true;
+      } else {
+        reboxes[i].recommended = false;
       }
     }
   }
@@ -176,8 +187,8 @@ const Main: React.FC = () => {
   useEffect(() => {
     const backAction = () => {
       Alert.alert('종료', '앱을 종료하시겠습니까?', [
-        { text: '아니오', onPress: () => null, style: 'cancel' },
-        { text: '예', onPress: () => BackHandler.exitApp() },
+        {text: '아니오', onPress: () => null, style: 'cancel'},
+        {text: '예', onPress: () => BackHandler.exitApp()},
       ]);
       return true;
     };
@@ -318,8 +329,7 @@ const Main: React.FC = () => {
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => navigation.navigate('CameraBodyPhoto')}
-            >
+              onPress={() => navigation.navigate('CameraBodyPhoto')}>
               <Image
                 source={require('../../assets/img/main/camera.png')}
                 style={styles.icon}
@@ -327,8 +337,7 @@ const Main: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => navigation.navigate('Cart')}
-            >
+              onPress={() => navigation.navigate('Cart')}>
               <Image
                 source={require('../../assets/img/main/shop.png')}
                 style={styles.icon}

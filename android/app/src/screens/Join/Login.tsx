@@ -12,7 +12,7 @@ import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import {reqGet, reqPost} from '../../utills/Request';
 import {DATA_URL} from '../../Constant';
-import {useUser} from '../UserContext';
+import {useUser, setItem} from '../UserContext';
 import type {RootStackParamList} from '../../../../../App';
 import path from 'path';
 
@@ -77,6 +77,9 @@ const Login = () => {
 
         // 선택한 4개의 스타일 정보 가져오기
         getStyleInfo();
+
+        // 로컬에 저장
+        Emailcheck();
       } else if (res.message) {
         Alert.alert('응답', res.message);
       } else {
@@ -112,6 +115,15 @@ const Login = () => {
     } catch (error) {
       console.error('Error during login:', error);
       Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
+    }
+  };
+
+  const Emailcheck = async () => {
+    try {
+      await setItem('userEmail', userEmail);
+      await setItem('userPwd', userPwd);
+    } catch (e) {
+      console.log(e);
     }
   };
 
