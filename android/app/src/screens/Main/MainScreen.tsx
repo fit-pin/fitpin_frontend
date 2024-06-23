@@ -25,7 +25,7 @@ const boxes: {text: string; image: any; recommended: boolean}[] = [
   {
     text: '스트릿 \nStreet',
     image: require('../../assets/img/main/style/street.png'),
-    recommended: true,
+    recommended: false,
   },
   {
     text: '캐주얼 \nCasual',
@@ -157,6 +157,7 @@ const Main: React.FC = () => {
     fetchInfo();
   }, [userEmail]);
 
+
   //회원 스타일을 임시적으로 저장할 변수
   const styleArray = [];
   styleArray.push(oneStyle, twoStyle, thrStyle, fouStyle);
@@ -164,13 +165,24 @@ const Main: React.FC = () => {
   //받아온 정보를 저장할 변수
   const reboxes = [];
   let i, j;
+  const rn = Math.floor(Math.random() * 3 + 0);
   for (i = 0; i < 4; i++) {
     for (j = 0; j < 9; j++) {
       if (styleArray[i] === koreanTexts[j]) {
         reboxes.push(boxes[j]);
       }
     }
-  }
+  };
+
+  if(reboxes.length == 4){
+    for (i = 0; i < 4; i++) {
+      if(i == rn){
+        reboxes[i].recommended = true;
+      } else{
+        reboxes[i].recommended = false;
+      }
+    };
+  };
 
   const navigation = useNavigation<MainScreenNavigationProp>();
   const [selectedSection, setSelectedSection] = React.useState('상의');
