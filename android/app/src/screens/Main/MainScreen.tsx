@@ -8,19 +8,21 @@ import {
   ScrollView,
   Animated,
   TouchableOpacity,
+  BackHandler,
+  Alert,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import {RootStackParamList} from '../../../../../App.tsx';
+import {RootStackParamList} from '../../../../../App';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {DATA_URL} from '../../Constant.ts';
-import {reqGet} from '../../utills/Request.ts';
+import {DATA_URL} from '../../Constant';
+import {reqGet} from '../../utills/Request';
 import path from 'path';
-import {useUser} from '../UserContext.tsx';
+import {useUser} from '../UserContext';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
-const sections: string[] = ['상의', '하의', '아우터', '원피스'];
+const sections: string[] = ['상의', '하의', '아우터', '정장'];
 const boxes: {text: string; image: any; recommended: boolean}[] = [
   {
     text: '스트릿 \nStreet',
@@ -74,12 +76,13 @@ const ProductCard: React.FC<{
   description: string;
   price: string;
   image: any;
-}> = ({title, description, price, image}) => {
+  brand: string;
+}> = ({title, description, price, image, brand}) => {
   const navigation = useNavigation<MainScreenNavigationProp>();
   return (
     <View style={styles.productCardContainer}>
       <View style={styles.topRectangle}>
-        <Text style={styles.brandText}>Musinsa</Text>
+        <Text style={styles.brandText}>{brand}</Text>
       </View>
       <TouchableOpacity onPress={() => navigation.navigate('ProductPage')}>
         <View style={styles.middleRectangle}>
@@ -127,14 +130,12 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 
 const Main: React.FC = () => {
-  //회원 스타일을 저장하는 변수
   const [oneStyle, setoneStyle] = useState('1');
   const [twoStyle, settwoStyle] = useState('2');
   const [thrStyle, setthrStyle] = useState('3');
   const [fouStyle, setfouStyle] = useState('4');
   const {userEmail, userName} = useUser();
 
-  //boxes배열에서 text의 value값만 저장
   const koreanTexts = boxes.map(box => {
     const koreanText = box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
     return koreanText;
@@ -157,36 +158,57 @@ const Main: React.FC = () => {
     fetchInfo();
   }, [userEmail]);
 
+  const styleArray = [oneStyle, twoStyle, thrStyle, fouStyle];
 
-  //회원 스타일을 임시적으로 저장할 변수
-  const styleArray = [];
-  styleArray.push(oneStyle, twoStyle, thrStyle, fouStyle);
-
-  //받아온 정보를 저장할 변수
   const reboxes = [];
-  let i, j;
   const rn = Math.floor(Math.random() * 3 + 0);
-  for (i = 0; i < 4; i++) {
-    for (j = 0; j < 9; j++) {
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 9; j++) {
       if (styleArray[i] === koreanTexts[j]) {
         reboxes.push(boxes[j]);
       }
     }
-  };
+  }
 
-  if(reboxes.length == 4){
-    for (i = 0; i < 4; i++) {
-      if(i == rn){
+  if (reboxes.length === 4) {
+    for (let i = 0; i < 4; i++) {
+      if (i === rn) {
         reboxes[i].recommended = true;
-      } else{
+      } else {
         reboxes[i].recommended = false;
       }
-    };
-  };
+    }
+  }
 
   const navigation = useNavigation<MainScreenNavigationProp>();
-  const [selectedSection, setSelectedSection] = React.useState('상의');
-  const [showProductGrid, setShowProductGrid] = React.useState(true);
+  const [selectedSection, setSelectedSection] = useState('상의');
+  const [showProductGrid, setShowProductGrid] = useState(true);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (navigation.isFocused()) {
+        Alert.alert('종료', '앱을 종료하시겠습니까?', [
+          {text: '아니오', onPress: () => null, style: 'cancel'},
+          {
+            text: '예',
+            onPress: () => {
+              BackHandler.exitApp();
+              return true;
+            },
+          },
+        ]);
+
+        return true;
+      }
+      return false;
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+  }, [navigation]);
 
   const products = [
     {
@@ -194,24 +216,28 @@ const Main: React.FC = () => {
       description: '데님 셔츠',
       price: '219.000₩',
       image: require('../../assets/img/main/top/top1.png'),
+      brand: 'Musinsa',
     },
     {
       title: '에스이오',
       description: '럭비 저지 탑',
       price: '168.000₩',
       image: require('../../assets/img/main/top/top2.png'),
+      brand: 'Ably',
     },
     {
-      title: '폴로 랄프',
-      description: '데님 셔츠',
+      title: '디파이클럽',
+      description: '긴팔 티셔츠',
       price: '419.000₩',
-      image: require('../../assets/img/main/top/top2.png'),
+      image: require('../../assets/img/main/top/top3.png'),
+      brand: 'Eql',
     },
     {
-      title: '폴로 랄프',
-      description: '데님 셔츠',
+      title: '슬로우애시드',
+      description: '스웨트 셔츠',
       price: '519.000₩',
-      image: require('../../assets/img/main/top/top2.png'),
+      image: require('../../assets/img/main/top/top4.png'),
+      brand: 'Musinsa',
     },
   ];
   const bottomProducts = [
@@ -220,25 +246,64 @@ const Main: React.FC = () => {
       description: '데님 팬츠',
       price: '198,000₩',
       image: require('../../assets/img/main/bottom/bottom1.png'),
+      brand: 'Musinsa',
     },
     {
-      title: '제품2',
-      description: '하의 제품 설명',
+      title: '위캔더스',
+      description: '카모 팬츠',
       price: '129.000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
+      image: require('../../assets/img/main/bottom/bottom2.png'),
+      brand: 'Musinsa',
+    },
+  ];
+
+  const outerProducts = [
+    {
+      title: '아노트',
+      description: '윈드브레이커',
+      price: '98.000₩',
+      image: require('../../assets/img/main/outer/outer1.png'),
+      brand: 'Height',
     },
     {
-      title: '제품3',
-      description: '하의 제품 설명',
-      price: '149.000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
+      title: '코드그라피',
+      description: '후드집업',
+      price: '69.900₩',
+      image: require('../../assets/img/main/outer/outer2.png'),
+      brand: 'Height',
+    },
+  ];
+
+  const suitproducts = [
+    {
+      title: '코어',
+      description: '블레이저',
+      price: '108.000₩',
+      image: require('../../assets/img/main/suit/suit1.png'),
+      brand: 'Height',
+    },
+    {
+      title: '폴로 랄프',
+      description: '수트 자켓',
+      price: '138.000₩',
+      image: require('../../assets/img/main/suit/suit2.png'),
+      brand: 'Musinsa',
     },
   ];
 
   const renderProductGrid = () => {
+    let productsToShow: any[] = [];
+    if (selectedSection === '상의') {
+      productsToShow = products;
+    } else if (selectedSection === '하의') {
+      productsToShow = bottomProducts;
+    } else if (selectedSection === '아우터') {
+      productsToShow = outerProducts;
+    } else if (selectedSection === '정장') {
+      productsToShow = suitproducts;
+    }
+
     if (showProductGrid) {
-      const productsToShow =
-        selectedSection === '상의' ? products : bottomProducts;
       return (
         <View style={styles.productGrid}>
           {productsToShow.map((product, index) => (
@@ -248,6 +313,7 @@ const Main: React.FC = () => {
               description={product.description}
               price={product.price}
               image={product.image}
+              brand={product.brand}
             />
           ))}
         </View>
@@ -267,7 +333,6 @@ const Main: React.FC = () => {
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => navigation.navigate('CameraBodyPhoto')}>
-              {/* 임시로 사이즈 페이지 보려고 size로 한거기에 카메라 부분 다 완성되면 onPress={() => navigation.navigate('Camera')}> */}
               <Image
                 source={require('../../assets/img/main/camera.png')}
                 style={styles.icon}
@@ -310,7 +375,6 @@ const Main: React.FC = () => {
               <Text
                 style={[
                   styles.sectionText,
-                  // eslint-disable-next-line react-native/no-inline-styles
                   {
                     color: selectedSection === section ? '#000' : '#919191',
                   },
@@ -477,12 +541,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     left: '7%',
-    bottom: '-20%',
+    bottom: '-15%',
   },
   productImage: {
     width: '80%',
     height: '100%',
     resizeMode: 'contain',
+    top: -4,
   },
   productTitle: {
     fontSize: 15,

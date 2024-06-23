@@ -12,7 +12,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App.tsx';
-import {useUser} from '../UserContext';
+import {setItem, useUser} from '../UserContext';
 import {DATA_URL} from '../../Constant';
 import {reqPost} from '../../utills/Request';
 import path from 'path';
@@ -107,6 +107,15 @@ const Congrats = () => {
     buttonOpacity,
   ]);
 
+  const Emailcheck = async () => {
+    try {
+      await setItem('userEmail', userEmail);
+      await setItem('userPwd', userPwd);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const handlePress = async () => {
     if (!userEmail) {
       Alert.alert('오류', '유저 이메일이 필요합니다.');
@@ -135,6 +144,8 @@ const Congrats = () => {
       console.log('Server response:', res);
 
       if (res.message && res.message.includes('선호 스타일 등록 완료!')) {
+        // 로컬에 저장
+        Emailcheck();
         navigation.navigate('Main');
       } else if (res.message) {
         Alert.alert('응답', res.message);

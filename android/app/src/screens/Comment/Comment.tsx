@@ -28,44 +28,44 @@ const Comment: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState<string>('상의');
   const navigation = useNavigation<CommentNavigationProp>();
 
-  const sections: string[] = ['상의', '하의', '아우터', '원피스'];
+  const sections: string[] = ['상의', '하의', '아우터', '정장'];
 
   const products: Product[] = [
     {
-      brand: '브랜드명1',
-      name: '옷 이름1',
+      brand: '폴로 랄프',
+      name: '데님 셔츠',
       price: '219,000₩',
       image: require('../../assets/img/main/top/top1.png'),
     },
     {
-      brand: '브랜드명2',
-      name: '옷 이름2',
-      price: '199,000₩',
-      image: require('../../assets/img/main/top/top1.png'),
+      brand: '에스이오',
+      name: '럭비 저지 탑',
+      price: '168,000₩',
+      image: require('../../assets/img/main/top/top2.png'),
     },
     {
-      brand: '브랜드명3',
-      name: '옷 이름3',
-      price: '189,000₩',
-      image: require('../../assets/img/main/top/top1.png'),
+      brand: '위캔더스',
+      name: '데님 팬츠',
+      price: '198,000₩',
+      image: require('../../assets/img/main/bottom/bottom1.png'),
     },
     {
-      brand: '브랜드명4',
-      name: '옷 이름4',
-      price: '299,000₩',
-      image: require('../../assets/img/main/top/top1.png'),
+      brand: '위캔더스',
+      name: '카모 팬츠',
+      price: '129,000₩',
+      image: require('../../assets/img/main/bottom/bottom2.png'),
     },
     {
-      brand: '브랜드명5',
-      name: '옷 이름5',
-      price: '259,000₩',
-      image: require('../../assets/img/main/top/top1.png'),
+      brand: '아노트',
+      name: '윈드브레이커',
+      price: '98,000₩',
+      image: require('../../assets/img/main/outer/outer1.png'),
     },
     {
-      brand: '브랜드명6',
-      name: '옷 이름6',
-      price: '279,000₩',
-      image: require('../../assets/img/main/top/top1.png'),
+      brand: '코드그라피',
+      name: '후드집업',
+      price: '69,900₩',
+      image: require('../../assets/img/main/outer/outer2.png'),
     },
   ];
 
@@ -258,9 +258,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
   },
   productImage: {
-    width: '55%',
+    width: '65%',
     height: '90%',
     resizeMode: 'cover',
+    top: 3,
   },
   bottomRectangle: {
     flexDirection: 'row',

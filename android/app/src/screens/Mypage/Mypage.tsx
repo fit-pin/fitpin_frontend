@@ -11,11 +11,13 @@ import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
+import { useUser } from '../UserContext.tsx';
 
 type MypageNavigationProp = StackNavigationProp<RootStackParamList, 'Mypage'>;
 
 const Mypage = () => {
   const navigation = useNavigation<MypageNavigationProp>();
+  const {userEmail, userName} = useUser();
 
   const handleLogout = () => {
     Alert.alert(
@@ -78,8 +80,8 @@ const Mypage = () => {
             style={styles.profile}
           />
           <View style={styles.textWrapper}>
-            <Text style={styles.name}>오주희</Text>
-            <Text style={styles.email}>ohjuhee@example.com</Text>
+            <Text style={styles.name}>{userName}</Text>
+            <Text style={styles.email}>{userEmail}</Text>
           </View>
         </View>
         <View style={styles.line} />

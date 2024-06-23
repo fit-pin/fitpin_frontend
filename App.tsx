@@ -109,7 +109,7 @@ const App = () => {
           <Stack.Screen
             name="Body_photo"
             component={Body_photo}
-            options={{headerTitle: ''}} //상단에 화살표 보이게
+            options={{headerTitle: ''}} // 상단에 화살표 보이게
           />
           <Stack.Screen
             name="Style_G"
@@ -129,7 +129,7 @@ const App = () => {
           <Stack.Screen
             name="Main"
             component={Main}
-            options={{headerShown: false}} //MainScreen.tsx
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="ProductPage"
