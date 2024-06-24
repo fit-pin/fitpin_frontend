@@ -11,13 +11,19 @@ import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
-import { useUser } from '../UserContext.tsx';
+import {setItem, useUser} from '../UserContext.tsx';
 
 type MypageNavigationProp = StackNavigationProp<RootStackParamList, 'Mypage'>;
 
 const Mypage = () => {
   const navigation = useNavigation<MypageNavigationProp>();
   const {userEmail, userName} = useUser();
+
+  const workLogout = async () => {
+    await setItem('userEmail', '');
+    await setItem('userPwd', '');
+    navigation.reset({routes: [{name: 'LognSignin'}]});
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -30,7 +36,7 @@ const Mypage = () => {
         },
         {
           text: '확인',
-          onPress: () => console.log('Logout confirmed'),
+          onPress: workLogout,
         },
       ],
       {cancelable: false},
