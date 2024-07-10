@@ -80,3 +80,18 @@ export async function ArRequest(
     body: formData,
   });
 }
+
+export async function fileUpload(
+  url: string,
+  formData: FormData,
+): Promise<Response> {
+  // url 에 /있는지 판단
+  return await fetch(url, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Accept: 'application/json',
+    },
+    body: formData,
+  });
+}
