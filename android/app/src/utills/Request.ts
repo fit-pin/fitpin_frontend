@@ -99,11 +99,11 @@ export async function ArRequest(
  *
  * // async, await 방식
  * async function any() {
- *   const data = await fileUpload('url', formData);
+ *   const data = await reqFileUpload('url', formData);
  *   console.log(data.아무개);
  * }
  * // callback 방식
- * fileUpload('url', formData)
+ * reqFileUpload('url', formData)
  *  .then(data => console.log(data.아무개))
  *  .catch(err => console.log(err));
  */
