@@ -111,7 +111,6 @@ export async function reqFileUpload(
   url: string,
   formData: FormData,
 ): Promise<any> {
-  // url 에 /있는지 판단
   const res = await fetch(url, {
     method: 'post',
     headers: {
