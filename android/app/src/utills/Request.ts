@@ -107,7 +107,7 @@ export async function ArRequest(
  *  .then(data => console.log(data.아무개))
  *  .catch(err => console.log(err));
  */
-export async function fileUpload(
+export async function reqFileUpload(
   url: string,
   formData: FormData,
 ): Promise<any> {
