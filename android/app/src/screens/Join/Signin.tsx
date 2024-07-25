@@ -94,9 +94,9 @@ const Signin = () => {
     try {
       // 서버에 회원가입 요청
       const res = await reqPost(path.join(DATA_URL, 'api', 'members', 'register'), body);
-      console.log('Full server response:', res.data); // 전체 응답 출력
+      console.log('Full server response:', res); // 전체 응답 출력
 
-      if (res.data.message && res.data.message.includes('회원가입이 완료되었습니다')) {
+      if (res && res.message && res.message.includes('회원가입이 완료되었습니다')) {
         // UserContext에 사용자 정보 저장
         setUserName(userName);
         setUserEmail(userEmail);
@@ -116,8 +116,8 @@ const Signin = () => {
           console.error('Error creating user:', error);
           Alert.alert('오류', '사용자 생성 중 문제가 발생했습니다.');
         }
-      } else if (res.data.message) {
-        Alert.alert('응답', res.data.message);
+      } else if (res && res.message) {
+        Alert.alert('응답', res.message);
       } else {
         Alert.alert('오류', '회원가입 중 문제가 발생했습니다.');
       }
