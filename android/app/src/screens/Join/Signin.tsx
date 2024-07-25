@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,27 +9,29 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import {reqPost} from '../../utills/Request';
-import {DATA_URL} from '../../Constant';
+import { auth } from '../../firebase';
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, deleteUser } from 'firebase/auth';
+import axios from 'axios';
+import { DATA_URL } from '../../Constant';
 import path from 'path';
-import {RootStackParamList} from '../../../../../App.tsx';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {useNavigation} from '@react-navigation/native';
-import {useUser} from '../UserContext';
+import { RootStackParamList } from '../../../../../App.tsx';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import { useUser } from '../UserContext';
 
 type SigninavigationProp = StackNavigationProp<RootStackParamList, 'Signin'>;
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const Signin = () => {
   const navigation = useNavigation<SigninavigationProp>();
-  // eslint-disable-next-line prettier/prettier
   const { setUserName, setUserEmail, setUserPwd } = useUser();
 
   const [userName, setUserNameLocal] = useState('');
   const [userEmail, setUserEmailLocal] = useState('');
   const [userPwd, setUserPwdLocal] = useState('');
   const [userPwdConfirm, setUserPwdConfirmLocal] = useState('');
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   const validateEmail = (email: string) => {
     const re = /\S+@\S+\.\S+/;
@@ -52,38 +54,75 @@ const Signin = () => {
     return true;
   };
 
+  const handleEmailVerification = async () => {
+    if (!validateEmail(userEmail)) {
+      Alert.alert('오류', '유효한 이메일 주소를 입력해주세요.');
+      return;
+    }
+
+    try {
+      // Firebase에 임시 사용자 생성 및 이메일 인증 링크 보내기
+      const tempUser = await createUserWithEmailAndPassword(auth, userEmail, userPwd);
+      await sendEmailVerification(tempUser.user);
+      setIsEmailVerified(true);
+      Alert.alert('확인', '이메일로 인증 링크가 전송되었습니다. 이메일을 확인하세요.');
+    } catch (error: any) {
+      console.error('Error sending email verification:', error);
+      Alert.alert('오류', '이메일 인증 링크 전송 중 문제가 발생했습니다.');
+    }
+  };
+
   const handleSignup = async () => {
     if (!validateForm()) {
       return;
     }
+
+    if (!isEmailVerified) {
+      Alert.alert('오류', '이메일 인증을 완료해주세요.');
+      return;
+    }
+
     const body = {
       userEmail,
       userPwd,
       userName,
-      userPwdConfirm,
+      userPwdConfirm, // 서버가 기대하는 필드로 추가
     };
-    try {
-      const res = await reqPost(
-        path.join(DATA_URL, 'api', 'members', 'register'),
-        body,
-      );
-      console.log('Server response:', res);
 
-      if (res.message && res.message.includes('회원가입이 완료되었습니다')) {
+    console.log('Request body:', body); // 요청 데이터 출력
+
+    try {
+      // 서버에 회원가입 요청
+      const res = await axios.post(path.join(DATA_URL, 'api', 'members', 'register'), body);
+      console.log('Full server response:', res.data); // 전체 응답 출력
+
+      if (res.data.message && res.data.message.includes('회원가입이 완료되었습니다')) {
         // UserContext에 사용자 정보 저장
         setUserName(userName);
         setUserEmail(userEmail);
         setUserPwd(userPwd);
 
-        // 다음 페이지로 이동
-        navigation.navigate('BasicInformation');
-      } else if (res.message) {
-        Alert.alert('응답', res.message);
+        // Firebase에 사용자 생성 시도
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, userEmail, userPwd);
+          if (userCredential.user.emailVerified) {
+            Alert.alert('확인', '회원가입이 완료되었습니다.');
+            navigation.navigate('BasicInformation');
+          } else {
+            await deleteUser(userCredential.user);
+            Alert.alert('오류', '이메일 인증이 완료되지 않았습니다. 다시 시도해주세요.');
+          }
+        } catch (error: any) {
+          console.error('Error creating user:', error);
+          Alert.alert('오류', '사용자 생성 중 문제가 발생했습니다.');
+        }
+      } else if (res.data.message) {
+        Alert.alert('응답', res.data.message);
       } else {
         Alert.alert('오류', '회원가입 중 문제가 발생했습니다.');
       }
-    } catch (error) {
-      console.error('Error during registration:', error);
+    } catch (error: any) {
+      console.error('Error during registration:', error.response ? error.response.data : error);
       Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
     }
   };
@@ -114,7 +153,7 @@ const Signin = () => {
           value={userEmail}
           onChangeText={setUserEmailLocal}
         />
-        <TouchableOpacity style={styles.verifyButton}>
+        <TouchableOpacity style={styles.verifyButton} onPress={handleEmailVerification}>
           <Text style={styles.verifyButtonText}>인증하기</Text>
         </TouchableOpacity>
       </View>
