@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { auth } from '../../firebase';
 import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, deleteUser } from 'firebase/auth';
-import axios from 'axios';
 import { DATA_URL } from '../../Constant';
 import path from 'path';
 import { RootStackParamList } from '../../../../../App.tsx';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../UserContext';
+import { reqPost } from '../../utills/Request.ts';
 
 type SigninavigationProp = StackNavigationProp<RootStackParamList, 'Signin'>;
 
@@ -93,7 +93,7 @@ const Signin = () => {
 
     try {
       // 서버에 회원가입 요청
-      const res = await axios.post(path.join(DATA_URL, 'api', 'members', 'register'), body);
+      const res = await reqPost(path.join(DATA_URL, 'api', 'members', 'register'), body);
       console.log('Full server response:', res.data); // 전체 응답 출력
 
       if (res.data.message && res.data.message.includes('회원가입이 완료되었습니다')) {
