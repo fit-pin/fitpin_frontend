@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {useUser} from '../UserContext';
+import {useUser} from '../UserContext'; // UserContext import
 import {reqPost} from '../../utills/Request';
 import {DATA_URL} from '../../Constant';
 import path from 'path';
@@ -23,7 +23,14 @@ GoogleSignin.configure();
 
 const LognSignin = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const {setUserName, setUserEmail, setUserPwd} = useUser();
+  const {
+    setUserName,
+    setUserEmail,
+    setUserPwd,
+    setUserGender,
+    setUserHeight,
+    setUserWeight,
+  } = useUser();
 
   const handleSigninPress = () => {
     navigation.navigate('Signin');
@@ -39,9 +46,42 @@ const LognSignin = () => {
       const userInfo = await GoogleSignin.signIn();
 
       const {email, name, id} = userInfo.user;
-      const password = id; // 구글 사용자 id를 pw로 사용
+      const password = id; // 구글 사용자 ID를 비밀번호로 사용
 
-      // 유저 정보 등록
+      // 로그인 확인 - 기존 사용자
+      const loginBody = {
+        userEmail: email,
+        userPwd: password,
+      };
+
+      const loginRes = await reqPost(
+        path.join(DATA_URL, 'api', 'login'),
+        loginBody,
+      );
+
+      if (loginRes.userEmail) {
+        // 로그인 성공 처리
+        Alert.alert(
+          '로그인 성공',
+          `환영합니다, ${loginRes.userName || 'Unknown User'}!`,
+        );
+        setUserName(loginRes.userName || 'Unknown User');
+        setUserEmail(loginRes.userEmail);
+        setUserPwd(password);
+        setUserGender(loginRes.userGender);
+        setUserHeight(loginRes.userHeight);
+        setUserWeight(loginRes.userWeight);
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Main'}],
+        });
+        return;
+      } else if (loginRes.message) {
+        Alert.alert('오류', loginRes.message);
+      }
+
+      // 신규 사용자 등록
       const registerBody = {
         userEmail: email,
         userPwd: password,
@@ -54,14 +94,12 @@ const LognSignin = () => {
         registerBody,
       );
 
-      console.log('Server response:', registerRes);
-
       if (
         registerRes.message &&
         registerRes.message.includes('회원가입이 완료되었습니다')
       ) {
-        // UserContext에 사용자 정보 저장
-        setUserName(name || 'Unknown User'); // null일 경우 기본 값 설정
+        // 회원가입 성공 처리
+        setUserName(name || 'Unknown User');
         setUserEmail(email);
         setUserPwd(password);
 
