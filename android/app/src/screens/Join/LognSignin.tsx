@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,29 +9,21 @@ import {
   Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
-import auth from '@react-native-firebase/auth';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {useUser} from '../UserContext';
+import {reqPost} from '../../utills/Request';
+import {DATA_URL} from '../../Constant';
+import path from 'path';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {RootStackParamList} from '../../../../../App';
 
 const {width, height} = Dimensions.get('window');
 
+GoogleSignin.configure();
+
 const LognSignin = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-
-  const googleSigninConfigure = () => {
-    GoogleSignin.configure({
-      webClientId:
-        '934828416095-s1b8nvithrntut57d35gnldpurudlfqk.apps.googleusercontent.com',
-    });
-  };
-
-  useEffect(() => {
-    googleSigninConfigure();
-  }, []);
+  const {setUserName, setUserEmail, setUserPwd} = useUser();
 
   const handleSigninPress = () => {
     navigation.navigate('Signin');
@@ -44,50 +36,49 @@ const LognSignin = () => {
   const handleGoogleSignin = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const {idToken} = await GoogleSignin.signIn();
+      const userInfo = await GoogleSignin.signIn();
 
-      // Google credential을 Firebase에 생성
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+      const {email, name, id} = userInfo.user;
+      const password = id; // 구글 사용자 id를 pw로 사용
 
-      // Firebase에 인증
-      await auth().signInWithCredential(googleCredential);
+      // 유저 정보 등록
+      const registerBody = {
+        userEmail: email,
+        userPwd: password,
+        userName: name || 'Unknown User',
+        userPwdConfirm: password,
+      };
 
-      const currentUser = auth().currentUser;
+      const registerRes = await reqPost(
+        path.join(DATA_URL, 'api', 'members', 'register'),
+        registerBody,
+      );
 
-      Alert.alert('로그인 성공', `환영합니다, ${currentUser?.displayName}!`);
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'BasicInformation'}],
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log('Google Sign-In Error:', error.message);
-        switch (error.message) {
-          case statusCodes.SIGN_IN_CANCELLED:
-            Alert.alert(
-              '로그인 취소됨',
-              '사용자가 로그인 과정을 취소했습니다.',
-            );
-            break;
-          case statusCodes.IN_PROGRESS:
-            Alert.alert('로그인 진행 중', '로그인 과정이 진행 중입니다.');
-            break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            Alert.alert(
-              'Play 서비스 사용 불가',
-              'Google Play 서비스가 사용 불가능합니다.',
-            );
-            break;
-          case statusCodes.SIGN_IN_REQUIRED:
-            Alert.alert('로그인 필요', '로그인이 필요합니다.');
-            break;
-          default:
-            Alert.alert('알 수 없는 오류', '알 수 없는 오류가 발생했습니다.');
-            break;
-        }
+      console.log('Server response:', registerRes);
+
+      if (
+        registerRes.message &&
+        registerRes.message.includes('회원가입이 완료되었습니다')
+      ) {
+        // UserContext에 사용자 정보 저장
+        setUserName(name || 'Unknown User'); // null일 경우 기본 값 설정
+        setUserEmail(email);
+        setUserPwd(password);
+
+        Alert.alert('회원가입 성공', `환영합니다, ${name || 'Unknown User'}!`);
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'BasicInformation'}],
+        });
+      } else if (registerRes.message) {
+        Alert.alert('응답', registerRes.message);
       } else {
-        Alert.alert('알 수 없는 오류', '알 수 없는 오류가 발생했습니다.');
+        Alert.alert('오류', '회원가입 중 문제가 발생했습니다.');
       }
+    } catch (error) {
+      console.error('Error during registration:', error);
+      Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
     }
   };
 
@@ -149,50 +140,48 @@ const styles = StyleSheet.create({
   },
   or: {
     fontSize: width * 0.05,
-    color: '#979797',
-    marginVertical: height * 0.02,
+    color: '#000000',
+    marginTop: height * 0.03,
+    marginBottom: height * 0.01,
     fontWeight: 'bold',
   },
   button: {
-    paddingVertical: height * 0.022,
-    paddingHorizontal: width * 0.1,
-    borderRadius: 20,
+    width: width * 0.8,
+    padding: height * 0.015,
+    borderRadius: 5,
     marginTop: height * 0.02,
-    width: '80%',
     alignItems: 'center',
-  },
-  buttonOutlined: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#000000',
+    justifyContent: 'center',
+    flexDirection: 'row',
   },
   buttonFilled: {
     backgroundColor: '#000000',
   },
+  buttonOutlined: {
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
   buttonKakao: {
-    backgroundColor: '#FBE300',
-  },
-  buttonText: {
-    color: '#000000',
-    fontSize: width * 0.04,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  buttonText2: {
-    color: '#ffffff',
-    fontSize: width * 0.04,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  buttonIcon: {
-    width: width * 0.06,
-    height: width * 0.06,
-    marginRight: width * 0.02,
+    backgroundColor: '#FFEB00',
   },
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  buttonIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
+  buttonText: {
+    fontSize: width * 0.045,
+    color: '#000000',
+    fontWeight: 'bold',
+  },
+  buttonText2: {
+    fontSize: width * 0.045,
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
 });
 
