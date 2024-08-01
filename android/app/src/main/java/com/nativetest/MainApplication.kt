@@ -13,6 +13,8 @@ import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.kakao.sdk.common.KakaoSdk // 카카오 SDK 추가
+import com.kakao.sdk.common.KakaoSdk.init // 카카오 SDK 초기화
 
 class MainApplication : Application(), ReactApplication {
 
@@ -43,11 +45,13 @@ class MainApplication : Application(), ReactApplication {
 
         // Google Sign-In 설정
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // 여기서 R.string.default_web_client_id를 사용합니다.
+            .requestIdToken(getString(R.string.default_web_client_id)) // 여기에 실제 웹 클라이언트 ID를 설정합니다.
             .requestEmail()
             .build()
 
-        // GoogleSignInClient 인스턴스 생성 (선택적: 이 인스턴스는 다른 부분에서 사용될 수 있습니다)
         val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
+
+        // 카카오 SDK 초기화
+        KakaoSdk.init(this, getString(R.string.kakao_app_key)) // 여기에 실제 카카오 앱 키를 설정합니다.
     }
 }

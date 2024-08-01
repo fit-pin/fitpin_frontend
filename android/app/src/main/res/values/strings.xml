@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">nativeTest</string>
     <string name="default_web_client_id">934828416095-s1b8nvithrntut57d35gnldpurudlfqk.apps.googleusercontent.com</string>
+    <string name="kakao_app_key">9b8b8cabc9f0c1271c62c51872365488</string>
 </resources>

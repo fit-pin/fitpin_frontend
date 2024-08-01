@@ -10,10 +10,14 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {useUser} from '../UserContext'; // UserContext import
+import {useUser} from '../UserContext';
 import {reqPost} from '../../utills/Request';
 import {DATA_URL} from '../../Constant';
 import path from 'path';
+import {
+  login as kakaoLogin,
+  getProfile as getKakaoProfile,
+} from '@react-native-seoul/kakao-login';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {RootStackParamList} from '../../../../../App';
 
@@ -39,7 +43,7 @@ const LognSignin = () => {
   const handleLoginPress = () => {
     navigation.navigate('Login');
   };
-
+  // 구글 로그인
   const handleGoogleSignin = async () => {
     try {
       await GoogleSignin.hasPlayServices();
@@ -119,6 +123,90 @@ const LognSignin = () => {
       Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
     }
   };
+  // 카카오 로그인
+  const handleKakaoSignin = async () => {
+    try {
+      await kakaoLogin();
+      const userInfo = await getKakaoProfile();
+
+      const {id, nickname} = userInfo; // nickname = 사용자 이름
+      const idString = id.toString(); // ID를 문자열로 변환
+      const password = idString; // 카카오톡 사용자 ID = 비밀번호
+
+      // 로그인 확인 - 기존 사용자
+      const loginBody = {
+        userEmail: idString, // 카카오톡 사용자 ID = 이메일
+        userPwd: password,
+      };
+
+      const loginRes = await reqPost(
+        path.join(DATA_URL, 'api', 'login'),
+        loginBody,
+      );
+
+      if (loginRes.userEmail) {
+        // 로그인 성공 처리
+        Alert.alert(
+          '로그인 성공',
+          `환영합니다, ${loginRes.userName || 'Unknown User'}!`,
+        );
+        setUserName(loginRes.userName || 'Unknown User');
+        setUserEmail(loginRes.userEmail);
+        setUserPwd(password);
+        setUserGender(loginRes.userGender);
+        setUserHeight(loginRes.userHeight);
+        setUserWeight(loginRes.userWeight);
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Main'}],
+        });
+        return;
+      } else if (loginRes.message) {
+        Alert.alert('오류', loginRes.message);
+      }
+
+      // 신규 사용자 등록
+      const registerBody = {
+        userEmail: idString, // 카카오톡 사용자 ID를 이메일처럼 사용
+        userPwd: password,
+        userName: nickname || 'Unknown User', // 카카오톡 사용자 이름 사용
+        userPwdConfirm: password,
+      };
+
+      const registerRes = await reqPost(
+        path.join(DATA_URL, 'api', 'members', 'register'),
+        registerBody,
+      );
+
+      if (
+        registerRes.message &&
+        registerRes.message.includes('회원가입이 완료되었습니다')
+      ) {
+        // 회원가입 성공 처리
+        setUserName(nickname || 'Unknown User');
+        setUserEmail(idString); // 카카오톡 사용자 ID를 이메일처럼 사용
+        setUserPwd(password);
+
+        Alert.alert(
+          '회원가입 성공',
+          `환영합니다, ${nickname || 'Unknown User'}!`,
+        );
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'BasicInformation'}],
+        });
+      } else if (registerRes.message) {
+        Alert.alert('응답', registerRes.message);
+      } else {
+        Alert.alert('오류', '회원가입 중 문제가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Error during Kakao sign-in:', error);
+      Alert.alert('오류', '카카오톡 로그인 중 문제가 발생했습니다.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -138,7 +226,9 @@ const LognSignin = () => {
 
       <Text style={styles.or}>or</Text>
 
-      <TouchableOpacity style={[styles.button, styles.buttonKakao]}>
+      <TouchableOpacity
+        style={[styles.button, styles.buttonKakao]}
+        onPress={handleKakaoSignin}>
         <View style={styles.buttonContent}>
           <Image
             source={require('../../assets/img/join/kakaotalk.png')}

@@ -102,22 +102,24 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    // Add the Kakao SDK Maven repository
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' } // 카카오 SDK Maven 저장소
+    }
 }
 
 dependencies {
-    // 추가 Firebase platforㅡ
-    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
-
-    implementation("com.google.firebase:firebase-auth-ktx")
-
     // Google Play
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
+    // 카카오 SDK 의존성 추가
+    implementation("com.kakao.sdk:v2-user:2.8.0") // 카카오 로그인 SDK 버전 (적절한 버전으로 변경 가능)
+
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
-
-    // Firebase
-    implementation("com.google.firebase:firebase-analytics")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -127,4 +129,6 @@ dependencies {
     implementation("com.facebook.fresco:animated-gif:2.5.0")
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+// Ensure the Native Modules plugin is applied
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesAppBuildGradle(project)
