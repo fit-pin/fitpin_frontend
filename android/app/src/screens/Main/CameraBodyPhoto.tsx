@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import {RNCamera} from 'react-native-camera';
+import { RNCamera } from 'react-native-camera';
 import {
   request,
   PERMISSIONS,
@@ -16,9 +16,10 @@ import {
   openSettings,
 } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../../../../../App';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
+import { reqFileUpload } from '../../utills/Request';
 
 type CameraBodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -28,10 +29,10 @@ type CameraBodyPhotoNavigationProp = StackNavigationProp<
 const CameraBodyPhoto = () => {
   const [hasPermission, setHasPermission] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
   const cameraRef = useRef<RNCamera | null>(null);
   const navigation = useNavigation<CameraBodyPhotoNavigationProp>();
 
-  // 카메라 권한 요청
   const requestCameraPermission = async () => {
     const result =
       Platform.OS === 'android'
@@ -51,7 +52,6 @@ const CameraBodyPhoto = () => {
     }
   };
 
-  // 권한 요청 호출
   useEffect(() => {
     requestCameraPermission();
   }, []);
@@ -71,32 +71,41 @@ const CameraBodyPhoto = () => {
     );
   }
 
-  // 사진 촬영
   const takePicture = async () => {
-    if (cameraRef.current) {
-      const data = await cameraRef.current.takePictureAsync({
-        quality: 0.5,
-        base64: false,
-      });
-      setPhotoUri(data.uri);
+    if (cameraRef.current && !isCapturing) {
+      setIsCapturing(true);
+      try {
+        const data = await cameraRef.current.takePictureAsync({
+          quality: 0.5,
+          base64: false,
+        });
+        setPhotoUri(data.uri);
+      } catch (error) {
+        console.error('Failed to take picture', error);
+      } finally {
+        setIsCapturing(false);
+      }
     }
   };
 
-  // 로컬 저장 경로 생성
   const getLocalFilePath = async () => {
     const dir =
       Platform.OS === 'android'
         ? `${RNFS.ExternalDirectoryPath}/FitBox`
         : `${RNFS.DocumentDirectoryPath}/FitBox`;
-    await RNFS.mkdir(dir); // 폴더 생성
-    const timestamp = new Date().toISOString().replace(/[:.-]/g, ''); // 파일명에 타임스탬프 추가
+    await RNFS.mkdir(dir);
+    const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
     return `${dir}/photo_${timestamp}.jpg`;
   };
 
-  // 사진 로컬 저장
   const saveToLocalStorage = async (uri: string) => {
     const newPath = await getLocalFilePath();
     try {
+      const fileExists = await RNFS.exists(uri);
+      if (!fileExists) {
+        console.error('File does not exist:', uri);
+        return null;
+      }
       await RNFS.moveFile(uri, newPath);
       return `file://${newPath}`;
     } catch (error) {
@@ -105,32 +114,48 @@ const CameraBodyPhoto = () => {
     }
   };
 
-  // 확인 버튼 클릭 시 로컬에 저장하고 핏보관함으로 이동
+  const uploadToBackend = async (localUri: string) => {
+    const formData = new FormData();
+    formData.append('file', {
+      uri: localUri,
+      name: 'photo.jpg',
+      type: 'image/jpeg',
+    } as unknown as FormDataValue);
+
+    try {
+      const res = await reqFileUpload('http://fitpitback.kro.kr:8080/api/uploadImage', formData); // 여기 수정
+      return res;
+    } catch (error) {
+      console.error('Failed to upload photo.', error);
+      return null;
+    }
+  };
+
   const confirmPicture = async () => {
     if (photoUri) {
       const localUri = await saveToLocalStorage(photoUri);
       if (localUri) {
-        // navigation.reset() 사용하여 핏보관함으로 이동
-        navigation.replace('Fit_box', {newPhotoUri: localUri});
+        const uploadResponse = await uploadToBackend(localUri);
+        if (uploadResponse && uploadResponse.imageUrl) {
+          navigation.replace('Fit_box', { newPhotoUri: uploadResponse.imageUrl });
+        } else {
+          navigation.replace('Fit_box', { newPhotoUri: localUri });
+        }
       }
       setPhotoUri(null);
     }
   };
 
-  // 취소 버튼 클릭 시 다시 촬영
   const retakePicture = () => {
     setPhotoUri(null);
   };
 
-  // 사진이 찍힌 경우 UI
   if (photoUri) {
     return (
       <View style={styles.container}>
-        <Image source={{uri: photoUri}} style={styles.preview} />
+        <Image source={{ uri: photoUri }} style={styles.preview} />
         <View style={styles.bottomControls}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={confirmPicture}>
+          <TouchableOpacity style={styles.actionButton} onPress={confirmPicture}>
             <Text style={styles.buttonText}>확인</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>
@@ -199,7 +224,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     padding: 10,
     borderRadius: 5,
-    marginHorizontal: 20,
+    marginHorizontal: 10,
   },
   buttonText: {
     fontSize: 14,

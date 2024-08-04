@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,12 @@ import {
   Dimensions,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import {RootStackParamList} from '../../../../../App';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {useNavigation} from '@react-navigation/native';
+import { RootStackParamList } from '../../../../../App';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import PostcodeComponent from './PostcodeComponent';
 
-type OrderNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'BasicInformation'
->;
+type OrderNavigationProp = StackNavigationProp<RootStackParamList, 'BasicInformation'>;
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -29,34 +27,37 @@ const formatPrice = (price: number) => {
 const Order = () => {
   const navigation = useNavigation<OrderNavigationProp>();
   const [isChecked, setIsChecked] = useState(true);
-
-  // 각 상품의 수량을 별도로 관리
+  const [isPostcodeVisible, setIsPostcodeVisible] = useState(false);
+  const [postcode, setPostcode] = useState('');
+  const [address, setAddress] = useState('');
   const [quantity1, setQuantity1] = useState(1);
   const [quantity2, setQuantity2] = useState(1);
 
-  // 각 상품의 단가
   const price1 = 219000;
   const price2 = 219000;
 
-  // 수량 증가 함수
   const increaseQuantity = (
     setQuantity: React.Dispatch<React.SetStateAction<number>>,
   ) => {
     setQuantity((prevQuantity: number) => prevQuantity + 1);
   };
 
-  // 수량 감소 함수
   const decreaseQuantity = (
     setQuantity: React.Dispatch<React.SetStateAction<number>>,
   ) => {
     setQuantity((prevQuantity: number) =>
       prevQuantity > 1 ? prevQuantity - 1 : 1,
-    ); // 최소값 1
+    );
   };
 
-  // 총 금액 계산
   const totalPrice = quantity1 * price1 + quantity2 * price2;
   const formattedTotalPrice = formatPrice(totalPrice);
+
+  const handleAddressSelected = (data: any) => {
+    setPostcode(data.zonecode);
+    setAddress(data.address);
+    setIsPostcodeVisible(false);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -69,12 +70,21 @@ const Order = () => {
           <TextInput
             style={styles.inputWithButtonField}
             placeholder="우편번호"
+            value={postcode}
+            editable={false}
           />
-          <TouchableOpacity style={styles.inputButton}>
+          <TouchableOpacity
+            style={styles.inputButton}
+            onPress={() => setIsPostcodeVisible(true)}>
             <Text style={styles.inputButtonText}>주소찾기</Text>
           </TouchableOpacity>
         </View>
-        <TextInput style={styles.input} placeholder="주소" />
+        <TextInput
+          style={styles.input}
+          placeholder="주소"
+          value={address}
+          editable={false}
+        />
         <TextInput style={styles.input} placeholder="상세 주소" />
         <Text style={styles.sectionTitle2}>전화번호</Text>
         <TextInput style={styles.input} placeholder="010-1111-2222" />
@@ -201,6 +211,12 @@ const Order = () => {
           </View>
         </TouchableOpacity>
       </View>
+
+      <PostcodeComponent
+        isVisible={isPostcodeVisible}
+        onClose={() => setIsPostcodeVisible(false)}
+        onSelected={handleAddressSelected}
+      />
     </ScrollView>
   );
 };
