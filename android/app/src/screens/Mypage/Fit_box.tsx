@@ -60,7 +60,7 @@ const Fit_box = () => {
     try {
       await RNFS.unlink(filePath);
       setImages(images.filter(image => image !== filePath));
-      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', { imageUri: filePath }); // 여기 주소 수정
+      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', { imageUri: filePath }); // 여기 수정
     } catch (error) {
       console.error('Error deleting image:', error);
       Alert.alert('Error', 'Failed to delete image.');
