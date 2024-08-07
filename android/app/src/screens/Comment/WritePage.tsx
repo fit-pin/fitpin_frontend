@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,25 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
+
+type WritePageRouteProp = RouteProp<RootStackParamList, 'WritePage'>;
+type WritePageNavigationProp = StackNavigationProp<RootStackParamList, 'WritePage'>;
 
 const WritePage: React.FC = () => {
+  const navigation = useNavigation<WritePageNavigationProp>();
+  const route = useRoute<WritePageRouteProp>();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (route.params?.selectedImageUri) {
+      setSelectedImageUri(route.params.selectedImageUri);
+    }
+  }, [route.params?.selectedImageUri]);
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
@@ -27,14 +42,22 @@ const WritePage: React.FC = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.header}>핏 코멘트 작성하기</Text>
       <View style={styles.imageContainer}>
-        <Image
-          source={require('../../assets/img/write/camera.png')}
-          style={styles.cameraIcon}
-        />
-        <Image
-          source={require('../../assets/img/write/add.png')}
-          style={styles.plusIcon}
-        />
+        {selectedImageUri ? (
+          <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
+        ) : (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Fit_box' as never)}
+            style={styles.selectImageButton}>
+            <Image
+              source={require('../../assets/img/write/camera.png')}
+              style={styles.cameraIcon}
+            />
+            <Image
+              source={require('../../assets/img/write/add.png')}
+              style={styles.plusIcon}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.inputContainer}>
         <Text style={styles.label}>브랜드명</Text>
@@ -142,6 +165,13 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 16,
   },
+  selectImageButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+  },
   cameraIcon: {
     width: 50,
     height: 50,
@@ -150,8 +180,13 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     position: 'absolute',
-    right: '3%',
-    bottom: '5%',
+    right: 10,
+    bottom: 10,
+  },
+  selectedImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
   },
   inputContainer: {
     marginBottom: '3%',

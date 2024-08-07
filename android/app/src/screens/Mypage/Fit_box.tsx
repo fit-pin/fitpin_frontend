@@ -11,16 +11,19 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
 import { RootStackParamList } from '../../../../../App';
 import { reqPost } from '../../utills/Request';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
+type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
-const Fit_box = () => {
+const Fit_box: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const navigation = useNavigation<FitBoxNavigationProp>();
   const route = useRoute<FitBoxRouteProp>();
   const newPhotoUri = route.params?.newPhotoUri;
 
@@ -60,11 +63,15 @@ const Fit_box = () => {
     try {
       await RNFS.unlink(filePath);
       setImages(images.filter(image => image !== filePath));
-      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', { imageUri: filePath }); // 여기 수정
+      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', { imageUri: filePath });
     } catch (error) {
       console.error('Error deleting image:', error);
       Alert.alert('Error', 'Failed to delete image.');
     }
+  };
+
+  const selectImage = (imageUri: string) => {
+    navigation.navigate('WritePage', { selectedImageUri: imageUri });
   };
 
   return (
@@ -75,7 +82,7 @@ const Fit_box = () => {
         {images.map((imageUri, index) => (
           <TouchableOpacity
             key={index}
-            onPress={() => setSelectedImage(imageUri)}>
+            onPress={() => selectImage(imageUri)}>
             <Image source={{ uri: imageUri }} style={styles.image} />
           </TouchableOpacity>
         ))}
