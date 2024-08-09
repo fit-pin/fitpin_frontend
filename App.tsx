@@ -54,7 +54,7 @@ export type RootStackParamList = {
   Search: undefined;
   Comment: undefined;
   CommentReview: undefined;
-  WritePage: { selectedImageUri?: string };
+  WritePage: {selectedImageUri?: string};
   Mypage: undefined;
   Purchase: undefined;
   My_Fit: undefined;

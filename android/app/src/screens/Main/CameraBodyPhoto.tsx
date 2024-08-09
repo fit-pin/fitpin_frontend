@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   StyleSheet,
@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { RNCamera } from 'react-native-camera';
+import {RNCamera} from 'react-native-camera';
 import {
   request,
   PERMISSIONS,
@@ -16,10 +16,10 @@ import {
   openSettings,
 } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App';
-import { reqFileUpload } from '../../utills/Request';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../../../../App';
+import {reqFileUpload} from '../../utills/Request';
 
 type CameraBodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -123,7 +123,10 @@ const CameraBodyPhoto = () => {
     } as unknown as FormDataValue);
 
     try {
-      const res = await reqFileUpload('http://fitpitback.kro.kr:8080/api/uploadImage', formData); // 여기 수정
+      const res = await reqFileUpload(
+        'http://fitpitback.kro.kr:8080/api/uploadImage',
+        formData,
+      ); // 여기 수정
       return res;
     } catch (error) {
       console.error('Failed to upload photo.', error);
@@ -137,9 +140,9 @@ const CameraBodyPhoto = () => {
       if (localUri) {
         const uploadResponse = await uploadToBackend(localUri);
         if (uploadResponse && uploadResponse.imageUrl) {
-          navigation.replace('Fit_box', { newPhotoUri: uploadResponse.imageUrl });
+          navigation.replace('Fit_box', {newPhotoUri: uploadResponse.imageUrl});
         } else {
-          navigation.replace('Fit_box', { newPhotoUri: localUri });
+          navigation.replace('Fit_box', {newPhotoUri: localUri});
         }
       }
       setPhotoUri(null);
@@ -153,9 +156,11 @@ const CameraBodyPhoto = () => {
   if (photoUri) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: photoUri }} style={styles.preview} />
+        <Image source={{uri: photoUri}} style={styles.preview} />
         <View style={styles.bottomControls}>
-          <TouchableOpacity style={styles.actionButton} onPress={confirmPicture}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={confirmPicture}>
             <Text style={styles.buttonText}>확인</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>

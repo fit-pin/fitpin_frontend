@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -9,23 +9,28 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { auth } from '../../firebase';
-import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, deleteUser } from 'firebase/auth';
-import { DATA_URL } from '../../Constant';
+import {auth} from '../../firebase';
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  deleteUser,
+} from 'firebase/auth';
+import {DATA_URL} from '../../Constant';
 import path from 'path';
-import { RootStackParamList } from '../../../../../App.tsx';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
-import { useUser } from '../UserContext';
-import { reqPost } from '../../utills/Request.ts';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+import {useUser} from '../UserContext';
+import {reqPost} from '../../utills/Request.ts';
 
 type SigninavigationProp = StackNavigationProp<RootStackParamList, 'Signin'>;
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const Signin = () => {
   const navigation = useNavigation<SigninavigationProp>();
-  const { setUserName, setUserEmail, setUserPwd } = useUser();
+  const {setUserName, setUserEmail, setUserPwd} = useUser();
 
   const [userName, setUserNameLocal] = useState('');
   const [userEmail, setUserEmailLocal] = useState('');
@@ -62,10 +67,17 @@ const Signin = () => {
 
     try {
       // Firebase에 임시 사용자 생성 및 이메일 인증 링크 보내기
-      const tempUser = await createUserWithEmailAndPassword(auth, userEmail, userPwd);
+      const tempUser = await createUserWithEmailAndPassword(
+        auth,
+        userEmail,
+        userPwd,
+      );
       await sendEmailVerification(tempUser.user);
       setIsEmailVerified(true);
-      Alert.alert('확인', '이메일로 인증 링크가 전송되었습니다. 이메일을 확인하세요.');
+      Alert.alert(
+        '확인',
+        '이메일로 인증 링크가 전송되었습니다. 이메일을 확인하세요.',
+      );
     } catch (error: any) {
       console.error('Error sending email verification:', error);
       Alert.alert('오류', '이메일 인증 링크 전송 중 문제가 발생했습니다.');
@@ -93,10 +105,17 @@ const Signin = () => {
 
     try {
       // 서버에 회원가입 요청
-      const res = await reqPost(path.join(DATA_URL, 'api', 'members', 'register'), body);
+      const res = await reqPost(
+        path.join(DATA_URL, 'api', 'members', 'register'),
+        body,
+      );
       console.log('Full server response:', res); // 전체 응답 출력
 
-      if (res && res.message && res.message.includes('회원가입이 완료되었습니다')) {
+      if (
+        res &&
+        res.message &&
+        res.message.includes('회원가입이 완료되었습니다')
+      ) {
         // UserContext에 사용자 정보 저장
         setUserName(userName);
         setUserEmail(userEmail);
@@ -104,13 +123,20 @@ const Signin = () => {
 
         // Firebase에 사용자 생성 시도
         try {
-          const userCredential = await signInWithEmailAndPassword(auth, userEmail, userPwd);
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            userEmail,
+            userPwd,
+          );
           if (userCredential.user.emailVerified) {
             Alert.alert('확인', '회원가입이 완료되었습니다.');
             navigation.navigate('BasicInformation');
           } else {
             await deleteUser(userCredential.user);
-            Alert.alert('오류', '이메일 인증이 완료되지 않았습니다. 다시 시도해주세요.');
+            Alert.alert(
+              '오류',
+              '이메일 인증이 완료되지 않았습니다. 다시 시도해주세요.',
+            );
           }
         } catch (error: any) {
           console.error('Error creating user:', error);
@@ -122,7 +148,10 @@ const Signin = () => {
         Alert.alert('오류', '회원가입 중 문제가 발생했습니다.');
       }
     } catch (error: any) {
-      console.error('Error during registration:', error.response ? error.response.data : error);
+      console.error(
+        'Error during registration:',
+        error.response ? error.response.data : error,
+      );
       Alert.alert('오류', '서버와의 통신 중 문제가 발생했습니다.');
     }
   };
@@ -153,7 +182,9 @@ const Signin = () => {
           value={userEmail}
           onChangeText={setUserEmailLocal}
         />
-        <TouchableOpacity style={styles.verifyButton} onPress={handleEmailVerification}>
+        <TouchableOpacity
+          style={styles.verifyButton}
+          onPress={handleEmailVerification}>
           <Text style={styles.verifyButtonText}>인증하기</Text>
         </TouchableOpacity>
       </View>

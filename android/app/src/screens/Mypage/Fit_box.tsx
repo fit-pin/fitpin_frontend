@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   View,
@@ -11,11 +11,11 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import { RootStackParamList } from '../../../../../App';
-import { reqPost } from '../../utills/Request';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {RootStackParamList} from '../../../../../App';
+import {reqPost} from '../../utills/Request';
+import {StackNavigationProp} from '@react-navigation/stack';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
 type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
@@ -63,7 +63,9 @@ const Fit_box: React.FC = () => {
     try {
       await RNFS.unlink(filePath);
       setImages(images.filter(image => image !== filePath));
-      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', { imageUri: filePath });
+      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', {
+        imageUri: filePath,
+      });
     } catch (error) {
       console.error('Error deleting image:', error);
       Alert.alert('Error', 'Failed to delete image.');
@@ -71,7 +73,7 @@ const Fit_box: React.FC = () => {
   };
 
   const selectImage = (imageUri: string) => {
-    navigation.navigate('WritePage', { selectedImageUri: imageUri });
+    navigation.navigate('WritePage', {selectedImageUri: imageUri});
   };
 
   return (
@@ -80,10 +82,8 @@ const Fit_box: React.FC = () => {
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.row}>
         {images.map((imageUri, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => selectImage(imageUri)}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
+          <TouchableOpacity key={index} onPress={() => selectImage(imageUri)}>
+            <Image source={{uri: imageUri}} style={styles.image} />
           </TouchableOpacity>
         ))}
       </View>
@@ -93,7 +93,7 @@ const Fit_box: React.FC = () => {
           transparent={true}
           onRequestClose={() => setSelectedImage(null)}>
           <View style={styles.modalContainer}>
-            <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+            <Image source={{uri: selectedImage}} style={styles.fullImage} />
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.closeButton}

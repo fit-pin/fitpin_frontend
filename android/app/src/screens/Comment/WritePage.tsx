@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,15 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../../../../App';
 
 type WritePageRouteProp = RouteProp<RootStackParamList, 'WritePage'>;
-type WritePageNavigationProp = StackNavigationProp<RootStackParamList, 'WritePage'>;
+type WritePageNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'WritePage'
+>;
 
 const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
@@ -43,7 +46,10 @@ const WritePage: React.FC = () => {
       <Text style={styles.header}>핏 코멘트 작성하기</Text>
       <View style={styles.imageContainer}>
         {selectedImageUri ? (
-          <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
+          <Image
+            source={{uri: selectedImageUri}}
+            style={styles.selectedImage}
+          />
         ) : (
           <TouchableOpacity
             onPress={() => navigation.navigate('Fit_box' as never)}

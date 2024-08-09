@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,15 @@ import {
   Dimensions,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import { RootStackParamList } from '../../../../../App';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
+import {RootStackParamList} from '../../../../../App';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
 import PostcodeComponent from './PostcodeComponent';
 
-type OrderNavigationProp = StackNavigationProp<RootStackParamList, 'BasicInformation'>;
+type OrderNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'BasicInformation'
+>;
 
 const screenWidth = Dimensions.get('window').width;
 

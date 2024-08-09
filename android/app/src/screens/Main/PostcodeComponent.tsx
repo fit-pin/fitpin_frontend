@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Button, StyleSheet } from 'react-native';
+import {Modal, View, Button, StyleSheet} from 'react-native';
 import Postcode from '@actbase/react-daum-postcode';
 
 interface PostcodeComponentProps {
@@ -8,7 +8,11 @@ interface PostcodeComponentProps {
   onSelected: (data: any) => void;
 }
 
-const PostcodeComponent: React.FC<PostcodeComponentProps> = ({ isVisible, onClose, onSelected }) => {
+const PostcodeComponent: React.FC<PostcodeComponentProps> = ({
+  isVisible,
+  onClose,
+  onSelected,
+}) => {
   const handleError = (error: any) => {
     console.error('Postcode error:', error);
     onClose();
@@ -19,9 +23,9 @@ const PostcodeComponent: React.FC<PostcodeComponentProps> = ({ isVisible, onClos
       <View style={styles.container}>
         <Postcode
           style={styles.postcode}
-          jsOptions={{ animation: true }}
+          jsOptions={{animation: true}}
           onSelected={onSelected}
-          onError={handleError}  // onError 속성 추가
+          onError={handleError} // onError 속성 추가
         />
         <Button title="닫기" onPress={onClose} />
       </View>
