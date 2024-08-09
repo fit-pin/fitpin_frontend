@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,29 +7,32 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
-  Platform,
   Text,
+  Alert,
+  Platform,
 } from 'react-native';
-import {useRoute, RouteProp} from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
-import {RootStackParamList} from '../../../../../App';
+import { RootStackParamList } from '../../../../../App';
+import { reqPost } from '../../utills/Request';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
+type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
-const Fit_box = () => {
+const Fit_box: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const navigation = useNavigation<FitBoxNavigationProp>();
   const route = useRoute<FitBoxRouteProp>();
   const newPhotoUri = route.params?.newPhotoUri;
 
-  // 새로운 사진이 추가되었을 때 이미지를 상태에 추가
   useEffect(() => {
     if (newPhotoUri) {
       setImages(prevImages => [...prevImages, newPhotoUri]);
     }
   }, [newPhotoUri]);
 
-  // 기존 저장된 이미지를 로드
   useEffect(() => {
     const loadSavedImages = async () => {
       try {
@@ -42,7 +45,6 @@ const Fit_box = () => {
           file => file.name.endsWith('.jpg') || file.name.endsWith('.png'),
         );
 
-        // 파일명 기준 정렬 (오래된 사진이 뒤로)
         const sortedImageFiles = imageFiles.sort((a, b) =>
           a.name < b.name ? 1 : -1,
         );
@@ -50,12 +52,27 @@ const Fit_box = () => {
         const imageUris = sortedImageFiles.map(file => `file://${file.path}`);
         setImages(imageUris);
       } catch (error) {
-        console.error('이미지를 로드하는 중 오류 발생:', error);
+        console.error('Error loading images:', error);
       }
     };
 
     loadSavedImages();
   }, []);
+
+  const deleteImage = async (filePath: string) => {
+    try {
+      await RNFS.unlink(filePath);
+      setImages(images.filter(image => image !== filePath));
+      await reqPost('http://fitpitback.kro.kr:8080/api/deleteImage', { imageUri: filePath });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      Alert.alert('Error', 'Failed to delete image.');
+    }
+  };
+
+  const selectImage = (imageUri: string) => {
+    navigation.navigate('WritePage', { selectedImageUri: imageUri });
+  };
 
   return (
     <ScrollView
@@ -65,8 +82,8 @@ const Fit_box = () => {
         {images.map((imageUri, index) => (
           <TouchableOpacity
             key={index}
-            onPress={() => setSelectedImage(imageUri)}>
-            <Image source={{uri: imageUri}} style={styles.image} />
+            onPress={() => selectImage(imageUri)}>
+            <Image source={{ uri: imageUri }} style={styles.image} />
           </TouchableOpacity>
         ))}
       </View>
@@ -76,12 +93,22 @@ const Fit_box = () => {
           transparent={true}
           onRequestClose={() => setSelectedImage(null)}>
           <View style={styles.modalContainer}>
-            <Image source={{uri: selectedImage}} style={styles.fullImage} />
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setSelectedImage(null)}>
-              <Text style={styles.closeButtonText}>닫기</Text>
-            </TouchableOpacity>
+            <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setSelectedImage(null)}>
+                <Text style={styles.closeButtonText}>닫기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => {
+                  deleteImage(selectedImage);
+                  setSelectedImage(null);
+                }}>
+                <Text style={styles.deleteButtonText}>삭제</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Modal>
       )}
@@ -122,15 +149,28 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.7,
     borderRadius: 10,
   },
-  closeButton: {
+  buttonContainer: {
     position: 'absolute',
     bottom: 30,
+    flexDirection: 'row',
+  },
+  closeButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     padding: 10,
     borderRadius: 5,
+    marginRight: 10,
   },
   closeButtonText: {
     color: '#000',
+    fontSize: 16,
+  },
+  deleteButton: {
+    backgroundColor: 'red',
+    padding: 10,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: '#fff',
     fontSize: 16,
   },
 });

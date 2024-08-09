@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "943488852904",
+    "project_id": "fitpin-2f2f2",
+    "storage_bucket": "fitpin-2f2f2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:943488852904:android:b1411da16fd88dd99b739d",
+        "android_client_info": {
+          "package_name": "com.nativetest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuRjZrFgIDXPJ0etON9fhOOdPhk4crhKY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
