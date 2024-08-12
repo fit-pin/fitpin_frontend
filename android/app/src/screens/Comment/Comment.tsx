@@ -155,7 +155,7 @@ const Comment: React.FC = () => {
       />
       <TouchableOpacity
         style={styles.writeButton}
-        onPress={() => navigation.navigate('WritePage')}>
+        onPress={() => navigation.navigate('WritePage', { selectedImageUri: undefined })}>
         <Image
           source={require('../../assets/img/main/write.png')}
           style={styles.writeIcon}
