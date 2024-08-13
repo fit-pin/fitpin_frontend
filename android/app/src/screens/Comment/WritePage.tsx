@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+// WritePage.tsx
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,16 +8,14 @@ import {
   Image,
   StyleSheet,
   ScrollView,
+  Alert,
 } from 'react-native';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../../../../../App';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
 
 type WritePageRouteProp = RouteProp<RootStackParamList, 'WritePage'>;
-type WritePageNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'WritePage'
->;
+type WritePageNavigationProp = StackNavigationProp<RootStackParamList, 'WritePage'>;
 
 const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
@@ -24,6 +23,9 @@ const WritePage: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [brandName, setBrandName] = useState<string>('');
+  const [productName, setProductName] = useState<string>('');
+  const [reviewText, setReviewText] = useState<string>('');
 
   useEffect(() => {
     if (route.params?.selectedImageUri) {
@@ -39,6 +41,35 @@ const WritePage: React.FC = () => {
     setSelectedFit(fit);
   };
 
+  const handleSubmit = () => {
+    if (!selectedImageUri) {
+      Alert.alert('이미지를 선택해주세요.');
+      return;
+    }
+
+    const review = {
+      imageUrl: selectedImageUri,
+      brandName,
+      productName,
+      size: selectedSize,
+      fit: selectedFit,
+      reviewText,
+    };
+
+    try {
+      console.log('Form data:', review);
+      navigation.navigate('WriteComment', { review });
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+        Alert.alert('리뷰 작성 중 오류가 발생했습니다.', error.message);
+      } else {
+        console.error('An unknown error occurred');
+        Alert.alert('리뷰 작성 중 오류가 발생했습니다.', '알 수 없는 오류가 발생했습니다.');
+      }
+    }
+  };
+
   const fitOptions = ['약간 작다', '딱 맞는다', '약간 크다'];
 
   return (
@@ -47,12 +78,12 @@ const WritePage: React.FC = () => {
       <View style={styles.imageContainer}>
         {selectedImageUri ? (
           <Image
-            source={{uri: selectedImageUri}}
+            source={{ uri: selectedImageUri }}
             style={styles.selectedImage}
           />
         ) : (
           <TouchableOpacity
-            onPress={() => navigation.navigate('Fit_box' as never)}
+            onPress={() => navigation.navigate('Fit_box', {})}
             style={styles.selectImageButton}>
             <Image
               source={require('../../assets/img/write/camera.png')}
@@ -71,6 +102,8 @@ const WritePage: React.FC = () => {
           placeholder="브랜드 이름을 적어주세요📝"
           placeholderTextColor="#999"
           style={styles.input}
+          value={brandName}
+          onChangeText={setBrandName}
         />
       </View>
       <View style={styles.line} />
@@ -80,6 +113,8 @@ const WritePage: React.FC = () => {
           placeholder="제품명을 적어주세요📝"
           placeholderTextColor="#999"
           style={styles.input}
+          value={productName}
+          onChangeText={setProductName}
         />
       </View>
       <View style={styles.line} />
@@ -141,8 +176,10 @@ const WritePage: React.FC = () => {
         placeholder="한줄평을 적어주세요"
         placeholderTextColor="#999"
         style={styles.reviewInput}
+        value={reviewText}
+        onChangeText={setReviewText}
       />
-      <TouchableOpacity style={styles.submitButton}>
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>후기 올리기</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -325,3 +362,4 @@ const styles = StyleSheet.create({
 });
 
 export default WritePage;
+

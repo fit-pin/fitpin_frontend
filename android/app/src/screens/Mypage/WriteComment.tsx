@@ -1,4 +1,5 @@
-import React from 'react';
+// WriteComment.tsx
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,70 +8,56 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
 
-const WriteComment = () => {
+type WriteCommentRouteProp = RouteProp<RootStackParamList, 'WriteComment'>;
+type WriteCommentNavigationProp = StackNavigationProp<RootStackParamList, 'WriteComment'>;
+
+interface Review {
+  imageUrl: string;
+  brandName: string;
+  productName: string;
+  size: string | null;
+  fit: string | null;
+  reviewText: string;
+}
+
+const WriteComment: React.FC = () => {
+  const navigation = useNavigation<WriteCommentNavigationProp>();
+  const route = useRoute<WriteCommentRouteProp>();
+  const { review } = route.params;
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+
+      const action = e.data.action;
+
+      if (action.payload && 'name' in action.payload && action.payload.name === 'Main') {
+        navigation.dispatch(action);
+      } else {
+        navigation.navigate('Main');
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.commentContainer}>
         <View style={styles.detailsContainer}>
-          <Text style={styles.title}>폴로 랄프 로렌 - 데님셔츠</Text>
-          <Text style={styles.size}>M</Text>
+          <Text style={styles.title}>{review.productName}</Text>
+          <Text style={styles.size}>{review.size}</Text>
           <Text style={styles.comment}>
-            제가 산 사이즈는 M이고 평소에는 L을 입는데 이 옷은 M사이즈도 크게
-            느껴졌다
+            {review.reviewText}
           </Text>
         </View>
         <View style={styles.imageContainer}>
           <Image
-            source={require('../../assets/img/main/top/top1.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
-
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>상품이름</Text>
-          <Text style={styles.size}>사이즈 보여주기</Text>
-          <Text style={styles.comment}>
-            사용자가 적은 한줄평 보여주기 최대 2줄
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/top/top2.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
-
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>상품이름</Text>
-          <Text style={styles.size}>사이즈 보여주기</Text>
-          <Text style={styles.comment}>
-            사용자가 적은 한줄평 보여주기 최대 2줄
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/style/street.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
-
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>상품이름</Text>
-          <Text style={styles.size}>사이즈 보여주기</Text>
-          <Text style={styles.comment}>
-            사용자가 적은 한줄평 보여주기 최대 2줄
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/style/vintage.png')}
+            source={{ uri: review.imageUrl }}
             style={styles.image}
           />
         </View>

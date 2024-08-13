@@ -60,7 +60,7 @@ export type RootStackParamList = {
   My_Fit: undefined;
   Remeasure: undefined;
   Fit_box: {newPhotoUri?: string};
-  WriteComment: undefined;
+  WriteComment: { review: any };
   BottomTabNavigator: undefined;
   Loading: {uri: string};
 };
