@@ -54,7 +54,7 @@ const WritePage: React.FC = () => {
       size: selectedSize,
       fit: selectedFit,
       reviewText,
-      date: new Date().toISOString(),  // 작성 날짜 추가
+      date: new Date().toISOString(),
     };
 
     try {
@@ -63,7 +63,10 @@ const WritePage: React.FC = () => {
       reviews.push(review);
       await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
 
-      navigation.navigate('WriteComment', { review });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'WriteComment', params: { review, fromWritePage: true } }],
+      });
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);

@@ -6,6 +6,7 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -22,7 +23,7 @@ interface Review {
   size: string | null;
   fit: string | null;
   reviewText: string;
-  date: string; // 작성 날짜 필드 추가
+  date: string;
 }
 
 const WriteComment: React.FC = () => {
@@ -35,7 +36,6 @@ const WriteComment: React.FC = () => {
       const storedReviews = await AsyncStorage.getItem('reviews');
       if (storedReviews) {
         const parsedReviews = JSON.parse(storedReviews) as Review[];
-        // 최신순으로 정렬
         parsedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setReviews(parsedReviews);
       }
@@ -43,6 +43,23 @@ const WriteComment: React.FC = () => {
 
     fetchReviews();
   }, []);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (route.params?.fromWritePage) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Comment' }],
+        });
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+    return () => backHandler.remove();
+  }, [navigation, route.params?.fromWritePage]);
 
   return (
     <ScrollView style={styles.container}>
