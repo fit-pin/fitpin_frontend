@@ -1,4 +1,3 @@
-// WritePage.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../../../../App';
 
 type WritePageRouteProp = RouteProp<RootStackParamList, 'WritePage'>;
@@ -41,7 +41,7 @@ const WritePage: React.FC = () => {
     setSelectedFit(fit);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedImageUri) {
       Alert.alert('이미지를 선택해주세요.');
       return;
@@ -57,7 +57,11 @@ const WritePage: React.FC = () => {
     };
 
     try {
-      console.log('Form data:', review);
+      const storedReviews = await AsyncStorage.getItem('reviews');
+      const reviews = storedReviews ? JSON.parse(storedReviews) : [];
+      reviews.push(review);
+      await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
+
       navigation.navigate('WriteComment', { review });
     } catch (error) {
       if (error instanceof Error) {
@@ -362,4 +366,3 @@ const styles = StyleSheet.create({
 });
 
 export default WritePage;
-

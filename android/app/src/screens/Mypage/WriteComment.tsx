@@ -1,5 +1,4 @@
-// WriteComment.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,8 +7,9 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../../../../App';
 
 type WriteCommentRouteProp = RouteProp<RootStackParamList, 'WriteComment'>;
@@ -27,41 +27,38 @@ interface Review {
 const WriteComment: React.FC = () => {
   const navigation = useNavigation<WriteCommentNavigationProp>();
   const route = useRoute<WriteCommentRouteProp>();
-  const { review } = route.params;
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      e.preventDefault();
-
-      const action = e.data.action;
-
-      if (action.payload && 'name' in action.payload && action.payload.name === 'Main') {
-        navigation.dispatch(action);
-      } else {
-        navigation.navigate('Main');
+    const fetchReviews = async () => {
+      const storedReviews = await AsyncStorage.getItem('reviews');
+      if (storedReviews) {
+        setReviews(JSON.parse(storedReviews));
       }
-    });
+    };
 
-    return unsubscribe;
-  }, [navigation]);
+    fetchReviews();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>{review.productName}</Text>
-          <Text style={styles.size}>{review.size}</Text>
-          <Text style={styles.comment}>
-            {review.reviewText}
-          </Text>
+      {reviews.map((review, index) => (
+        <View key={index} style={styles.commentContainer}>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.title}>{review.productName}</Text>
+            <Text style={styles.size}>{review.size}</Text>
+            <Text style={styles.comment}>
+              {review.reviewText}
+            </Text>
+          </View>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: review.imageUrl }}
+              style={styles.image}
+            />
+          </View>
         </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: review.imageUrl }}
-            style={styles.image}
-          />
-        </View>
-      </View>
+      ))}
     </ScrollView>
   );
 };
