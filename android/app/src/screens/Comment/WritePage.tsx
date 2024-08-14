@@ -54,6 +54,7 @@ const WritePage: React.FC = () => {
       size: selectedSize,
       fit: selectedFit,
       reviewText,
+      date: new Date().toISOString(),  // 작성 날짜 추가
     };
 
     try {

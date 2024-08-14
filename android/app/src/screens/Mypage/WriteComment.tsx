@@ -22,6 +22,7 @@ interface Review {
   size: string | null;
   fit: string | null;
   reviewText: string;
+  date: string; // 작성 날짜 필드 추가
 }
 
 const WriteComment: React.FC = () => {
@@ -33,7 +34,10 @@ const WriteComment: React.FC = () => {
     const fetchReviews = async () => {
       const storedReviews = await AsyncStorage.getItem('reviews');
       if (storedReviews) {
-        setReviews(JSON.parse(storedReviews));
+        const parsedReviews = JSON.parse(storedReviews) as Review[];
+        // 최신순으로 정렬
+        parsedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setReviews(parsedReviews);
       }
     };
 
