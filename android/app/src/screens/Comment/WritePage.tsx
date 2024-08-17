@@ -63,10 +63,8 @@ const WritePage: React.FC = () => {
       reviews.push(review);
       await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'WriteComment', params: { review, fromWritePage: true } }],
-      });
+      // 리뷰 작성 후 WriteComment 화면으로 이동
+      navigation.navigate('WriteComment', { review, fromWritePage: true });
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);

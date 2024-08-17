@@ -6,9 +6,8 @@ import {
   Image,
   Dimensions,
   ScrollView,
-  BackHandler,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../../../../../App';
@@ -44,22 +43,19 @@ const WriteComment: React.FC = () => {
     fetchReviews();
   }, []);
 
-  useEffect(() => {
-    const handleBackPress = () => {
-      if (route.params?.fromWritePage) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Comment' }],
-        });
-        return true;
-      }
-      return false;
-    };
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
-    return () => backHandler.remove();
-  }, [navigation, route.params?.fromWritePage]);
+  useFocusEffect(
+    React.useCallback(() => {
+      // 화면이 포커스를 받을 때마다 실행
+      return () => {
+        if (route.params?.fromWritePage) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Comment' }],
+          });
+        }
+      };
+    }, [navigation, route.params?.fromWritePage])
+  );
 
   return (
     <ScrollView style={styles.container}>
