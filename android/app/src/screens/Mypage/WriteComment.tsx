@@ -6,6 +6,7 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -26,26 +27,27 @@ interface Review {
 }
 
 const WriteComment: React.FC = () => {
+  const [reviews, setReviews] = useState<Review[]>([]);
   const navigation = useNavigation<WriteCommentNavigationProp>();
   const route = useRoute<WriteCommentRouteProp>();
-  const [reviews, setReviews] = useState<Review[]>([]);
+
+  const fetchReviews = async () => {
+    const storedReviews = await AsyncStorage.getItem('reviews');
+    if (storedReviews) {
+      const parsedReviews = JSON.parse(storedReviews) as Review[];
+      parsedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setReviews(parsedReviews);
+    }
+  };
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      const storedReviews = await AsyncStorage.getItem('reviews');
-      if (storedReviews) {
-        const parsedReviews = JSON.parse(storedReviews) as Review[];
-        parsedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setReviews(parsedReviews);
-      }
-    };
-
     fetchReviews();
   }, []);
 
   useFocusEffect(
     React.useCallback(() => {
-      // 화면이 포커스를 받을 때마다 실행
+      fetchReviews(); // 페이지가 포커스될 때마다 리뷰 데이터를 다시 불러옴
+
       return () => {
         if (route.params?.fromWritePage) {
           navigation.reset({
@@ -57,24 +59,28 @@ const WriteComment: React.FC = () => {
     }, [navigation, route.params?.fromWritePage])
   );
 
+  const handleReviewPress = (review: Review) => {
+    navigation.navigate('ReviewDetail', { review });
+  };
+
   return (
     <ScrollView style={styles.container}>
       {reviews.map((review, index) => (
-        <View key={index} style={styles.commentContainer}>
-          <View style={styles.detailsContainer}>
-            <Text style={styles.title}>{review.productName}</Text>
-            <Text style={styles.size}>{review.size}</Text>
-            <Text style={styles.comment}>
-              {review.reviewText}
-            </Text>
+        <TouchableOpacity key={index} onPress={() => handleReviewPress(review)}>
+          <View style={styles.commentContainer}>
+            <View style={styles.detailsContainer}>
+              <Text style={styles.title}>{review.productName}</Text>
+              <Text style={styles.size}>{review.size}</Text>
+              <Text style={styles.comment}>{review.reviewText}</Text>
+            </View>
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: review.imageUrl }}
+                style={styles.image}
+              />
+            </View>
           </View>
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: review.imageUrl }}
-              style={styles.image}
-            />
-          </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
@@ -87,11 +93,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 16,
     flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
   },
   commentContainer: {
     flexDirection: 'row',
