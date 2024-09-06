@@ -22,7 +22,7 @@ type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
 const Fit_box: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // 선택한 이미지 상태 관리
   const navigation = useNavigation<FitBoxNavigationProp>();
   const route = useRoute<FitBoxRouteProp>();
   const newPhotoUri = route.params?.newPhotoUri;
@@ -59,6 +59,7 @@ const Fit_box: React.FC = () => {
     loadSavedImages();
   }, []);
 
+  // 이미지 삭제 기능
   const deleteImage = async (filePath: string) => {
     try {
       await RNFS.unlink(filePath);
@@ -72,8 +73,9 @@ const Fit_box: React.FC = () => {
     }
   };
 
+  // 이미지 선택 시 모달 열기
   const selectImage = (imageUri: string) => {
-    navigation.navigate('WritePage', {selectedImageUri: imageUri});
+    setSelectedImage(imageUri); // 선택한 이미지를 설정하여 모달이 열리도록 함
   };
 
   return (
@@ -103,10 +105,18 @@ const Fit_box: React.FC = () => {
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => {
-                  deleteImage(selectedImage);
+                  deleteImage(selectedImage!); // 삭제 후 모달 닫기
                   setSelectedImage(null);
                 }}>
                 <Text style={styles.deleteButtonText}>삭제</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.goToReviewButton}
+                onPress={() => {
+                  setSelectedImage(null);
+                  navigation.navigate('WritePage', {selectedImageUri: selectedImage}); // 리뷰 작성 페이지로 이동
+                }}>
+                <Text style={styles.goToReviewButtonText}>리뷰 작성</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -153,6 +163,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
   },
   closeButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
@@ -170,6 +182,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  goToReviewButton: {
+    backgroundColor: '#000',
+    padding: 10,
+    borderRadius: 5,
+  },
+  goToReviewButtonText: {
     color: '#fff',
     fontSize: 16,
   },
