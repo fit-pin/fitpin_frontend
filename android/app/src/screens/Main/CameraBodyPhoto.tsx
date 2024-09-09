@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,25 +8,23 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import {RNCamera} from 'react-native-camera';
+import { RNCamera } from 'react-native-camera';
 import {
   request,
   PERMISSIONS,
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
-import RNFS from 'react-native-fs';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../../../../../App';
-import {reqFileUpload} from '../../utills/Request';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
+import { reqFileUpload } from '../../utills/Request';  // API 요청 함수
+import { useUser } from '../UserContext'; // 유저 정보를 가져오는 컨텍스트
 
-type CameraBodyPhotoNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'CameraBodyPhoto'
->;
+type CameraBodyPhotoNavigationProp = StackNavigationProp<RootStackParamList, 'CameraBodyPhoto'>;
 
 const CameraBodyPhoto = () => {
+  const { userEmail } = useUser(); // 유저 이메일 가져오기
   const [hasPermission, setHasPermission] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -88,62 +86,51 @@ const CameraBodyPhoto = () => {
     }
   };
 
-  const getLocalFilePath = async () => {
-    const dir =
-      Platform.OS === 'android'
-        ? `${RNFS.ExternalDirectoryPath}/FitBox`
-        : `${RNFS.DocumentDirectoryPath}/FitBox`;
-    await RNFS.mkdir(dir);
-    const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
-    return `${dir}/photo_${timestamp}.jpg`;
-  };
-
-  const saveToLocalStorage = async (uri: string) => {
-    const newPath = await getLocalFilePath();
-    try {
-      const fileExists = await RNFS.exists(uri);
-      if (!fileExists) {
-        console.error('File does not exist:', uri);
-        return null;
-      }
-      await RNFS.moveFile(uri, newPath);
-      return `file://${newPath}`;
-    } catch (error) {
-      console.error('Failed to save photo.', error);
-      return null;
-    }
-  };
-
   const uploadToBackend = async (localUri: string) => {
     const formData = new FormData();
-    formData.append('file', {
+    const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
+
+    formData.append('image', {
       uri: localUri,
-      name: 'photo.jpg',
+      name: `photo_${timestamp}.jpg`,
       type: 'image/jpeg',
-    } as unknown as FormDataValue);
+    });
+    formData.append('userEmail', userEmail);
 
     try {
-      const res = await reqFileUpload(
-        'http://fitpitback.kro.kr:8080/api/uploadImage',
+      const response = await reqFileUpload(
+        'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
         formData,
-      ); // 여기 수정
-      return res;
+      );
+      
+      console.log('Server response:', response);  // 서버 응답 확인
+      return response;
     } catch (error) {
-      console.error('Failed to upload photo.', error);
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'Failed to upload image.');
       return null;
     }
   };
-
+  
   const confirmPicture = async () => {
     if (photoUri) {
-      const localUri = await saveToLocalStorage(photoUri);
-      if (localUri) {
-        const uploadResponse = await uploadToBackend(localUri);
-        if (uploadResponse && uploadResponse.imageUrl) {
-          navigation.replace('Fit_box', {newPhotoUri: uploadResponse.imageUrl});
+      const uploadResponse = await uploadToBackend(photoUri);
+      if (uploadResponse) {
+        // 서버에서 받은 message에서 이미지 경로를 추출
+        const message = uploadResponse.message;
+        const imageUrlMatch = message.match(/\/home\/.+\.jpg$/); // 이미지 경로 추출 (정규 표현식 사용)
+        const imageUrl = imageUrlMatch ? imageUrlMatch[0] : null;
+
+        if (imageUrl) {
+          const fullImageUrl = `http://fitpitback.kro.kr:8080${imageUrl}`; // 전체 URL로 변환
+          Alert.alert('Success', 'Image uploaded successfully.');
+          console.log('Uploaded image URL:', fullImageUrl);  // 업로드된 이미지 URL 확인
+          navigation.replace('Fit_box', { newPhotoUri: fullImageUrl }); // navigation.replace로 변경
         } else {
-          navigation.replace('Fit_box', {newPhotoUri: localUri});
+          Alert.alert('Error', 'Failed to get image URL.');
         }
+      } else {
+        Alert.alert('Error', 'Failed to upload image.');
       }
       setPhotoUri(null);
     }
@@ -156,11 +143,9 @@ const CameraBodyPhoto = () => {
   if (photoUri) {
     return (
       <View style={styles.container}>
-        <Image source={{uri: photoUri}} style={styles.preview} />
+        <Image source={{ uri: photoUri }} style={styles.preview} />
         <View style={styles.bottomControls}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={confirmPicture}>
+          <TouchableOpacity style={styles.actionButton} onPress={confirmPicture}>
             <Text style={styles.buttonText}>확인</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>
