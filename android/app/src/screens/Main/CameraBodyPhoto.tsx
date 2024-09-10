@@ -116,7 +116,6 @@ const CameraBodyPhoto = () => {
     if (photoUri) {
       const uploadResponse = await uploadToBackend(photoUri);
       if (uploadResponse) {
-        // 서버에서 받은 message에서 이미지 경로를 추출
         const message = uploadResponse.message;
         const imageUrlMatch = message.match(/\/home\/.+\.jpg$/); // 이미지 경로 추출 (정규 표현식 사용)
         const imageUrl = imageUrlMatch ? imageUrlMatch[0] : null;
@@ -125,7 +124,7 @@ const CameraBodyPhoto = () => {
           const fullImageUrl = `http://fitpitback.kro.kr:8080${imageUrl}`; // 전체 URL로 변환
           Alert.alert('Success', 'Image uploaded successfully.');
           console.log('Uploaded image URL:', fullImageUrl);  // 업로드된 이미지 URL 확인
-          navigation.replace('Fit_box', { newPhotoUri: fullImageUrl }); // navigation.replace로 변경
+          navigation.replace('Fit_box', { newPhotoUri: fullImageUrl });
         } else {
           Alert.alert('Error', 'Failed to get image URL.');
         }

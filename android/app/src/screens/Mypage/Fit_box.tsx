@@ -23,10 +23,8 @@ const Fit_box: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation<FitBoxNavigationProp>();
 
-  // 라우트 타입 정의 수정
   const route = useRoute<RouteProp<RootStackParamList, 'Fit_box'>>(); 
 
-  // 백엔드에서 이미지 목록 불러오기
   const fetchImagesFromBackend = async () => {
     try {
       const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`, {
@@ -36,8 +34,28 @@ const Fit_box: React.FC = () => {
         },
       });
       const data = await response.json();
+  
+      console.log('Fetched data:', data);
+  
       if (Array.isArray(data)) {
-        const imageUrls = data.map(item => `http://fitpitback.kro.kr:8080${item.fitStorageImgURL}`);
+        // 파일명에서 타임스탬프 추출 후 최신순 정렬
+        const sortedData = data.sort((a, b) => {
+          const extractTimestamp = (fitStorageImgURL: string) => {
+            const match = fitStorageImgURL.match(/photo_(\d{8}T\d{6}\d{3}Z)\.jpg$/);
+            return match ? new Date(match[1]).getTime() : 0;
+          };
+  
+          const timeA = extractTimestamp(a.fitStorageImgURL);
+          const timeB = extractTimestamp(b.fitStorageImgURL);
+  
+          return timeB - timeA; // 최신순 정렬
+        });
+  
+        // 최신 이미지를 가장 첫 번째에 배치하도록 reverse() 적용
+        const reversedImages = sortedData.reverse();
+  
+        // 정렬된 데이터를 기반으로 이미지 URL 생성
+        const imageUrls = reversedImages.map(item => `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImgURL.split('/').pop()}`);
         setImages(imageUrls);
       }
     } catch (error) {
@@ -45,6 +63,8 @@ const Fit_box: React.FC = () => {
       Alert.alert('Error', 'Failed to fetch images.');
     }
   };
+  
+  
 
   useEffect(() => {
     fetchImagesFromBackend(); // 컴포넌트 마운트 시 이미지 목록 불러오기
@@ -52,17 +72,15 @@ const Fit_box: React.FC = () => {
 
   useEffect(() => {
     if (route.params?.newPhotoUri) {
-      console.log('New image uploaded to Fit_box:', route.params.newPhotoUri); // 로그 추가
-      fetchImagesFromBackend(); // 새로운 이미지가 업로드되었을 때 다시 불러오기
+      console.log('New image uploaded to Fit_box:', route.params.newPhotoUri); 
+      fetchImagesFromBackend(); 
     }
   }, [route.params?.newPhotoUri]);
 
-  // 이미지 삭제 기능
   const deleteImage = async (imageUri: string) => {
     try {
-      const imagePath = imageUri.replace('http://fitpitback.kro.kr:8080', ''); // 서버 경로 추출
+      const imagePath = imageUri.replace('http://fitpitback.kro.kr:8080', ''); 
 
-      // FormData 사용
       const formData = new FormData();
       formData.append('fitStorageImgURL', imagePath);
       formData.append('userEmail', userEmail);
@@ -72,13 +90,13 @@ const Fit_box: React.FC = () => {
         headers: {
           Accept: 'application/json',
         },
-        body: formData, // JSON 대신 FormData 전송
+        body: formData,
       });
 
       const result = await response.json();
 
       if (response.ok && result.message.includes('이미지 삭제 성공')) {
-        setImages(images.filter(image => image !== imageUri)); // 삭제된 이미지 목록에서 제거
+        setImages(images.filter(image => image !== imageUri));
         Alert.alert('Success', 'Image deleted successfully.');
       } else if (response.status === 404) {
         Alert.alert('Error', 'Image not found.');
@@ -86,22 +104,19 @@ const Fit_box: React.FC = () => {
         throw new Error(result.message || 'Failed to delete image.');
       }
     } catch (error) {
-      // Error 객체로 캐스팅하여 처리
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error deleting image:', errorMessage);
       Alert.alert('Error', `Failed to delete image: ${errorMessage}`);
     }
   };
 
-  // 이미지 클릭 처리 수정
   const selectImage = (imageUri: string) => {
-    setSelectedImage(imageUri);  // 이미지를 선택해서 모달을 표시
+    setSelectedImage(imageUri); 
   };
 
-  // 모달 내에서 리뷰 작성 페이지로 이동
   const navigateToReviewPage = (imageUri: string) => {
-    setSelectedImage(null); // 모달을 닫기
-    navigation.navigate('WritePage', { selectedImageUri: imageUri }); // 리뷰 작성 페이지로 이동
+    setSelectedImage(null); 
+    navigation.navigate('WritePage', { selectedImageUri: imageUri }); 
   };
 
   return (
@@ -186,12 +201,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     flexDirection: 'row',
-    justifyContent: 'space-between', // 버튼 간격을 더 많이 띄움
-    width: screenWidth * 0.9, // 버튼들이 더 넓은 공간을 차지하도록 설정
+    justifyContent: 'space-between', 
+    width: screenWidth * 0.9,
   },
   closeButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 10, // 버튼 크기와 패딩을 조금 줄임
+    padding: 10,
     borderRadius: 5,
   },
   closeButtonText: {
@@ -200,7 +215,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: 'red',
-    padding: 10, // 패딩을 조금 줄임
+    padding: 10,
     borderRadius: 5,
   },
   deleteButtonText: {
