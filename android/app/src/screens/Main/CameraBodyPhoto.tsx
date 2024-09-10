@@ -89,26 +89,34 @@ const CameraBodyPhoto = () => {
   const uploadToBackend = async (localUri: string) => {
     const formData = new FormData();
     const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
-
+  
     formData.append('image', {
       uri: localUri,
       name: `photo_${timestamp}.jpg`,
       type: 'image/jpeg',
     });
     formData.append('userEmail', userEmail);
-
+  
     try {
-      const response = await reqFileUpload(
-        'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
-        formData,
-      );
-      
-      console.log('Server response:', response);  // 서버 응답 확인
-      return response;
+      const response = await fetch('http://fitpitback.kro.kr:8080/api/fitStorageImages/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        console.log('업로드 성공:', result.message);
+        return result; // 업로드 성공 시 서버 응답 반환
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('이미지 업로드 실패:', error);
       Alert.alert('Error', 'Failed to upload image.');
-      return null;
     }
   };
   

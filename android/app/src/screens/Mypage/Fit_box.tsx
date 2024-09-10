@@ -38,24 +38,32 @@ const Fit_box: React.FC = () => {
       console.log('Fetched data:', data);
   
       if (Array.isArray(data)) {
-        // 파일명에서 타임스탬프 추출 후 최신순 정렬
+        // 타임스탬프 추출 후 최신순 정렬
         const sortedData = data.sort((a, b) => {
           const extractTimestamp = (fitStorageImgURL: string) => {
             const match = fitStorageImgURL.match(/photo_(\d{8}T\d{6}\d{3}Z)\.jpg$/);
-            return match ? new Date(match[1]).getTime() : 0;
+            if (match) {
+              const timestamp = match[1];
+              // 날짜 형식을 변환하여 new Date()가 인식할 수 있도록 변경
+              const formattedTimestamp = `${timestamp.slice(0, 4)}-${timestamp.slice(4, 6)}-${timestamp.slice(6, 8)}T${timestamp.slice(9, 11)}:${timestamp.slice(11, 13)}:${timestamp.slice(13, 15)}Z`;
+              console.log(`Formatted timestamp: ${formattedTimestamp}`);
+              return new Date(formattedTimestamp).getTime();
+            }
+            return 0;
           };
   
-          const timeA = extractTimestamp(a.fitStorageImgURL);
-          const timeB = extractTimestamp(b.fitStorageImgURL);
+          const timeA = extractTimestamp(a.fitStorageImg);
+          const timeB = extractTimestamp(b.fitStorageImg);
   
+          console.log(`Time A: ${timeA}, Time B: ${timeB}`); // 타임스탬프 확인
           return timeB - timeA; // 최신순 정렬
         });
   
-        // 최신 이미지를 가장 첫 번째에 배치하도록 reverse() 적용
-        const reversedImages = sortedData.reverse();
-  
         // 정렬된 데이터를 기반으로 이미지 URL 생성
-        const imageUrls = reversedImages.map(item => `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImgURL.split('/').pop()}`);
+        const imageUrls = sortedData.map(item => 
+          `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
+        );
+        console.log('Sorted images:', imageUrls); // 정렬된 이미지 URL 확인
         setImages(imageUrls);
       }
     } catch (error) {
@@ -64,8 +72,6 @@ const Fit_box: React.FC = () => {
     }
   };
   
-  
-
   useEffect(() => {
     fetchImagesFromBackend(); // 컴포넌트 마운트 시 이미지 목록 불러오기
   }, [userEmail]);
@@ -79,18 +85,12 @@ const Fit_box: React.FC = () => {
 
   const deleteImage = async (imageUri: string) => {
     try {
-      const imagePath = imageUri.replace('http://fitpitback.kro.kr:8080', ''); 
-
-      const formData = new FormData();
-      formData.append('fitStorageImgURL', imagePath);
-      formData.append('userEmail', userEmail);
-
-      const response = await fetch('http://fitpitback.kro.kr:8080/api/fitStorageImages/delete', {
+      const imageName = imageUri.split('/').pop(); // 이미지 이름만 추출
+      const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/delete/${imageName}`, {
         method: 'DELETE',
         headers: {
           Accept: 'application/json',
         },
-        body: formData,
       });
 
       const result = await response.json();
