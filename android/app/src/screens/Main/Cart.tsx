@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,71 +11,111 @@ import {
 } from 'react-native';
 import {useNavigation, NavigationProp} from '@react-navigation/native';
 import {RootStackParamList} from '../../../../../App.tsx';
+import {DATA_URL} from '../../Constant.ts';
+import path from 'path';
+import {reqGet} from '../../utills/Request.ts';
+import {useUser} from '../UserContext.tsx';
 
 const screenWidth = Dimensions.get('window').width;
 
+interface CartItem {
+  itemKey: number;
+  userEmail: string;
+  itemName: string;
+  itemSize: string;
+  itemType: string;
+  itemPrice: number;
+  pit: number;
+}
+
 const Cart = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const {userEmail} = useUser();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      try {
+        if (userEmail) {
+          // userEmail이 있는 경우
+          const productRes = await reqGet(
+            path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+          );
+
+          if (productRes.ok) {
+            const data: CartItem[] = await productRes.json();
+            setCartItems(data);
+          } else {
+            console.error('장바구니 항목을 가져오는 데 실패했습니다.');
+          }
+        }
+      } catch (error) {
+        console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다.');
+      }
+    };
+
+    fetchCartItems();
+  }, [userEmail]);
   // 각 아이템의 수량과 가격을 관리하기 위한 상태
-  const [quantity1, setQuantity1] = useState(1);
-  const [quantity2, setQuantity2] = useState(1);
-  const unitPrice = 219000; // 개당 가격
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
 
-  // 수량 증가 함수
-  // eslint-disable-next-line prettier/prettier
-  const increaseQuantity = (setQuantity: React.Dispatch<React.SetStateAction<number>>) => {
-    setQuantity((prevQuantity: number) => prevQuantity + 1);
-  };
-
-  // 수량 감소 함수
-  const decreaseQuantity = (
-    setQuantity: React.Dispatch<React.SetStateAction<number>>,
-  ) => {
-    setQuantity((prevQuantity: number) =>
-      prevQuantity > 1 ? prevQuantity - 1 : 1,
-    ); // 최소값 1
+  const handleQuantityChange = (itemKey: number, delta: number) => {
+    setQuantities(prevQuantities => ({
+      ...prevQuantities,
+      [itemKey]: Math.max((prevQuantities[itemKey] || 1) + delta, 1),
+    }));
   };
 
   // 총 가격 계산
-  const totalPrice = unitPrice * (quantity1 + quantity2);
+  const totalPrice = cartItems.reduce((total, item) => {
+    const quantity = quantities[item.itemKey] || 1;
+    return total + item.itemPrice * quantity;
+  }, 0);
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
-        <View style={styles.item}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/img/main/top/top1.png')}
-              style={styles.itemImage}
-            />
-          </View>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
-            <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
-            <Text style={styles.itemSize}>Size : M</Text>
-            <Text style={styles.itemQuantity}>수량 : {quantity1}</Text>
-            <View style={styles.quantityAndPrice}>
-              <View style={styles.quantityControl}>
-                <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={() => decreaseQuantity(setQuantity1)}>
-                  <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.itemQuantityText}>{quantity1}</Text>
-                <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={() => increaseQuantity(setQuantity1)}>
-                  <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.itemPrice}>
-                {(unitPrice * quantity1).toLocaleString()}원
+        {cartItems.map(item => (
+          <View key={item.itemKey} style={styles.item}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={require('../../assets/img/main/top/top1.png')}
+                style={styles.itemImage}
+              />
+            </View>
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemTitle}>{item.itemName}</Text>
+              <Text style={styles.itemDescription}>{item.itemType}</Text>
+              <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
+              <Text style={styles.itemQuantity}>
+                수량 : {quantities[item.itemKey] || 1}
               </Text>
+              <View style={styles.quantityAndPrice}>
+                <View style={styles.quantityControl}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => handleQuantityChange(item.itemKey, -1)}>
+                    <Text style={styles.quantityButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.itemQuantityText}>
+                    {quantities[item.itemKey] || 1}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => handleQuantityChange(item.itemKey, 1)}>
+                    <Text style={styles.quantityButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.itemPrice}>
+                  {(
+                    item.itemPrice * (quantities[item.itemKey] || 1)
+                  ).toLocaleString()}
+                  원
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-        {/* 추가 아이템 */}
+        ))}
         <View>
           <View style={styles.textContainer}>
             <Text style={styles.sectionTitle}>수선 ver</Text>
@@ -91,23 +131,23 @@ const Cart = () => {
               <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
               <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
               <Text style={styles.itemSize}>Size : M</Text>
-              <Text style={styles.itemQuantity}>수량 : {quantity2}</Text>
+              <Text style={styles.itemQuantity}>수량 : 1</Text>
               <View style={styles.quantityAndPrice}>
                 <View style={styles.quantityControl}>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => decreaseQuantity(setQuantity2)}>
+                    onPress={() => handleQuantityChange(0, -1)}>
                     <Text style={styles.quantityButtonText}>-</Text>
                   </TouchableOpacity>
-                  <Text style={styles.itemQuantityText}>{quantity2}</Text>
+                  <Text style={styles.itemQuantityText}>1</Text>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => increaseQuantity(setQuantity2)}>
+                    onPress={() => handleQuantityChange(0, 1)}>
                     <Text style={styles.quantityButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.itemPrice}>
-                  {(unitPrice * quantity2).toLocaleString()}원
+                  {(20000).toLocaleString()}원
                 </Text>
               </View>
             </View>
