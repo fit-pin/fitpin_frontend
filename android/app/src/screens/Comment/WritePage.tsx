@@ -9,7 +9,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import RNPickerSelect from 'react-native-picker-select'; // react-native-picker-select 추가
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,27 +21,19 @@ type WritePageNavigationProp = StackNavigationProp<RootStackParamList, 'WritePag
 const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
   const route = useRoute<WritePageRouteProp>();
+  const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('상의'); // 카테고리 기본값 설정
 
   useEffect(() => {
     if (route.params?.selectedImageUri) {
       setSelectedImageUri(route.params.selectedImageUri);
     }
   }, [route.params?.selectedImageUri]);
-
-  const handleSizeSelect = (size: string) => {
-    setSelectedSize(size);
-  };
-
-  const handleFitSelect = (fit: string) => {
-    setSelectedFit(fit);
-  };
 
   const handleSubmit = async () => {
     if (!selectedImageUri) {
@@ -56,7 +48,7 @@ const WritePage: React.FC = () => {
       size: selectedSize,
       fit: selectedFit,
       reviewText,
-      category: selectedCategory, // 카테고리 포함
+      category: selectedCategory,
       date: new Date().toISOString(),
     };
 
@@ -69,11 +61,7 @@ const WritePage: React.FC = () => {
       navigation.navigate('WriteComment', { review, fromWritePage: true });
     } catch (error) {
       if (error instanceof Error) {
-        console.error(error.message);
         Alert.alert('리뷰 작성 중 오류가 발생했습니다.', error.message);
-      } else {
-        console.error('An unknown error occurred');
-        Alert.alert('리뷰 작성 중 오류가 발생했습니다.', '알 수 없는 오류가 발생했습니다.');
       }
     }
   };
@@ -85,22 +73,11 @@ const WritePage: React.FC = () => {
       <Text style={styles.header}>핏 코멘트 작성하기</Text>
       <View style={styles.imageContainer}>
         {selectedImageUri ? (
-          <Image
-            source={{ uri: selectedImageUri }}
-            style={styles.selectedImage}
-          />
+          <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
         ) : (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Fit_box', {})}
-            style={styles.selectImageButton}>
-            <Image
-              source={require('../../assets/img/write/camera.png')}
-              style={styles.cameraIcon}
-            />
-            <Image
-              source={require('../../assets/img/write/add.png')}
-              style={styles.plusIcon}
-            />
+          <TouchableOpacity onPress={() => navigation.navigate('Fit_box', {})} style={styles.selectImageButton}>
+            <Image source={require('../../assets/img/write/camera.png')} style={styles.cameraIcon} />
+            <Image source={require('../../assets/img/write/add.png')} style={styles.plusIcon} />
           </TouchableOpacity>
         )}
       </View>
@@ -108,17 +85,31 @@ const WritePage: React.FC = () => {
       {/* 카테고리 선택 섹션 */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
-        <Picker
-          selectedValue={selectedCategory}
-          style={styles.picker}
-          onValueChange={(itemValue) => setSelectedCategory(itemValue)}>
-          <Picker.Item label="상의" value="상의" />
-          <Picker.Item label="하의" value="하의" />
-          <Picker.Item label="신발" value="신발" />
-          <Picker.Item label="액세서리" value="액세서리" />
-        </Picker>
+        <RNPickerSelect
+          onValueChange={(value) => setSelectedCategory(value)}
+          items={[
+            { label: '반팔', value: '반팔' },
+            { label: '긴팔', value: '긴팔' },
+            { label: '반팔 아우터', value: '반팔 아우터' },
+            { label: '긴팔 아우터', value: '긴팔 아우터' },
+            { label: '조끼', value: '조끼' },
+            { label: '슬링', value: '슬링' },
+            { label: '반바지', value: '반바지' },
+            { label: '긴바지', value: '긴바지' },
+            { label: '치마', value: '치마' },
+            { label: '반팔 원피스', value: '반팔 원피스' },
+            { label: '긴팔 원피스', value: '긴팔 원피스' },
+            { label: '조끼 원피스', value: '조끼 원피스' },
+            { label: '슬링 원피스', value: '슬링 원피스' },
+          ]}
+          placeholder={{
+            label: '카테고리를 선택하세요',
+            value: null,
+          }}
+          value={selectedCategory}
+        />
       </View>
-      <View style={styles.line} />
+
       <View style={styles.inputContainer}>
         <Text style={styles.label}>브랜드명</Text>
         <TextInput
@@ -129,7 +120,9 @@ const WritePage: React.FC = () => {
           onChangeText={setBrandName}
         />
       </View>
+
       <View style={styles.line} />
+
       <View style={styles.inputContainer}>
         <Text style={styles.label}>제품명</Text>
         <TextInput
@@ -140,60 +133,45 @@ const WritePage: React.FC = () => {
           onChangeText={setProductName}
         />
       </View>
+
       <View style={styles.line} />
+
       <View style={styles.sizeContainer}>
         <Text style={styles.sizeTitle}>Select Size</Text>
         <View style={styles.sizeButtons}>
-          {['S', 'M', 'L', 'XL', 'XXL', 'Free'].map(size => (
+          {['S', 'M', 'L', 'XL', 'XXL', 'Free'].map((size) => (
             <TouchableOpacity
               key={size}
-              style={[
-                styles.sizeButton,
-                selectedSize === size && styles.selectedSizeButton,
-              ]}
-              onPress={() => handleSizeSelect(size)}>
-              <Text
-                style={[
-                  styles.sizeButtonText,
-                  selectedSize === size && styles.selectedSizeButtonText,
-                ]}>
-                {size}
-              </Text>
+              style={[styles.sizeButton, selectedSize === size && styles.selectedSizeButton]}
+              onPress={() => setSelectedSize(size)}
+            >
+              <Text style={[styles.sizeButtonText, selectedSize === size && styles.selectedSizeButtonText]}>{size}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
+
       <View style={styles.line} />
+
       <Text style={styles.selectOptionText}>선택 옵션</Text>
+
       <View style={styles.fitOptions}>
         {fitOptions.map((fit, index) => (
           <TouchableOpacity
             key={index}
-            style={[
-              styles.fitButton,
-              selectedFit === fit && styles.selectedFitButton,
-            ]}
-            onPress={() => handleFitSelect(fit)}>
+            style={[styles.fitButton, selectedFit === fit && styles.selectedFitButton]}
+            onPress={() => setSelectedFit(fit)}
+          >
             <View style={styles.fitTextContainer}>
-              <Text
-                style={[
-                  styles.fitTextBold,
-                  selectedFit === fit && styles.selectedFitButtonText,
-                ]}>
-                사이즈
-              </Text>
-              <Text
-                style={[
-                  styles.fitButtonText,
-                  selectedFit === fit && styles.selectedFitButtonText,
-                ]}>
-                {fit}
-              </Text>
+              <Text style={[styles.fitTextBold, selectedFit === fit && styles.selectedFitButtonText]}>사이즈</Text>
+              <Text style={[styles.fitButtonText, selectedFit === fit && styles.selectedFitButtonText]}>{fit}</Text>
             </View>
           </TouchableOpacity>
         ))}
       </View>
+
       <View style={styles.line} />
+
       <Text style={styles.reviewText}>한줄평</Text>
       <TextInput
         placeholder="한줄평을 적어주세요"
@@ -202,6 +180,7 @@ const WritePage: React.FC = () => {
         value={reviewText}
         onChangeText={setReviewText}
       />
+
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>후기 올리기</Text>
       </TouchableOpacity>
