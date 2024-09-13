@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // Picker 컴포넌트 추가
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,6 +27,7 @@ const WritePage: React.FC = () => {
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('상의'); // 카테고리 기본값 설정
 
   useEffect(() => {
     if (route.params?.selectedImageUri) {
@@ -54,6 +56,7 @@ const WritePage: React.FC = () => {
       size: selectedSize,
       fit: selectedFit,
       reviewText,
+      category: selectedCategory, // 카테고리 포함
       date: new Date().toISOString(),
     };
 
@@ -63,7 +66,6 @@ const WritePage: React.FC = () => {
       reviews.push(review);
       await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
 
-      // 리뷰 작성 후 WriteComment 화면으로 이동
       navigation.navigate('WriteComment', { review, fromWritePage: true });
     } catch (error) {
       if (error instanceof Error) {
@@ -102,6 +104,21 @@ const WritePage: React.FC = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* 카테고리 선택 섹션 */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>카테고리</Text>
+        <Picker
+          selectedValue={selectedCategory}
+          style={styles.picker}
+          onValueChange={(itemValue) => setSelectedCategory(itemValue)}>
+          <Picker.Item label="상의" value="상의" />
+          <Picker.Item label="하의" value="하의" />
+          <Picker.Item label="신발" value="신발" />
+          <Picker.Item label="액세서리" value="액세서리" />
+        </Picker>
+      </View>
+      <View style={styles.line} />
       <View style={styles.inputContainer}>
         <Text style={styles.label}>브랜드명</Text>
         <TextInput
@@ -295,6 +312,10 @@ const styles = StyleSheet.create({
   },
   selectedSizeButtonText: {
     color: '#fff',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
   selectOptionText: {
     fontSize: 18,
