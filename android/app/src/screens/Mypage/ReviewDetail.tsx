@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +25,7 @@ interface Review {
   size: string | null;
   fit: string | null;
   reviewText: string;
+  category: string;  // 카테고리 필드
   date: string;
 }
 
@@ -39,6 +41,10 @@ const ReviewDetail: React.FC = () => {
 
   const handleFitSelect = (fit: string) => {
     setReview({ ...review, fit });
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setReview({ ...review, category });
   };
 
   const handleDelete = async () => {
@@ -78,13 +84,42 @@ const ReviewDetail: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>핏 코멘트</Text>
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: review.imageUrl }}
           style={styles.selectedImage}
         />
       </View>
+
+      {/* 카테고리 선택 섹션 */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>카테고리</Text>
+        {editMode ? (
+          <RNPickerSelect
+            onValueChange={handleCategorySelect}
+            items={[
+              { label: '반팔', value: '반팔' },
+              { label: '긴팔', value: '긴팔' },
+              { label: '반팔 아우터', value: '반팔 아우터' },
+              { label: '긴팔 아우터', value: '긴팔 아우터' },
+              { label: '조끼', value: '조끼' },
+              { label: '슬링', value: '슬링' },
+              { label: '반바지', value: '반바지' },
+              { label: '긴바지', value: '긴바지' },
+              { label: '치마', value: '치마' },
+              { label: '반팔 원피스', value: '반팔 원피스' },
+              { label: '긴팔 원피스', value: '긴팔 원피스' },
+              { label: '조끼 원피스', value: '조끼 원피스' },
+              { label: '슬링 원피스', value: '슬링 원피스' },
+            ]}
+            value={review.category}
+          />
+        ) : (
+          <Text style={styles.categoryText}>{review.category}</Text> 
+        )}
+      </View>
+
+      <View style={styles.line} />
       <View style={styles.inputContainer}>
         <Text style={styles.label}>브랜드명</Text>
         <TextInput
@@ -237,6 +272,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E9E9E9',
     marginVertical: '2%',
     marginBottom: '3%',
+  },
+  categoryText: {
+    fontSize: 16,
+    color: '#525252', // 글씨 색상
+    fontWeight: 'bold',
   },
   sizeContainer: {
     marginBottom: '2%',
