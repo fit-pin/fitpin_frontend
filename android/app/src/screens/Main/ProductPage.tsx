@@ -71,6 +71,9 @@ const ProductPage = () => {
     formData.append('clothesLenth', '0');
 
     const res = await ArRequest(path.join(AR_URL, 'try-on'), formData);
+    if (!res.ok) {
+      return;
+    }
     const blob = await res.blob();
 
     const fileReaderInstance = new FileReader();
@@ -84,7 +87,7 @@ const ProductPage = () => {
   useEffect(() => {
     handleSetimg();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imgUri]);
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
