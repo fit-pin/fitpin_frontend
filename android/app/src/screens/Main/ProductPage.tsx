@@ -220,7 +220,12 @@ const ProductPage = () => {
 
       {/* 제품 이미지 */}
       <View style={styles.roundedRect}>
-        <Image source={{uri: imgUri}} style={styles.productImage} />
+        <Image
+          source={{
+            uri: 'http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/optimize.png',
+          }}
+          style={styles.productImage}
+        />
       </View>
 
       {/* 제품 설명 */}

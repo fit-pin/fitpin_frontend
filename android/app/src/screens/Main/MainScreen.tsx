@@ -22,6 +22,66 @@ import {useUser} from '../UserContext';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
+const CameraBubble = () => {
+  const [visible, setVisible] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+
+  useEffect(() => {
+    // 2초 후에 말풍선을 보이도록 설정
+    const showTimer = setTimeout(() => {
+      setVisible(true);
+
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1, // 완전히 불투명해지도록
+          duration: 500, // 0.5초 동안 페이드 인
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0, // 화면 안쪽으로 슬라이드
+          duration: 500, // 0.5초 동안 슬라이드
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // 6초 후에 말풍선이 슬라이드로 사라지도록 설정
+      const hideTimer = setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 0, // 투명해지도록
+            duration: 500, // 0.5초 동안 페이드 아웃
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 100, // 슬라이드로 화면 밖으로 나감
+            duration: 500, // 0.5초 동안 슬라이드 아웃
+            useNativeDriver: true,
+          }),
+        ]).start(() => setVisible(false));
+      }, 4000); // 4초 동안 보이게
+
+      return () => clearTimeout(hideTimer);
+    }, 3000); // 3초 후에 보이도록
+
+    return () => clearTimeout(showTimer);
+  }, [fadeAnim, slideAnim]);
+
+  return visible ? (
+    <Animated.View
+      style={[
+        styles.bubble,
+        {
+          opacity: fadeAnim,
+          transform: [{translateX: slideAnim}],
+        },
+      ]}>
+      <Text style={styles.bubbleText}>카메라로 측정해 보세요!</Text>
+      <View style={styles.triangle} />
+    </Animated.View>
+  ) : null;
+};
+
 const sections: string[] = ['상의', '하의', '아우터', '정장'];
 const boxes: {text: string; image: any; recommended: boolean}[] = [
   {
@@ -330,14 +390,17 @@ const Main: React.FC = () => {
             <Text style={styles.headerTextName}>{userName}님</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('CameraBodyPhoto')}>
-              <Image
-                source={require('../../assets/img/main/camera.png')}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
+            <View style={styles.relativePosition}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => navigation.navigate('CameraBodyPhoto')}>
+                <Image
+                  source={require('../../assets/img/main/camera.png')}
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+              <CameraBubble />
+            </View>
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => navigation.navigate('Cart')}>
@@ -375,6 +438,7 @@ const Main: React.FC = () => {
               <Text
                 style={[
                   styles.sectionText,
+                  // eslint-disable-next-line react-native/no-inline-styles
                   {
                     color: selectedSection === section ? '#000' : '#919191',
                   },
@@ -574,6 +638,40 @@ const styles = StyleSheet.create({
   },
   leftText: {
     flex: 1,
+  },
+  relativePosition: {
+    position: 'relative',
+  },
+  bubble: {
+    position: 'absolute',
+    top: 6,
+    right: 60,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 5, // 위아래 여백
+    paddingHorizontal: 1, // 좌우 여백을 충분히 줌
+    width: 150,
+    borderRadius: 5,
+    flexDirection: 'row', // 가로로 배치
+    justifyContent: 'center', // 가로 중앙 정렬
+    alignItems: 'center', // 세로 중앙 정렬
+  },
+  bubbleText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  triangle: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 10,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 10,
+    borderBottomColor: 'transparent',
+    borderLeftWidth: 12,
+    borderLeftColor: '#3B82F6',
+    position: 'absolute',
+    right: -13,
+    top: '23%',
   },
 });
 

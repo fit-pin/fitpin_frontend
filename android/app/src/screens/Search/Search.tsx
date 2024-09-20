@@ -1,99 +1,199 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   SafeAreaView,
   View,
   Text,
   TextInput,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Image,
+  FlatList,
+  Alert,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
+import {DATA_URL} from '../../Constant';
+import {reqGet} from '../../utills/Request';
+import path from 'path';
+
+interface Item {
+  itemKey: number;
+  itemName: string;
+  itemType: string;
+  itemBrand: string;
+  itemStyle: string;
+  itemCnt: number;
+  itemContent: string;
+  itemPrice: number;
+  itemDate: string;
+  itemImgURL?: string;
+}
+
+interface SearchResponse {
+  searchResult: Item[];
+}
+
+const fetchSearchResults = async (searchWord: string): Promise<Item[]> => {
+  try {
+    const response: SearchResponse = await reqGet(
+      path.join(DATA_URL, 'api', 'item-search', 'search', searchWord),
+    );
+    return response.searchResult;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
 
 const Search = () => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [results, setResults] = useState<Item[]>([]);
+  const [recentSearches, setRecentSearches] = useState<Item[]>([]);
+  const [recommendedSearches, setRecommendedSearches] = useState<Item[]>([]);
+
+  const handleSearch = async () => {
+    // 검색어가 비어 있을 경우 알림
+    if (searchTerm.trim() === '') {
+      Alert.alert('알림', '검색어를 입력하세요.');
+      return;
+    }
+    const searchResults = await fetchSearchResults(searchTerm);
+    // 검색 결과가 없을 경우 알림
+    if (searchResults.length === 0) {
+      Alert.alert('알림', '검색 결과가 없습니다.');
+    }
+    setResults(searchResults);
+
+    // 최근 검색어 중복 체크 후 추가
+    const isAlreadySearched = recentSearches.some(
+      item => item.itemName === searchTerm,
+    );
+
+    if (!isAlreadySearched) {
+      setRecentSearches(prevSearches => [
+        ...prevSearches,
+        {
+          itemKey: Date.now(),
+          itemName: searchTerm,
+          itemType: '',
+          itemBrand: '',
+          itemStyle: '',
+          itemCnt: 0,
+          itemContent: '',
+          itemPrice: 0,
+          itemDate: '',
+          itemImgURL: '',
+        },
+      ]);
+    }
+
+    // 추천 검색어 추가 (임의로 설정)
+    setRecommendedSearches([
+      {
+        itemKey: 1,
+        itemName: '데님 셔츠',
+        itemType: '',
+        itemBrand: '',
+        itemStyle: '',
+        itemCnt: 0,
+        itemContent: '',
+        itemPrice: 0,
+        itemDate: '',
+        itemImgURL: '',
+      },
+      {
+        itemKey: 2,
+        itemName: '데님 팬츠',
+        itemType: '',
+        itemBrand: '',
+        itemStyle: '',
+        itemCnt: 0,
+        itemContent: '',
+        itemPrice: 0,
+        itemDate: '',
+        itemImgURL: '',
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>무엇을</Text>
-          <Text style={styles.headerText2}>찾고 계신가요?</Text>
-        </View>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="검색어를 입력하세요"
-            placeholderTextColor="#999"
-          />
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>무엇을</Text>
+        <Text style={styles.headerText2}>찾고 계신가요?</Text>
+      </View>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="검색어를 입력하세요"
+          placeholderTextColor="#999"
+          value={searchTerm}
+          onChangeText={text => setSearchTerm(text)}
+        />
+        <TouchableOpacity onPress={handleSearch}>
           <Image
             source={require('../../assets/img/search/search.png')}
             style={styles.icon}
           />
-        </View>
-        <Text style={styles.recenttext}>최근 검색어</Text>
-        <View style={styles.recentSearchContainer}>
-          <TouchableOpacity>
-            <View style={styles.searchItem}>
-              <Text style={styles.recenttext2}>랄프 로렌 셔츠</Text>
-              <Image
-                source={require('../../assets/img/search/x.png')}
-                style={styles.icon2}
-              />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <View style={styles.searchItem}>
-              <Text style={styles.recenttext2}>체크 셔츠</Text>
-              <Image
-                source={require('../../assets/img/search/x.png')}
-                style={styles.icon2}
-              />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <View style={styles.searchItem}>
-              <Text style={styles.recenttext2}>데님 바지</Text>
-              <Image
-                source={require('../../assets/img/search/x.png')}
-                style={styles.icon2}
-              />
-            </View>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.recommendtext}>추천 검색어</Text>
-        <View style={styles.recommendedSearchContainer}>
-          <TouchableOpacity style={styles.recommendItem}>
-            <Text style={styles.recommendtext2}>#랄프 로렌 셔츠</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.recommendItem}>
-            <Text style={styles.recommendtext2}>#체크 셔츠</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.recommendItem}>
-            <Text style={styles.recommendtext2}>#데님 바지</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.headerText3}>검색 결과를 보여드릴게요</Text>
-        <View style={styles.resultContainer}>
-          <View style={styles.imgRectangle}>
-            <Image
-              source={require('../../assets/img/main/top/top1.png')}
-              style={styles.productImage}
-            />
-          </View>
-          <View style={styles.bottomRectangle}>
-            <View style={styles.textContainer}>
-              <View style={styles.brandAndPrice}>
-                <Text style={[styles.text, styles.brandName]}>브랜드명</Text>
-                <Text style={styles.price}>219.000₩</Text>
-              </View>
-              <Text style={[styles.text, styles.clothName]}>옷 이름</Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-      <View>
-        <BottomTabNavigator />
+        </TouchableOpacity>
       </View>
+      <Text style={styles.recenttext}>최근 검색어</Text>
+      <FlatList
+        data={recentSearches}
+        keyExtractor={item => item.itemKey.toString()}
+        renderItem={({item}) => (
+          <View style={styles.searchItem}>
+            <Text>{item.itemName}</Text>
+          </View>
+        )}
+        horizontal
+        style={styles.recentSearchContainer}
+        contentContainerStyle={styles.recentSearchContent}
+      />
+      <Text style={styles.recommendtext}>추천 검색어</Text>
+      <FlatList
+        data={recommendedSearches}
+        keyExtractor={item => item.itemKey.toString()}
+        renderItem={({item}) => (
+          <View style={styles.recommendItem}>
+            <Text>{item.itemName}</Text>
+          </View>
+        )}
+        horizontal
+        style={styles.recommendedSearchContainer}
+        contentContainerStyle={styles.recommendedSearchContent}
+      />
+      <Text style={styles.headerText3}>검색 결과를 보여드릴게요</Text>
+      <FlatList
+        data={results}
+        keyExtractor={item => item.itemKey.toString()}
+        renderItem={({item}) => (
+          <View style={styles.resultContainer}>
+            <View style={styles.imgRectangle}>
+              <Image
+                source={{
+                  uri: 'http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/optimize.png',
+                }}
+                style={styles.productImage}
+              />
+            </View>
+            <View style={styles.bottomRectangle}>
+              <View style={styles.textContainer}>
+                <View style={styles.brandAndPrice}>
+                  <Text style={[styles.text, styles.brandName]}>
+                    {item.itemBrand}
+                  </Text>
+                  <Text style={styles.price}>{item.itemPrice}₩</Text>
+                </View>
+                <Text style={[styles.text, styles.clothName]}>
+                  {item.itemName}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+        contentContainerStyle={styles.resultContent}
+      />
+      <BottomTabNavigator />
     </SafeAreaView>
   );
 };
@@ -122,6 +222,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     paddingHorizontal: '5%',
+    marginTop: '-1%',
   },
   searchContainer: {
     marginTop: '3%',
@@ -155,13 +256,12 @@ const styles = StyleSheet.create({
     color: '#000',
     paddingHorizontal: '5%',
   },
-  recenttext2: {
-    color: '#000',
-  },
   recentSearchContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: '3%',
+  },
+  recentSearchContent: {
     paddingHorizontal: '5%',
   },
   searchItem: {
@@ -176,19 +276,18 @@ const styles = StyleSheet.create({
   },
   recommendtext: {
     fontSize: 15,
-    marginTop: '1%',
+    marginTop: '-3%',
     marginBottom: '3%',
     color: '#000',
     paddingHorizontal: '5%',
   },
-  recommendtext2: {
-    color: '#000',
-  },
   recommendedSearchContainer: {
-    paddingHorizontal: '5%',
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: '3%',
+  },
+  recommendedSearchContent: {
+    paddingHorizontal: '5%',
   },
   recommendItem: {
     padding: 8,
@@ -199,58 +298,67 @@ const styles = StyleSheet.create({
     marginBottom: '3%',
   },
   resultContainer: {
-    marginTop: '6%',
+    marginTop: '5%',
     paddingHorizontal: '5%',
+  },
+  resultContent: {
+    paddingBottom: '5%',
   },
   imgRectangle: {
     position: 'relative',
     backgroundColor: '#EBEBEB',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 250,
+    height: 300,
+    width: 380,
     borderRadius: 15,
-    zIndex: 1,
-    marginTop: '-3%',
+    marginTop: '-1%',
   },
   productImage: {
-    width: '50%',
-    height: '90%',
-    resizeMode: 'cover',
+    width: '60%',
+    height: '80%',
+    borderRadius: 15,
+    marginTop: '-15%',
   },
   bottomRectangle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-    height: 80,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    borderWidth: 1,
-    borderColor: '#DCDCDC',
-    marginTop: '-3%',
-    padding: 8,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    zIndex: 2,
   },
   textContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     flex: 1,
+    marginTop: '-3%',
   },
   brandAndPrice: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   text: {
-    fontSize: 16,
     color: '#000',
+    marginRight: 20,
   },
   brandName: {
     fontWeight: 'bold',
-  },
-  clothName: {
-    marginTop: '1%',
-    color: '#000',
+    fontSize: 16,
+    marginRight: 15,
+    marginLeft: 20,
   },
   price: {
-    color: '#0000ff',
+    fontSize: 16,
+  },
+  clothName: {
+    fontSize: 16,
+    color: '#999',
   },
 });
 
