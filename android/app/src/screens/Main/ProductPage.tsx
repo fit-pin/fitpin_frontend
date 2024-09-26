@@ -223,6 +223,81 @@ const ProductPage = () => {
             </View>
           </TouchableWithoutFeedback>
         </Modal>
+
+        {isTailoringChecked && (
+          <View>
+            <View style={{flexDirection: 'row'}}>
+              {/* 총장 부분 */}
+              <View style={styles.buttoncontainer}>
+                <View style={styles.buttontitleContainer}>
+                  <Text style={styles.buttontitle}>총장 :</Text>
+                  <View style={styles.buttoncontainer2}>
+                    <TouchableOpacity onPress={handleDecrementLength} style={styles.button}>
+                      <Text style={styles.buttonText}> - </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.buttonText2}>{length}</Text>
+                    <TouchableOpacity onPress={handleIncrementLength} style={styles.button}>
+                      <Text style={styles.buttonText}> + </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* 어깨 부분 */}
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
+                <View style={styles.buttontitleContainer}>
+                  <Text style={styles.buttontitle}>어깨 :</Text>
+                  <View style={styles.buttoncontainer2}>
+                    <TouchableOpacity onPress={handleDecrementShoulder} style={styles.button}>
+                      <Text style={styles.buttonText}> - </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.buttonText2}>{shoulder}</Text>
+                    <TouchableOpacity onPress={handleIncrementShoulder} style={styles.button}>
+                      <Text style={styles.buttonText}> + </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={{flexDirection: 'row'}}>
+              {/* 가슴 부분 */}
+              <View style={styles.buttoncontainer}>
+                <View style={styles.buttontitleContainer}>
+                  <Text style={styles.buttontitle}>가슴 :</Text>
+                  <View style={styles.buttoncontainer2}>
+                    <TouchableOpacity onPress={handleDecrementChest} style={styles.button}>
+                      <Text style={styles.buttonText}> - </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.buttonText2}>{chest}</Text>
+                    <TouchableOpacity onPress={handleIncrementChest} style={styles.button}>
+                      <Text style={styles.buttonText}> + </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* 소매 부분 */}
+              <View style={[styles.buttoncontainer, {marginLeft: '14%', marginTop: '1%'}]}>
+                <View style={styles.buttontitleContainer}>
+                  <Text style={styles.buttontitle}>소매 :</Text>
+                  <View style={styles.buttoncontainer2}>
+                    <TouchableOpacity onPress={handleDecrementSleeve} style={styles.button}>
+                      <Text style={styles.buttonText}> - </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.buttonText2}>{sleeve}</Text>
+                    <TouchableOpacity onPress={handleIncrementSleeve} style={styles.button}>
+                      <Text style={styles.buttonText}> + </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.customButton}>
+              <Text style={styles.customButtonText}>수선하기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* 아래 버튼 */}
