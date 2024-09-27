@@ -115,8 +115,10 @@ const Fit_box: React.FC = () => {
   };
 
   const navigateToReviewPage = (imageUri: string) => {
-    setSelectedImage(null); 
-    navigation.navigate('WritePage', { selectedImageUri: imageUri }); 
+    navigation.navigate({
+      name: 'WritePage',
+      params: { selectedImageUri: imageUri },
+    });
   };
 
   return (

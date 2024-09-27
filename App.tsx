@@ -201,7 +201,12 @@ const App = () => {
           <Stack.Screen
             name="WritePage"
             component={WritePage}
-            options={{headerTitle: ''}}
+            options={{
+              headerTitle: '핏 코멘트 작성하기',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+            }}
           />
           <Stack.Screen
             name="Mypage"

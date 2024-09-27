@@ -8,9 +8,8 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  Modal,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select'; // react-native-picker-select 추가
+import RNPickerSelect from 'react-native-picker-select';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,7 +22,7 @@ type WritePageNavigationProp = StackNavigationProp<RootStackParamList, 'WritePag
 const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
   const route = useRoute<WritePageRouteProp>();
-  const { userEmail } = useUser(); 
+  const { userEmail } = useUser();
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
@@ -31,35 +30,13 @@ const WritePage: React.FC = () => {
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
-  const [fitImages, setFitImages] = useState<string[]>([]); // 핏 보관함 이미지 리스트
-  const [isModalVisible, setModalVisible] = useState(false); // 이미지 선택 모달
 
-  // 백엔드에서 핏 보관함 이미지 가져오기
-  const fetchFitImages = async () => {
-    try {
-      const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      const data = await response.json();
-
-      if (Array.isArray(data)) {
-        const imageUrls = data.map(item => 
-          `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
-        );
-        setFitImages(imageUrls);
-      }
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      Alert.alert('Error', 'Failed to fetch images.');
-    }
-  };
-
+  // 핏보관함에서 선택된 이미지 처리
   useEffect(() => {
-    fetchFitImages(); // 컴포넌트가 로드될 때 핏 보관함 이미지 불러오기
-  }, []);
+    if (route.params?.selectedImageUri) {
+      setSelectedImageUri(route.params.selectedImageUri);
+    }
+  }, [route.params?.selectedImageUri]);
 
   const handleSubmit = async () => {
     if (!selectedImageUri) {
@@ -92,50 +69,30 @@ const WritePage: React.FC = () => {
     }
   };
 
-  const fitOptions = ['약간 작다', '딱 맞는다', '약간 크다'];
-
-  // 이미지 선택 모달을 여는 함수
-  const openImageSelectionModal = () => {
-    setModalVisible(true);
-  };
-
-  // 모달에서 이미지 선택
-  const selectImageFromFitBox = (imageUri: string) => {
-    setSelectedImageUri(imageUri); // 선택된 이미지 URI 저장
-    setModalVisible(false); // 모달 닫기
+  const openFitBox = () => {
+    navigation.navigate({
+      name: 'Fit_box',
+      params: { newPhotoUri: undefined }, // 선택적이므로 undefined로 설정 가능
+    });
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>핏 코멘트 작성하기</Text>
+      
       <View style={styles.imageContainer}>
-        {selectedImageUri ? (
+        <TouchableOpacity onPress={openFitBox} style={styles.imageTouchArea}>
+          {selectedImageUri ? (
           <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
         ) : (
-          <TouchableOpacity onPress={openImageSelectionModal} style={styles.selectImageButton}>
-            <Image source={require('../../assets/img/write/camera.png')} style={styles.cameraIcon} />
-            <Image source={require('../../assets/img/write/add.png')} style={styles.plusIcon} />
-          </TouchableOpacity>
+        <View style={styles.selectImageButton}>
+          <Image source={require('../../assets/img/write/camera.png')} style={styles.cameraIcon} />
+          <Image source={require('../../assets/img/write/add.png')} style={styles.plusIcon} />
+          </View>
         )}
+        </TouchableOpacity>
       </View>
 
-      {/* 이미지 선택 모달 */}
-      <Modal visible={isModalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <ScrollView contentContainerStyle={styles.modalContent}>
-            {fitImages.map((imageUri, index) => (
-              <TouchableOpacity key={index} onPress={() => selectImageFromFitBox(imageUri)}>
-                <Image source={{ uri: imageUri }} style={styles.modalImage} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-            <Text style={styles.closeButtonText}>닫기</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      {/* 카테고리 선택 섹션 */}
+      {/* 카테고리 선택 */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
         <RNPickerSelect
@@ -178,7 +135,6 @@ const WritePage: React.FC = () => {
 
       <View style={styles.line} />
 
-      {/* 제품명 입력 섹션 추가 */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>제품명</Text>
         <TextInput
@@ -192,8 +148,9 @@ const WritePage: React.FC = () => {
 
       <View style={styles.line} />
 
+      {/* 사이즈 선택 */}
       <View style={styles.sizeContainer}>
-        <Text style={styles.sizeTitle}>Select Size</Text>
+        <Text style={styles.sizeTitle}>사이즈 선택</Text>
         <View style={styles.sizeButtons}>
           {['S', 'M', 'L', 'XL', 'XXL', 'Free'].map((size) => (
             <TouchableOpacity
@@ -208,23 +165,20 @@ const WritePage: React.FC = () => {
       </View>
 
       <View style={styles.line} />
-      
-      <Text style={styles.selectOptionText}>선택 옵션</Text>
-      
+
+      <Text style={styles.selectOptionText}>핏 선택</Text>
+
       <View style={styles.fitOptions}>
-        {fitOptions.map((fit, index) => (
-        <TouchableOpacity
-        key={index}
-        style={[styles.fitButton, selectedFit === fit && styles.selectedFitButton]}
-        onPress={() => setSelectedFit(fit)}>
-          
-          <View style={styles.fitTextContainer}>
-            <Text style={[styles.fitTextBold, selectedFit === fit && styles.selectedFitButtonText]}>사이즈</Text>
+        {['약간 작다', '딱 맞는다', '약간 크다'].map((fit, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[styles.fitButton, selectedFit === fit && styles.selectedFitButton]}
+            onPress={() => setSelectedFit(fit)}
+          >
             <Text style={[styles.fitButtonText, selectedFit === fit && styles.selectedFitButtonText]}>{fit}</Text>
-            </View>
-            </TouchableOpacity>
-          ))}
-          </View>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <View style={styles.line} />
 
@@ -348,10 +302,6 @@ const styles = StyleSheet.create({
   selectedSizeButtonText: {
     color: '#fff',
   },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
   selectOptionText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -375,20 +325,10 @@ const styles = StyleSheet.create({
   selectedFitButton: {
     backgroundColor: '#000',
   },
-  fitTextContainer: {
-    alignItems: 'center',
-  },
-  fitTextBold: {
-    fontWeight: 'bold',
-    color: '#000',
-    fontSize: 15,
-    right: '19%',
-  },
   fitButtonText: {
     fontSize: 14,
     color: '#000',
     textAlign: 'center',
-    right: '10%',
   },
   selectedFitButtonText: {
     color: '#fff',
@@ -419,33 +359,12 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontSize: 18,
-    top: '-5%',
   },
-  // 여기서 추가하는 부분
-  modalContainer: {
-    flex: 1,
+  imageTouchArea: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-  },
-  modalContent: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
-  modalImage: {
-    width: 100,
-    height: 100,
-    margin: 10,
-  },
-  closeButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 5,
-  },
-  closeButtonText: {
-    color: '#000',
+    width: '100%',
+    height: '100%',
   },
 });
 
