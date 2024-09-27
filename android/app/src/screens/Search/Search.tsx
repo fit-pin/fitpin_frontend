@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
   View,
@@ -32,6 +32,10 @@ interface SearchResponse {
   searchResult: Item[];
 }
 
+interface RecommendResponse {
+  recommendations: string[];
+}
+
 const fetchSearchResults = async (searchWord: string): Promise<Item[]> => {
   try {
     const response: SearchResponse = await reqGet(
@@ -44,11 +48,34 @@ const fetchSearchResults = async (searchWord: string): Promise<Item[]> => {
   }
 };
 
+// 추천 검색어 API를 호출하는 함수
+const fetchRecommendedSearches = async (): Promise<string[]> => {
+  try {
+    const response: RecommendResponse = await reqGet(
+      path.join(DATA_URL, 'api', 'item-search', 'recommend'),
+    );
+    return response.recommendations;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [results, setResults] = useState<Item[]>([]);
   const [recentSearches, setRecentSearches] = useState<Item[]>([]);
-  const [recommendedSearches, setRecommendedSearches] = useState<Item[]>([]);
+  const [recommendedSearches, setRecommendedSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    // 컴포넌트가 마운트될 때 추천 검색어를 불러옴
+    const loadRecommendedSearches = async () => {
+      const recommendations = await fetchRecommendedSearches();
+      setRecommendedSearches(recommendations);
+    };
+
+    loadRecommendedSearches();
+  }, []);
 
   const handleSearch = async () => {
     // 검색어가 비어 있을 경우 알림
@@ -85,34 +112,6 @@ const Search = () => {
         },
       ]);
     }
-
-    // 추천 검색어 추가 (임의로 설정)
-    setRecommendedSearches([
-      {
-        itemKey: 1,
-        itemName: '데님 셔츠',
-        itemType: '',
-        itemBrand: '',
-        itemStyle: '',
-        itemCnt: 0,
-        itemContent: '',
-        itemPrice: 0,
-        itemDate: '',
-        itemImgURL: '',
-      },
-      {
-        itemKey: 2,
-        itemName: '데님 팬츠',
-        itemType: '',
-        itemBrand: '',
-        itemStyle: '',
-        itemCnt: 0,
-        itemContent: '',
-        itemPrice: 0,
-        itemDate: '',
-        itemImgURL: '',
-      },
-    ]);
   };
 
   return (
@@ -152,10 +151,10 @@ const Search = () => {
       <Text style={styles.recommendtext}>추천 검색어</Text>
       <FlatList
         data={recommendedSearches}
-        keyExtractor={item => item.itemKey.toString()}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => (
           <View style={styles.recommendItem}>
-            <Text>{item.itemName}</Text>
+            <Text>{item}</Text>
           </View>
         )}
         horizontal
