@@ -8,6 +8,10 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Modal,
+  FlatList,
+  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -23,6 +27,7 @@ const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
   const route = useRoute<WritePageRouteProp>();
   const { userEmail } = useUser();
+
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
@@ -30,13 +35,39 @@ const WritePage: React.FC = () => {
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
+  const [images, setImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  // 핏보관함에서 선택된 이미지 처리
-  useEffect(() => {
-    if (route.params?.selectedImageUri) {
-      setSelectedImageUri(route.params.selectedImageUri);
+  // 핏 보관함에서 이미지 가져오기
+  const fetchImagesFromBackend = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        const imageUrls = data.map(item =>
+          `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
+        );
+        setImages(imageUrls);
+      }
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      Alert.alert('Error', 'Failed to fetch images.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [route.params?.selectedImageUri]);
+  };
+
+  useEffect(() => {
+    fetchImagesFromBackend(); // 컴포넌트 마운트 시 이미지 목록 불러오기
+  }, [userEmail]);
 
   const handleSubmit = async () => {
     if (!selectedImageUri) {
@@ -69,26 +100,27 @@ const WritePage: React.FC = () => {
     }
   };
 
-  const openFitBox = () => {
-    navigation.navigate({
-      name: 'Fit_box',
-      params: { newPhotoUri: undefined }, // 선택적이므로 undefined로 설정 가능
-    });
+  const openImageSelector = () => {
+    setIsModalVisible(true);
+  };
+
+  const selectImage = (imageUri: string) => {
+    setSelectedImageUri(imageUri);
+    setIsModalVisible(false);
   };
 
   return (
     <ScrollView style={styles.container}>
-      
       <View style={styles.imageContainer}>
-        <TouchableOpacity onPress={openFitBox} style={styles.imageTouchArea}>
+        <TouchableOpacity onPress={openImageSelector} style={styles.imageTouchArea}>
           {selectedImageUri ? (
-          <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
-        ) : (
-        <View style={styles.selectImageButton}>
-          <Image source={require('../../assets/img/write/camera.png')} style={styles.cameraIcon} />
-          <Image source={require('../../assets/img/write/add.png')} style={styles.plusIcon} />
-          </View>
-        )}
+            <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
+          ) : (
+            <View style={styles.selectImageButton}>
+              <Image source={require('../../assets/img/write/camera.png')} style={styles.cameraIcon} />
+              <Image source={require('../../assets/img/write/add.png')} style={styles.plusIcon} />
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -194,21 +226,43 @@ const WritePage: React.FC = () => {
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>후기 올리기</Text>
       </TouchableOpacity>
+
+      {/* 이미지 선택 모달 */}
+      <Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#000" />
+            ) : (
+              <FlatList
+                data={images}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => selectImage(item)} style={styles.modalImageContainer}>
+                    <Image source={{ uri: item }} style={styles.modalImage} />
+                  </TouchableOpacity>
+                )}
+                numColumns={2} // 두 개씩 보기 위해 설정
+                columnWrapperStyle={styles.row} // 두 개씩 보이도록 행 스타일 적용
+              />
+            )}
+            <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
+              <Text style={styles.closeButtonText}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
+
+const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: '6%',
     backgroundColor: '#fff',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: '4%',
-    color: '#000',
   },
   imageContainer: {
     width: '100%',
@@ -219,6 +273,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     marginBottom: 16,
+  },
+  imageTouchArea: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
   selectImageButton: {
     justifyContent: 'center',
@@ -360,11 +420,41 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
   },
-  imageTouchArea: {
+  modalContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    width: '95%',
+    height: screenHeight * 0.9,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+  },
+  modalImageContainer: {
+    flex: 1,
+    margin: 5,
+  },
+  modalImage: {
     width: '100%',
-    height: '100%',
+    height: 150,
+    borderRadius: 10,
+  },
+  closeButton: {
+    backgroundColor: '#000',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  row: {
+    justifyContent: 'space-between',
   },
 });
 
