@@ -279,7 +279,16 @@ const Main: React.FC = () => {
               title={product.itemName}
               description={product.itemBrand}
               price={product.itemPrice.toString()}
-              image={{uri: `${DATA_URL}/images/${product.itemImgNames[0]}`}}
+              image={{
+                uri: path.join(
+                  DATA_URL,
+                  'api',
+                  'img',
+                  'imgserve',
+                  'itemimg',
+                  `${product.itemImgNames[0]}`,
+                ),
+              }}
               brand={product.itemBrand}
             />
           ))}
