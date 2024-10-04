@@ -22,47 +22,52 @@ import {useUser} from '../UserContext';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
+interface Product {
+  itemKey: number;
+  itemName: string;
+  itemBrand: string;
+  itemPrice: number;
+  itemImgNames: string[];
+}
+
 const CameraBubble = () => {
   const [visible, setVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
-    // 2초 후에 말풍선을 보이도록 설정
     const showTimer = setTimeout(() => {
       setVisible(true);
-
       Animated.parallel([
         Animated.timing(fadeAnim, {
-          toValue: 1, // 완전히 불투명해지도록
-          duration: 500, // 0.5초 동안 페이드 인
+          toValue: 1,
+          duration: 500,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
-          toValue: 0, // 화면 안쪽으로 슬라이드
-          duration: 500, // 0.5초 동안 슬라이드
+          toValue: 0,
+          duration: 500,
           useNativeDriver: true,
         }),
       ]).start();
 
-      // 6초 후에 말풍선이 슬라이드로 사라지도록 설정
       const hideTimer = setTimeout(() => {
         Animated.parallel([
           Animated.timing(fadeAnim, {
-            toValue: 0, // 투명해지도록
-            duration: 500, // 0.5초 동안 페이드 아웃
+            toValue: 0,
+            duration: 500,
             useNativeDriver: true,
           }),
           Animated.timing(slideAnim, {
-            toValue: 100, // 슬라이드로 화면 밖으로 나감
-            duration: 500, // 0.5초 동안 슬라이드 아웃
+            toValue: 100,
+            duration: 500,
             useNativeDriver: true,
           }),
         ]).start(() => setVisible(false));
-      }, 4000); // 4초 동안 보이게
+      }, 4000);
 
       return () => clearTimeout(hideTimer);
-    }, 3000); // 3초 후에 보이도록
+    }, 3000);
 
     return () => clearTimeout(showTimer);
   }, [fadeAnim, slideAnim]);
@@ -164,6 +169,7 @@ const ProductCard: React.FC<{
 
 const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
   const opacity = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     const blink = () => {
       Animated.sequence([
@@ -190,15 +196,13 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 
 const Main: React.FC = () => {
-  const [oneStyle, setoneStyle] = useState('1');
-  const [twoStyle, settwoStyle] = useState('2');
-  const [thrStyle, setthrStyle] = useState('3');
-  const [fouStyle, setfouStyle] = useState('4');
+  const [userStyles, setUserStyles] = useState<string[]>([]); // 스타일 상태 이름을 변경
   const {userEmail, userName} = useUser();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedSection, setSelectedSection] = useState('상의');
 
   const koreanTexts = boxes.map(box => {
-    const koreanText = box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
-    return koreanText;
+    return box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
   });
 
   useEffect(() => {
@@ -207,10 +211,11 @@ const Main: React.FC = () => {
         const response = await reqGet(
           path.join(DATA_URL, 'api', 'GetUserPreferStyle', `${userEmail}`),
         );
-        setoneStyle(response[0].preferStyle);
-        settwoStyle(response[1].preferStyle);
-        setthrStyle(response[2].preferStyle);
-        setfouStyle(response[3].preferStyle);
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        const userStyles = response.map(
+          (item: {preferStyle: any}) => item.preferStyle,
+        );
+        setUserStyles(userStyles); // userStyles로 상태 설정
       } catch (error) {
         console.error('Error fetching user body info:', error);
       }
@@ -218,31 +223,16 @@ const Main: React.FC = () => {
     fetchInfo();
   }, [userEmail]);
 
-  const styleArray = [oneStyle, twoStyle, thrStyle, fouStyle];
-
-  const reboxes = [];
-  const rn = Math.floor(Math.random() * 3 + 0);
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 9; j++) {
-      if (styleArray[i] === koreanTexts[j]) {
-        reboxes.push(boxes[j]);
-      }
-    }
-  }
+  const reboxes = boxes.filter((_box, index) =>
+    userStyles.includes(koreanTexts[index]),
+  ); // userStyles 사용
+  const rn = Math.floor(Math.random() * 4);
 
   if (reboxes.length === 4) {
-    for (let i = 0; i < 4; i++) {
-      if (i === rn) {
-        reboxes[i].recommended = true;
-      } else {
-        reboxes[i].recommended = false;
-      }
-    }
+    reboxes[rn].recommended = true;
   }
 
   const navigation = useNavigation<MainScreenNavigationProp>();
-  const [selectedSection, setSelectedSection] = useState('상의');
-  const [showProductGrid, setShowProductGrid] = useState(true);
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -251,133 +241,52 @@ const Main: React.FC = () => {
           {text: '아니오', onPress: () => null, style: 'cancel'},
           {
             text: '예',
-            onPress: () => {
-              BackHandler.exitApp();
-              return true;
-            },
+            onPress: () => BackHandler.exitApp(),
           },
         ]);
-
         return true;
       }
       return false;
     };
 
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
-    return () => {
+    return () =>
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
   }, [navigation]);
 
-  const products = [
-    {
-      title: '폴로 랄프',
-      description: '데님 셔츠',
-      price: '219.000₩',
-      image: require('../../assets/img/main/top/top1.png'),
-      brand: 'Musinsa',
-    },
-    {
-      title: '에스이오',
-      description: '럭비 저지 탑',
-      price: '168.000₩',
-      image: require('../../assets/img/main/top/top2.png'),
-      brand: 'Ably',
-    },
-    {
-      title: '디파이클럽',
-      description: '긴팔 티셔츠',
-      price: '419.000₩',
-      image: require('../../assets/img/main/top/top3.png'),
-      brand: 'Eql',
-    },
-    {
-      title: '슬로우애시드',
-      description: '스웨트 셔츠',
-      price: '519.000₩',
-      image: require('../../assets/img/main/top/top4.png'),
-      brand: 'Musinsa',
-    },
-  ];
-  const bottomProducts = [
-    {
-      title: '위캔더스',
-      description: '데님 팬츠',
-      price: '198,000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
-      brand: 'Musinsa',
-    },
-    {
-      title: '위캔더스',
-      description: '카모 팬츠',
-      price: '129.000₩',
-      image: require('../../assets/img/main/bottom/bottom2.png'),
-      brand: 'Musinsa',
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response: Product[] = await reqGet(
+          path.join(DATA_URL, 'api', 'items', 'list', selectedSection),
+        );
+        setProducts(response);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-  const outerProducts = [
-    {
-      title: '아노트',
-      description: '윈드브레이커',
-      price: '98.000₩',
-      image: require('../../assets/img/main/outer/outer1.png'),
-      brand: 'Height',
-    },
-    {
-      title: '코드그라피',
-      description: '후드집업',
-      price: '69.900₩',
-      image: require('../../assets/img/main/outer/outer2.png'),
-      brand: 'Height',
-    },
-  ];
-
-  const suitproducts = [
-    {
-      title: '코어',
-      description: '블레이저',
-      price: '108.000₩',
-      image: require('../../assets/img/main/suit/suit1.png'),
-      brand: 'Height',
-    },
-    {
-      title: '폴로 랄프',
-      description: '수트 자켓',
-      price: '138.000₩',
-      image: require('../../assets/img/main/suit/suit2.png'),
-      brand: 'Musinsa',
-    },
-  ];
+    fetchProducts();
+  }, [selectedSection]);
 
   const renderProductGrid = () => {
-    let productsToShow: any[] = [];
-    if (selectedSection === '상의') {
-      productsToShow = products;
-    } else if (selectedSection === '하의') {
-      productsToShow = bottomProducts;
-    } else if (selectedSection === '아우터') {
-      productsToShow = outerProducts;
-    } else if (selectedSection === '정장') {
-      productsToShow = suitproducts;
-    }
-
-    if (showProductGrid) {
+    if (products.length > 0) {
       return (
         <View style={styles.productGrid}>
-          {productsToShow.map((product, index) => (
+          {products.map(product => (
             <ProductCard
-              key={index}
-              title={product.title}
-              description={product.description}
-              price={product.price}
-              image={product.image}
-              brand={product.brand}
+              key={product.itemKey}
+              title={product.itemName}
+              description={product.itemBrand}
+              price={product.itemPrice.toString()}
+              image={{uri: `${DATA_URL}/images/${product.itemImgNames[0]}`}}
+              brand={product.itemBrand}
             />
           ))}
         </View>
       );
+    } else {
+      return <Text style={styles.noProductsText}>제품이 없습니다.</Text>;
     }
   };
 
@@ -433,7 +342,6 @@ const Main: React.FC = () => {
               style={styles.sectionButton}
               onPress={() => {
                 setSelectedSection(section);
-                setShowProductGrid(true);
               }}>
               <Text
                 style={[
@@ -672,6 +580,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -13,
     top: '23%',
+  },
+  noProductsText: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
 

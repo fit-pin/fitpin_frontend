@@ -170,8 +170,8 @@ const ProductPage = () => {
     );
 
     formData.append('clothesImg', {
-      uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/${productInfo.itemName}`,
-      name: 'test.png',
+      uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/${productInfo.itemImgUrls[0]}`,
+      name: productInfo.itemImgUrls[0],
       type: 'image/png',
     } as FormDataValue);
 
@@ -192,7 +192,7 @@ const ProductPage = () => {
       // 콘솔 로그
       console.log('Base64 image data:', base64data);
     };
-  }, [userEmail, userHeight, productInfo.itemName]);
+  }, [userEmail, userHeight, productInfo.itemImgUrls]);
 
   useEffect(() => {
     fetchProductData();
