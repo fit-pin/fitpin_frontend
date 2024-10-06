@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
 import {
   View,
@@ -33,29 +32,35 @@ const Cart = () => {
   const {userEmail} = useUser();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  useEffect(() => {
-    const fetchCartItems = async () => {
-      try {
-        if (userEmail) {
-          // userEmail이 있는 경우
-          const productRes = await reqGet(
-            path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-          );
-
-          if (productRes.ok) {
-            const data: CartItem[] = await productRes.json();
-            setCartItems(data);
-          } else {
-            console.error('장바구니 항목을 가져오는 데 실패했습니다.');
-          }
+  const fetchCartItems = async () => {
+    try {
+      if (userEmail) {
+        const response: CartItem[] = await reqGet(
+          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+        );
+        if (
+          response
+          // response.message === '장바구니 항목을 성공적으로 가져왔습니다.'
+        ) {
+          setCartItems(response);
+          console.log(cartItems);
+          // setCartItems(response.data || []);
+        } else {
+          console.error(`장바구니 항목을 가져오는데 실패했습니다`);
+          setCartItems([]);
         }
-      } catch (error) {
-        console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다.');
       }
-    };
+    } catch (error) {
+      console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다:', error);
+      setCartItems([]);
+    }
+  };
 
+  useEffect(() => {
     fetchCartItems();
-  }, [userEmail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 각 아이템의 수량과 가격을 관리하기 위한 상태
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
@@ -154,6 +159,23 @@ const Cart = () => {
           </View>
           <View style={styles.subTextContainer}>
             <Text style={styles.subText}>수선한 사이즈</Text>
+            <View style={styles.sizeTable}>
+              <View style={[styles.sizeColumn, styles.mColumn]}>
+                <Text style={styles.sizeText}>M</Text>
+              </View>
+              <View style={[styles.sizeColumn, styles.borderColumn]}>
+                <Text style={styles.sizeText}>50</Text>
+              </View>
+              <View style={[styles.sizeColumn, styles.borderColumn]}>
+                <Text style={styles.sizeText}>50</Text>
+              </View>
+              <View style={[styles.sizeColumn, styles.borderColumn]}>
+                <Text style={styles.sizeText}>50</Text>
+              </View>
+              <View style={[styles.sizeColumn, styles.borderColumn]}>
+                <Text style={styles.sizeText}>50</Text>
+              </View>
+            </View>
             <Text style={styles.subText}>수선 비용 : 20,000원</Text>
           </View>
         </View>
@@ -200,6 +222,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   sectionTitle: {
+    marginTop: 3,
     fontSize: 15,
     color: '#787878',
     fontWeight: 'bold',
@@ -287,10 +310,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   subText: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#787878',
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: 15,
+  },
+  sizeTable: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    width: 402,
+  },
+  sizeColumn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  sizeText: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  mColumn: {
+    backgroundColor: '#F4F4F4',
+  },
+  borderColumn: {
+    borderWidth: 1,
+    borderColor: '#F4F4F4',
   },
   footer: {
     padding: 16,

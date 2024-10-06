@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,17 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  Alert,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import {RootStackParamList} from '../../../../../App';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import PostcodeComponent from './PostcodeComponent';
+import {DATA_URL} from '../../Constant.ts';
+import path from 'path';
+import {reqGet} from '../../utills/Request.ts';
+import {useUser} from '../UserContext.tsx';
 
 type OrderNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -27,39 +32,94 @@ const formatPrice = (price: number) => {
   return price.toLocaleString('ko-KR') + '원';
 };
 
+interface CartItem {
+  itemKey: number;
+  userEmail: string;
+  itemName: string;
+  itemSize: string;
+  itemType: string;
+  itemPrice: number;
+  pit: number;
+}
+
 const Order = () => {
   const navigation = useNavigation<OrderNavigationProp>();
+  const {userEmail} = useUser(); // userEmail 가져오기
+  const [cartItems, setCartItems] = useState<CartItem[]>([]); // cartItems 상태 추가
   const [isChecked, setIsChecked] = useState(true);
   const [isPostcodeVisible, setIsPostcodeVisible] = useState(false);
   const [postcode, setPostcode] = useState('');
   const [address, setAddress] = useState('');
-  const [quantity1, setQuantity1] = useState(1);
-  const [quantity2, setQuantity2] = useState(1);
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
 
-  const price1 = 219000;
-  const price2 = 219000;
-
-  const increaseQuantity = (
-    setQuantity: React.Dispatch<React.SetStateAction<number>>,
-  ) => {
-    setQuantity((prevQuantity: number) => prevQuantity + 1);
+  const fetchCartItems = async () => {
+    try {
+      if (userEmail) {
+        const response: CartItem[] = await reqGet(
+          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+        );
+        if (response) {
+          setCartItems(response);
+        } else {
+          console.error(`장바구니 항목을 가져오는데 실패했습니다`);
+          setCartItems([]);
+        }
+      }
+    } catch (error) {
+      console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다:', error);
+      setCartItems([]);
+    }
   };
 
-  const decreaseQuantity = (
-    setQuantity: React.Dispatch<React.SetStateAction<number>>,
-  ) => {
-    setQuantity((prevQuantity: number) =>
-      prevQuantity > 1 ? prevQuantity - 1 : 1,
-    );
-  };
+  useEffect(() => {
+    fetchCartItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const totalPrice = quantity1 * price1 + quantity2 * price2;
+  const handleQuantityChange = (itemKey: number, delta: number) => {
+    setQuantities(prevQuantities => ({
+      ...prevQuantities,
+      [itemKey]: Math.max((prevQuantities[itemKey] || 1) + delta, 1),
+    }));
+  };
+  //총 가격 계산
+  const totalPrice = cartItems.reduce((total, item) => {
+    const quantity = quantities[item.itemKey] || 1;
+    return total + item.itemPrice * quantity;
+  }, 0);
+
   const formattedTotalPrice = formatPrice(totalPrice);
 
   const handleAddressSelected = (data: any) => {
     setPostcode(data.zonecode);
     setAddress(data.address);
     setIsPostcodeVisible(false);
+  };
+
+  const handlePayment = async (item: CartItem) => {
+    const quantity = quantities[item.itemKey] || 1;
+    const totalAmount = totalPrice + (isChecked ? 20000 : 0) + 2000; // 수선 비용
+    try {
+      const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
+        method: 'POST',
+        headers: {
+          Authorization: 'KakaoAK 502625ee7d37c750f8771d99cf7b8cf9',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+        },
+        body: `cid=TC0ONETIME&partner_order_id=${item.itemKey}&partner_user_id=${userEmail}&item_name=${item.itemName}&quantity=${quantity}&total_amount=${totalAmount}&vat_amount=200&tax_free_amount=0&approval_url=https://fit-pin.github.io/fitpin_frontend_web/success&fail_url=https://fit-pin.github.io/fitpin_frontend_web/fail&cancel_url=https://fit-pin.github.io/fitpin_frontend_web/cancel`,
+      });
+
+      if (response) {
+        Alert.alert('카카오페이 결제', '결제 페이지로 이동합니다.');
+        navigation.navigate('OrderComplete'); // 결제 완료 페이지로 이동
+      } else {
+        console.error(`결제 요청에 실패했습니다.`);
+        Alert.alert('결제 실패', '결제 요청에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('결제 요청 중 오류 발생:', error);
+      Alert.alert('결제 실패', '결제 요청 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -95,79 +155,54 @@ const Order = () => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>상품정보</Text>
-        <View style={styles.item}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/img/main/top/top1.png')}
-              style={styles.itemImage}
-            />
-          </View>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
-            <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
-            <Text style={styles.itemSize}>Size : M</Text>
-            <Text style={styles.itemQuantity}>수량 : {quantity1}</Text>
-            <View style={styles.quantityAndPrice}>
-              <View style={styles.quantityControl}>
-                <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={() => decreaseQuantity(setQuantity1)}>
-                  <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.itemQuantityText}>{quantity1}</Text>
-                <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={() => increaseQuantity(setQuantity1)}>
-                  <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.itemPrice}>
-                {formatPrice(quantity1 * price1)}
-              </Text>
+        {cartItems.map(item => (
+          <View key={item.itemKey} style={styles.item}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={require('../../assets/img/main/top/top1.png')}
+                style={styles.itemImage}
+              />
             </View>
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemTitle}>{item.itemName}</Text>
+              <Text style={styles.itemDescription}>{item.itemType}</Text>
+              <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
+              <Text style={styles.itemQuantity}>
+                {' '}
+                수량 : {quantities[item.itemKey] || 1}
+              </Text>
+              <View style={styles.quantityAndPrice}>
+                <View style={styles.quantityControl}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => handleQuantityChange(item.itemKey, -1)}>
+                    <Text style={styles.quantityButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.itemQuantityText}>
+                    {' '}
+                    {quantities[item.itemKey] || 1}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => handleQuantityChange(item.itemKey, 1)}>
+                    <Text style={styles.quantityButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.itemPrice}>
+                  {(
+                    item.itemPrice * (quantities[item.itemKey] || 1)
+                  ).toLocaleString()}
+                  원
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.removeButton}>
+              <Text style={styles.removeButtonText}>X</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.removeButton}>
-            <Text style={styles.removeButtonText}>X</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
 
         <View style={styles.separator} />
-
-        <View style={styles.item}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/img/main/top/top1.png')}
-              style={styles.itemImage}
-            />
-          </View>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
-            <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
-            <Text style={styles.itemSize}>Size : M</Text>
-            <Text style={styles.itemQuantity}>수량 : {quantity2}</Text>
-            <View style={styles.quantityAndPrice}>
-              <View style={styles.quantityControl}>
-                <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={() => decreaseQuantity(setQuantity2)}>
-                  <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.itemQuantityText}>{quantity2}</Text>
-                <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={() => increaseQuantity(setQuantity2)}>
-                  <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.itemPrice}>
-                {formatPrice(quantity2 * price2)}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.removeButton}>
-            <Text style={styles.removeButtonText}>X</Text>
-          </TouchableOpacity>
-        </View>
 
         <View style={styles.tailorContainer}>
           <View style={styles.tailorCheckBoxContainer}>
@@ -208,7 +243,14 @@ const Order = () => {
               />
             </View>
             <TouchableOpacity
-              onPress={() => navigation.navigate('OrderComplete')}>
+              onPress={() => {
+                // 결제 처리 함수 호출
+                if (cartItems.length === 0) {
+                  Alert.alert('장바구니가 비어 있습니다.');
+                  return;
+                }
+                handlePayment(cartItems[0]);
+              }}>
               <Text style={styles.payButtonText}>결제하기</Text>
             </TouchableOpacity>
           </View>

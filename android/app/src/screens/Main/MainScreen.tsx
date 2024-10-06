@@ -175,12 +175,12 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
       Animated.sequence([
         Animated.timing(opacity, {
           toValue: 0,
-          duration: 500,
+          duration: 1000, // 깜빡이는 속도를 느리게 (1초)
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 1,
-          duration: 500,
+          duration: 1000, // 깜빡이는 속도를 느리게 (1초)
           useNativeDriver: true,
         }),
       ]).start(() => blink());
@@ -226,9 +226,13 @@ const Main: React.FC = () => {
   const reboxes = boxes.filter((_box, index) =>
     userStyles.includes(koreanTexts[index]),
   ); // userStyles 사용
-  const rn = Math.floor(Math.random() * 4);
+  const rn = Math.floor(Math.random() * reboxes.length); // reboxes 배열의 길이에 맞춰 랜덤 인덱스를 생성
 
-  if (reboxes.length === 4) {
+  reboxes.forEach(box => {
+    box.recommended = false;
+  });
+
+  if (reboxes.length > 0) {
     reboxes[rn].recommended = true;
   }
 
