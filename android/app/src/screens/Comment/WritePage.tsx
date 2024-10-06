@@ -55,7 +55,8 @@ const WritePage: React.FC = () => {
         const imageUrls = data.map(item =>
           `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
         );
-        setImages(imageUrls);
+        // 이미지 목록을 최신순으로 정렬
+        setImages(imageUrls.reverse());
       }
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -92,7 +93,8 @@ const WritePage: React.FC = () => {
       reviews.push(review);
       await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
 
-      navigation.navigate('WriteComment', { review, fromWritePage: true });
+      // 핏 코멘트 페이지로 이동
+      navigation.navigate('Comment');
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('리뷰 작성 중 오류가 발생했습니다.', error.message);
@@ -238,12 +240,15 @@ const WritePage: React.FC = () => {
                 data={images}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => selectImage(item)} style={styles.modalImageContainer}>
+                  <TouchableOpacity
+                    onPress={() => selectImage(item)}
+                    style={styles.modalImageContainer}
+                  >
                     <Image source={{ uri: item }} style={styles.modalImage} />
                   </TouchableOpacity>
                 )}
-                numColumns={2} // 두 개씩 보기 위해 설정
-                columnWrapperStyle={styles.row} // 두 개씩 보이도록 행 스타일 적용
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: 'space-between' }} // 두 개씩 보이도록 행 스타일 적용
               />
             )}
             <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
@@ -436,6 +441,7 @@ const styles = StyleSheet.create({
   modalImageContainer: {
     flex: 1,
     margin: 5,
+    maxWidth: '48%', // 각 이미지가 동일한 넓이를 유지하도록 설정
   },
   modalImage: {
     width: '100%',
@@ -452,9 +458,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#fff',
     fontSize: 16,
-  },
-  row: {
-    justifyContent: 'space-between',
   },
 });
 

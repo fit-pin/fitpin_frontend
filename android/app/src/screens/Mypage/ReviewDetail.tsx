@@ -44,20 +44,21 @@ const ReviewDetail: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageLoadError, setImageLoadError] = useState<boolean>(false);
+  const [forceUpdateKey, setForceUpdateKey] = useState<number>(0); // 렌더링을 강제할 키 값
 
   useEffect(() => {
     if (editMode) {
-      setImageLoadError(false); // 수정 모드로 들어갈 때 이미지 로드 에러 초기화
+      setImageLoadError(false);
     }
   }, [editMode]);
 
   useEffect(() => {
-    // 이미지 URL이 변경될 때마다 이미지 로드 에러 상태를 초기화
+    console.log('Current Image URL:', review.imageUrl);
     setImageLoadError(false);
+    setForceUpdateKey((prevKey) => prevKey + 1); // 이미지 URL 변경 시 강제 렌더링
   }, [review.imageUrl]);
 
   const fetchImagesFromBackend = async () => {
-    console.log("Fetching images from backend...");
     setIsLoading(true);
     try {
       const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`, {
@@ -72,7 +73,6 @@ const ReviewDetail: React.FC = () => {
         const imageUrls = data.map((item: { fitStorageImg: string }) =>
           `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
         );
-        console.log("Fetched images: ", imageUrls);
         setImages(imageUrls);
       }
     } catch (error) {
@@ -84,18 +84,20 @@ const ReviewDetail: React.FC = () => {
   };
 
   const openImageSelector = async () => {
-    console.log("Image selector opened");
-    setImages([]); // 모달을 열기 전에 이미지 목록 초기화
-    setImageLoadError(false); // 에러 상태 초기화
+    setImages([]);
+    setImageLoadError(false);
     setIsModalVisible(true);
-    await fetchImagesFromBackend(); // 이미지를 불러오기 위해 기다립니다.
+    await fetchImagesFromBackend();
   };
 
   const selectImage = (imageUri: string) => {
-    console.log("Image selected: ", imageUri);
-    setReview({ ...review, imageUrl: imageUri });
-    setImageLoadError(false); // 새로운 이미지 선택 시 로드 에러 초기화
-    setIsModalVisible(false); // 모달 닫기
+    console.log('Selected Image URL:', imageUri);
+    setReview(prevReview => ({
+      ...prevReview,
+      imageUrl: imageUri,
+    }));
+    setImageLoadError(false);
+    setIsModalVisible(false);
   };
 
   const handleDelete = async () => {
@@ -127,7 +129,7 @@ const ReviewDetail: React.FC = () => {
         await AsyncStorage.setItem('reviews', JSON.stringify(updatedReviews));
         Alert.alert('리뷰가 수정되었습니다.');
         setEditMode(false);
-        setImageLoadError(false); // 수정 모드 저장 시 이미지 로드 오류 초기화
+        setImageLoadError(false);
       }
     } catch (error) {
       Alert.alert('저장 중 오류가 발생했습니다.');
@@ -136,7 +138,7 @@ const ReviewDetail: React.FC = () => {
 
   const enableEditMode = () => {
     setEditMode(true);
-    setImageLoadError(false); // 수정 모드 전환 시 이미지 로드 오류 초기화
+    setImageLoadError(false);
   };
 
   return (
@@ -148,8 +150,10 @@ const ReviewDetail: React.FC = () => {
               <Image
                 source={{ uri: review.imageUrl }}
                 style={styles.selectedImage}
-                onError={() => {
-                  console.error('Image Load Error:', review.imageUrl);
+                key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
+                resizeMode="cover"
+                onError={(error) => {
+                  console.error('Image Load Error:', error.nativeEvent.error);
                   setImageLoadError(true);
                 }}
               />
@@ -163,8 +167,10 @@ const ReviewDetail: React.FC = () => {
             <Image
               source={{ uri: review.imageUrl }}
               style={styles.selectedImage}
-              onError={() => {
-                console.error('Image Load Error:', review.imageUrl);
+              key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
+              resizeMode="cover"
+              onError={(error) => {
+                console.error('Image Load Error:', error.nativeEvent.error);
                 setImageLoadError(true);
               }}
             />
@@ -175,7 +181,6 @@ const ReviewDetail: React.FC = () => {
         {imageLoadError && <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>}
       </View>
 
-      {/* 카테고리 선택 섹션 */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
         {editMode ? (
@@ -215,6 +220,7 @@ const ReviewDetail: React.FC = () => {
           onChangeText={(text) => setReview({ ...review, brandName: text })}
         />
       </View>
+
       <View style={styles.line} />
       <View style={styles.inputContainer}>
         <Text style={styles.label}>제품명</Text>
@@ -227,6 +233,7 @@ const ReviewDetail: React.FC = () => {
           onChangeText={(text) => setReview({ ...review, productName: text })}
         />
       </View>
+
       <View style={styles.line} />
       <View style={styles.sizeContainer}>
         <Text style={styles.sizeTitle}>Select Size</Text>
@@ -251,6 +258,7 @@ const ReviewDetail: React.FC = () => {
           ))}
         </View>
       </View>
+
       <View style={styles.line} />
       <Text style={styles.selectOptionText}>선택 옵션</Text>
       <View style={styles.fitOptions}>
@@ -273,6 +281,7 @@ const ReviewDetail: React.FC = () => {
           </TouchableOpacity>
         ))}
       </View>
+
       <View style={styles.line} />
       <Text style={styles.reviewText}>한줄평</Text>
       <TextInput
@@ -303,7 +312,7 @@ const ReviewDetail: React.FC = () => {
             ) : (
               <FlatList
                 data={images}
-                keyExtractor={(item, index) => index.toString()}
+                keyExtractor={(_item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity onPress={() => selectImage(item)} style={styles.modalImageContainer}>
                     <Image source={{ uri: item }} style={styles.modalImage} />
