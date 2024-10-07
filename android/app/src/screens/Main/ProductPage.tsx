@@ -7,6 +7,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  TouchableWithoutFeedback, // 모달 외부 터치 감지용
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import {RootStackParamList} from '../../../../../App.tsx';
@@ -30,6 +32,7 @@ const ProductPage = () => {
   const [chest, setChest] = useState(0);
   const [sleeve, setSleeve] = useState(0);
   const [isTailoringChecked, setIsTailoringChecked] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false); // 모달 상태 관리
   const [imgUri, setImgUri] = useState<string>(() => {
     const image = require('../../assets/img/main/top/top1.png');
     return Image.resolveAssetSource(image).uri;
@@ -46,6 +49,16 @@ const ProductPage = () => {
   const handleIncrementSleeve = () => setSleeve(sleeve + 1);
   const handleDecrementSleeve = () => sleeve > 0 && setSleeve(sleeve - 1);
   const handleSizeSelect = (size: string) => setSelectedSize(size);
+
+  // 모달 열기
+  const openModal = () => {
+    setIsModalVisible(true);
+  };
+
+  // 모달 닫기
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
 
   const handleSetimg = async () => {
     // 요청 FormData 만들기
@@ -189,52 +202,60 @@ const ProductPage = () => {
           />
         </View>
         <Text style={styles.tryOnText}>입어보기</Text>
-        {/* 수선 이미지*/}
-        <View style={styles.roundedRect}>
-          <Image style={styles.innerImage} source={{uri: imgUri}} />
-        </View>
+        {/* 수선 이미지 클릭 시 모달 */}
+        <TouchableOpacity onPress={openModal}>
+          <View style={styles.roundedRect}>
+            <Image
+              source={require('../../assets/img/main/top/top1.png')}
+              style={styles.productImage}
+            />
+          </View>
+        </TouchableOpacity>
+
+        {/* 모달 */}
+        <Modal visible={isModalVisible} transparent={true}>
+          <TouchableWithoutFeedback onPress={closeModal}>
+            <View style={styles.modalBackground}>
+              <View style={styles.modalContent}>
+                <Image
+                  source={require('../../assets/img/main/top/top1.png')}
+                  style={styles.modalImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
         {isTailoringChecked && (
           <View>
-            {/* 수선 후 */}
             <View style={{flexDirection: 'row'}}>
               {/* 총장 부분 */}
               <View style={styles.buttoncontainer}>
                 <View style={styles.buttontitleContainer}>
                   <Text style={styles.buttontitle}>총장 :</Text>
                   <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementLength}
-                      style={styles.button}>
+                    <TouchableOpacity onPress={handleDecrementLength} style={styles.button}>
                       <Text style={styles.buttonText}> - </Text>
                     </TouchableOpacity>
-                    <View>
-                      <Text style={styles.buttonText2}>{length}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={handleIncrementLength}
-                      style={styles.button}>
+                    <Text style={styles.buttonText2}>{length}</Text>
+                    <TouchableOpacity onPress={handleIncrementLength} style={styles.button}>
                       <Text style={styles.buttonText}> + </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
 
-              {/* 어깨 너비 부분 */}
+              {/* 어깨 부분 */}
               <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <View style={styles.buttontitleContainer}>
                   <Text style={styles.buttontitle}>어깨 :</Text>
                   <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementShoulder}
-                      style={styles.button}>
+                    <TouchableOpacity onPress={handleDecrementShoulder} style={styles.button}>
                       <Text style={styles.buttonText}> - </Text>
                     </TouchableOpacity>
-                    <View>
-                      <Text style={styles.buttonText2}>{shoulder}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={handleIncrementShoulder}
-                      style={styles.button}>
+                    <Text style={styles.buttonText2}>{shoulder}</Text>
+                    <TouchableOpacity onPress={handleIncrementShoulder} style={styles.button}>
                       <Text style={styles.buttonText}> + </Text>
                     </TouchableOpacity>
                   </View>
@@ -248,17 +269,11 @@ const ProductPage = () => {
                 <View style={styles.buttontitleContainer}>
                   <Text style={styles.buttontitle}>가슴 :</Text>
                   <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementChest}
-                      style={styles.button}>
+                    <TouchableOpacity onPress={handleDecrementChest} style={styles.button}>
                       <Text style={styles.buttonText}> - </Text>
                     </TouchableOpacity>
-                    <View>
-                      <Text style={styles.buttonText2}>{chest}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={handleIncrementChest}
-                      style={styles.button}>
+                    <Text style={styles.buttonText2}>{chest}</Text>
+                    <TouchableOpacity onPress={handleIncrementChest} style={styles.button}>
                       <Text style={styles.buttonText}> + </Text>
                     </TouchableOpacity>
                   </View>
@@ -266,25 +281,15 @@ const ProductPage = () => {
               </View>
 
               {/* 소매 부분 */}
-              <View
-                style={[
-                  styles.buttoncontainer,
-                  {marginLeft: '14%', marginTop: '1%'},
-                ]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%', marginTop: '1%'}]}>
                 <View style={styles.buttontitleContainer}>
                   <Text style={styles.buttontitle}>소매 :</Text>
                   <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementSleeve}
-                      style={styles.button}>
+                    <TouchableOpacity onPress={handleDecrementSleeve} style={styles.button}>
                       <Text style={styles.buttonText}> - </Text>
                     </TouchableOpacity>
-                    <View>
-                      <Text style={styles.buttonText2}>{sleeve}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={handleIncrementSleeve}
-                      style={styles.button}>
+                    <Text style={styles.buttonText2}>{sleeve}</Text>
+                    <TouchableOpacity onPress={handleIncrementSleeve} style={styles.button}>
                       <Text style={styles.buttonText}> + </Text>
                     </TouchableOpacity>
                   </View>
@@ -463,6 +468,22 @@ const styles = StyleSheet.create({
   innerImage: {
     width: '50%',
     height: 250,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // 반투명 배경
+  },
+  modalContent: {
+    width: '90%',
+    height: '70%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
   },
   buttoncontainer: {
     top: '30%',

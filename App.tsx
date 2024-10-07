@@ -31,6 +31,7 @@ import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 import {UserProvider} from './android/app/src/screens/UserContext';
 import Loading from './android/app/src/screens/Join/Loading';
+import ReviewDetail from './android/app/src/screens/Mypage/ReviewDetail';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -60,7 +61,8 @@ export type RootStackParamList = {
   My_Fit: undefined;
   Remeasure: undefined;
   Fit_box: {newPhotoUri?: string};
-  WriteComment: undefined;
+  WriteComment: { review: any; fromWritePage?: boolean };
+  ReviewDetail: { review: any };
   BottomTabNavigator: undefined;
   Loading: {uri: string};
 };
@@ -199,7 +201,12 @@ const App = () => {
           <Stack.Screen
             name="WritePage"
             component={WritePage}
-            options={{headerTitle: ''}}
+            options={{
+              headerTitle: '핏 코멘트 작성하기',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+            }}
           />
           <Stack.Screen
             name="Mypage"
@@ -256,6 +263,16 @@ const App = () => {
               },
             }}
           />
+          <Stack.Screen
+          name="ReviewDetail"
+          component={ReviewDetail}
+          options={{ 
+            headerTitle: '내가 작성한 핏코멘트',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+           }}
+        />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

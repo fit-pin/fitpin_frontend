@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,75 +6,82 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { RootStackParamList } from '../../../../../App';
 
-const WriteComment = () => {
+type WriteCommentRouteProp = RouteProp<RootStackParamList, 'WriteComment'>;
+type WriteCommentNavigationProp = StackNavigationProp<RootStackParamList, 'WriteComment'>;
+
+interface Review {
+  imageUrl: string;
+  brandName: string;
+  productName: string;
+  size: string | null;
+  fit: string | null;
+  reviewText: string;
+  date: string;
+}
+
+const WriteComment: React.FC = () => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const navigation = useNavigation<WriteCommentNavigationProp>();
+  const route = useRoute<WriteCommentRouteProp>();
+
+  const fetchReviews = async () => {
+    const storedReviews = await AsyncStorage.getItem('reviews');
+    if (storedReviews) {
+      const parsedReviews = JSON.parse(storedReviews) as Review[];
+      parsedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setReviews(parsedReviews);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchReviews(); // 페이지가 포커스될 때마다 리뷰 데이터를 다시 불러옴
+
+      return () => {
+        if (route.params?.fromWritePage) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Comment' }],
+          });
+        }
+      };
+    }, [navigation, route.params?.fromWritePage])
+  );
+
+  const handleReviewPress = (review: Review) => {
+    navigation.navigate('ReviewDetail', { review });
+  };
+
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>폴로 랄프 로렌 - 데님셔츠</Text>
-          <Text style={styles.size}>M</Text>
-          <Text style={styles.comment}>
-            제가 산 사이즈는 M이고 평소에는 L을 입는데 이 옷은 M사이즈도 크게
-            느껴졌다
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/top/top1.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
-
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>상품이름</Text>
-          <Text style={styles.size}>사이즈 보여주기</Text>
-          <Text style={styles.comment}>
-            사용자가 적은 한줄평 보여주기 최대 2줄
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/top/top2.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
-
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>상품이름</Text>
-          <Text style={styles.size}>사이즈 보여주기</Text>
-          <Text style={styles.comment}>
-            사용자가 적은 한줄평 보여주기 최대 2줄
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/style/street.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
-
-      <View style={styles.commentContainer}>
-        <View style={styles.detailsContainer}>
-          <Text style={styles.title}>상품이름</Text>
-          <Text style={styles.size}>사이즈 보여주기</Text>
-          <Text style={styles.comment}>
-            사용자가 적은 한줄평 보여주기 최대 2줄
-          </Text>
-        </View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/img/main/style/vintage.png')}
-            style={styles.image}
-          />
-        </View>
-      </View>
+      {reviews.map((review, index) => (
+        <TouchableOpacity key={index} onPress={() => handleReviewPress(review)}>
+          <View style={styles.commentContainer}>
+            <View style={styles.detailsContainer}>
+              <Text style={styles.title}>{review.productName}</Text>
+              <Text style={styles.size}>{review.size}</Text>
+              <Text style={styles.comment}>{review.reviewText}</Text>
+            </View>
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: review.imageUrl }}
+                style={styles.image}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+      ))}
     </ScrollView>
   );
 };
@@ -86,11 +93,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 16,
     flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
   },
   commentContainer: {
     flexDirection: 'row',
