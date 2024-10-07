@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
   Modal,
   TouchableWithoutFeedback, // 모달 외부 터치 감지용
 } from 'react-native';
@@ -16,7 +17,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import {AR_URL, DATA_URL} from '../../Constant.ts';
 import path from 'path';
-import {ArRequest, reqGet} from '../../utills/Request.ts';
+import {ArRequest, reqGet, reqPost} from '../../utills/Request.ts';
 import {useUser} from '../UserContext.tsx';
 
 type ProductPageoNavigationProp = StackNavigationProp<
@@ -33,10 +34,46 @@ const ProductPage = () => {
   const [sleeve, setSleeve] = useState(0);
   const [isTailoringChecked, setIsTailoringChecked] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false); // 모달 상태 관리
-  const [imgUri, setImgUri] = useState<string>(() => {
-    const image = require('../../assets/img/main/top/top1.png');
-    return Image.resolveAssetSource(image).uri;
+  const [PordimgUri, setProdUri] = useState<string>(''); // 제품 페이지 uri 관리
+  const [tryimgUri, settryimgUri] = useState<string>(''); // 입어보기 uri 관리
+  const [productInfo, setProductInfo] = useState<{
+    itemKey: number;
+    itemName: string;
+    itemBrand: string;
+    itemType: string;
+    itemStyle: string;
+    itemPrice: number;
+    itemContent: string;
+    itemTopInfo: {
+      itemSize: string;
+      itemHeight: number;
+      itemShoulder: number;
+      itemArm: number;
+      itemChest: number;
+      itemSleeve: number;
+    };
+    itemBottomInfo: any;
+    itemImgName: string;
+  }>({
+    itemKey: 0,
+    itemName: '',
+    itemBrand: '',
+    itemType: '',
+    itemStyle: '',
+    itemPrice: 0,
+    itemContent: '',
+    itemTopInfo: {
+      itemSize: '',
+      itemHeight: 0,
+      itemShoulder: 0,
+      itemArm: 0,
+      itemChest: 0,
+      itemSleeve: 0,
+    },
+    itemBottomInfo: null,
+    itemImgName: '',
   });
+
   const {userHeight, userEmail} = useUser();
 
   const handleIncrementLength = () => setLength(length + 1);
@@ -60,8 +97,85 @@ const ProductPage = () => {
     setIsModalVisible(false);
   };
 
-  const handleSetimg = async () => {
-    // 요청 FormData 만들기
+  const handleAddToCart = async () => {
+    if (!selectedSize) {
+      Alert.alert('사이즈를 선택해 주세요.');
+      return;
+    }
+    const body = {
+      itemKey: productInfo.itemKey,
+      userEmail: userEmail,
+      itemName: productInfo.itemName,
+      itemSize: selectedSize || '',
+      itemType: productInfo.itemType,
+      itemPrice: productInfo.itemPrice,
+      pit: 1,
+    };
+
+    try {
+      const res = await reqPost(
+        path.join(DATA_URL, 'api', 'cart', 'store'),
+        body,
+      );
+
+      if (res.message === '장바구니에 상품이 성공적으로 추가되었습니다.') {
+        Alert.alert('장바구니에 담았습니다');
+      } else {
+        Alert.alert('장바구니에 담는 데 실패했습니다. 다시 시도해 주세요.');
+      }
+    } catch (error) {
+      console.error('장바구니에 추가하는 도중 오류가 발생했습니다:', error);
+      Alert.alert('장바구니에 담는 도중 오류가 발생했습니다.');
+    }
+  };
+
+  const fetchProductData = async () => {
+    try {
+      // 제품 상세 정보 요청
+      const productRes = await reqGet(
+        path.join(DATA_URL, 'api', 'item-info', '1'),
+      );
+
+      // 오류 체크 콘솔 로그
+      console.log('Product response:', productRes);
+
+      // productInfo 업데이트
+      setProductInfo({
+        itemKey: productRes.itemKey,
+        itemName: productRes.itemName,
+        itemBrand: productRes.itemBrand,
+        itemType: productRes.itemType,
+        itemStyle: productRes.itemStyle,
+        itemPrice: productRes.itemPrice,
+        itemContent: productRes.itemContent,
+        itemTopInfo: {
+          itemSize: productRes.itemTopInfo.itemSize,
+          itemHeight: productRes.itemTopInfo.itemHeight,
+          itemShoulder: productRes.itemTopInfo.itemShoulder,
+          itemArm: productRes.itemTopInfo.itemArm,
+          itemChest: productRes.itemTopInfo.itemChest,
+          itemSleeve: productRes.itemTopInfo.itemSleeve,
+        },
+        itemBottomInfo: productRes.itemBottomInfo,
+        itemImgName: productRes.itemImgName[0],
+      });
+
+      setProdUri(
+        path.join(
+          DATA_URL,
+          'api',
+          'img',
+          'imgserve',
+          'itemimg',
+          productRes.itemImgName[0],
+        ),
+      );
+    } catch (error) {
+      console.error('Error fetching product data:', error);
+    }
+  };
+
+  const handleSetimg = useCallback(async () => {
     const formData = new FormData();
 
     if (!userEmail || !userHeight) {
@@ -70,14 +184,23 @@ const ProductPage = () => {
     }
 
     const reqfile = await reqGet(
-      path.join(DATA_URL, 'api', 'userForm', userEmail),
+      path.join(DATA_URL, 'api', 'userbodyinfo', userEmail),
     );
 
+    // TODO: 서버 수정 필요
     formData.append('clothesImg', {
-      uri: path.join(AR_URL, 'mills'),
-      name: 'test.png',
+      uri: path.join(
+        AR_URL,
+        'api',
+        'img',
+        'imgserve',
+        'itemimg',
+        productInfo.itemImgName,
+      ),
+      name: productInfo.itemImgName,
       type: 'image/png',
     } as FormDataValue);
+
     formData.append('clothesType', 'TOP');
     formData.append('fileName', reqfile.fileName);
     formData.append('personKey', userHeight);
@@ -93,9 +216,16 @@ const ProductPage = () => {
     fileReaderInstance.readAsDataURL(blob);
     fileReaderInstance.onload = () => {
       const base64data = fileReaderInstance.result;
-      setImgUri(base64data as string);
+      settryimgUri(base64data as string);
+
+      // 콘솔 로그
+      console.log('Base64 image data:', base64data);
     };
-  };
+  }, [userEmail, userHeight, productInfo.itemImgName]);
+
+  useEffect(() => {
+    fetchProductData();
+  }, []);
 
   useEffect(() => {
     handleSetimg();
@@ -106,7 +236,7 @@ const ProductPage = () => {
     <ScrollView contentContainerStyle={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={styles.platformName}>Musinsa</Text>
+        <Text style={styles.platformName}>{productInfo.itemBrand}</Text>
         <View style={styles.cartButtonWrapper}>
           <TouchableOpacity
             style={styles.cartButton}
@@ -121,22 +251,20 @@ const ProductPage = () => {
 
       {/* 제품 이미지 */}
       <View style={styles.roundedRect}>
-        <Image
-          source={require('../../assets/img/main/top/top1.png')}
-          style={styles.productImage}
-        />
+        {PordimgUri ? (
+          <Image source={{uri: PordimgUri}} style={styles.productImage} />
+        ) : (
+          <></>
+        )}
       </View>
 
       {/* 제품 설명 */}
-      <Text style={styles.brandName}>폴로 랄프 로렌</Text>
-      <Text style={styles.productName}>데님 셔츠 - 블루</Text>
-      <Text style={styles.price}>₩219,000</Text>
-      <Text style={styles.description}>
-        부드러운 촉감을 위해 미디엄 워싱 처리된 데님 셔츠로, 코튼 트윌 소재로
-        제작되었으며 핸드샌드 처리되어 처음 입을 때부터 편안한 착용감과 빈티지
-        스타일을 선사합니다. 멀티 컬러 포니를 섬세하게 자수 처리하여 아이코닉한
-        룩을 완성했습니다.
+      <Text style={styles.brandName}>{productInfo.itemBrand}</Text>
+      <Text style={styles.productName}>{productInfo.itemName}</Text>
+      <Text style={styles.price}>
+        ₩{productInfo.itemPrice.toLocaleString()}
       </Text>
+      <Text style={styles.description}>{productInfo.itemContent}</Text>
 
       {/* 사이즈 선택 */}
       <View style={styles.sizeContainer}>
@@ -161,32 +289,77 @@ const ProductPage = () => {
           ))}
         </View>
       </View>
-
-      {/* 사이즈 표 큰거 */}
-      <View style={styles.imageWrapper}>
-        <Image
-          source={require('../../assets/img/main/product/size_big.png')}
-          style={styles.sampleImage}
-        />
+      {/* 사이즈 표 */}
+      <View style={styles.sizeChartContainer}>
+        <View style={styles.sizeChartHeader}>
+          {['Size', 'Height', 'Shoulder', 'Arm', 'Chest', 'Sleeve'].map(
+            (header, index) => (
+              <Text key={index} style={styles.sizeChartHeaderText}>
+                {header}
+              </Text>
+            ),
+          )}
+        </View>
+        <View style={styles.sizeChartRow}>
+          <Text style={styles.sizeChartRowTitle}>
+            {productInfo.itemTopInfo.itemSize}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemHeight}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemShoulder}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemArm}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemChest}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemSleeve}
+          </Text>
+        </View>
       </View>
 
       {/* 줄 */}
       <View style={styles.divider} />
 
-      {/* 사이즈 */}
-      <Text style={styles.customFitTitle}>
-        000님의 체형에 맞게 수선해드릴게요
-      </Text>
-      <Text style={styles.originalSize}>원래 사이즈</Text>
-      <Image
-        source={require('../../assets/img/main/product/size.png')}
-        style={styles.sizeChart}
-      />
-      <Text style={styles.originalSize}>추천 사이즈</Text>
-      <Image
-        source={require('../../assets/img/main/product/size.png')}
-        style={styles.sizeChart}
-      />
+      {/* 사이즈 추천 */}
+      <View style={styles.customFitContainer}>
+        <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
+        <Text style={styles.originalSize}>원래 사이즈</Text>
+        <View style={styles.sizeChartRow2}>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemSize}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemHeight}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemShoulder}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemArm}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemChest}
+          </Text>
+          <Text style={styles.sizeChartRowText}>
+            {productInfo.itemTopInfo.itemSleeve}
+          </Text>
+        </View>
+        <Text style={styles.originalSize}>추천 사이즈</Text>
+        <View style={styles.sizeChartRow2}>
+          {/* 예시 데이터 */}
+          <Text style={styles.sizeChartCell}>90</Text>
+          <Text style={styles.sizeChartCell}>71</Text>
+          <Text style={styles.sizeChartCell}>90</Text>
+          <Text style={styles.sizeChartCell}>43</Text>
+          <Text style={styles.sizeChartCell}>50</Text>
+          <Text style={styles.sizeChartCell}>64</Text>
+        </View>
+      </View>
 
       <View style={styles.divider} />
 
@@ -205,10 +378,11 @@ const ProductPage = () => {
         {/* 수선 이미지 클릭 시 모달 */}
         <TouchableOpacity onPress={openModal}>
           <View style={styles.roundedRect}>
-            <Image
-              source={require('../../assets/img/main/top/top1.png')}
-              style={styles.productImage}
-            />
+            {tryimgUri ? (
+              <Image source={{uri: tryimgUri}} style={styles.productImage} />
+            ) : (
+              <></>
+            )}
           </View>
         </TouchableOpacity>
 
@@ -327,13 +501,23 @@ const ProductPage = () => {
       <View style={styles.bottomSection}>
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            style={styles.cartButtonBottom}
-            onPress={() => navigation.navigate('Cart')}>
-            <Text style={styles.cartButtonText}>장바구니 담기</Text>
+            style={[
+              styles.cartButtonBottom,
+              !selectedSize && styles.disabledButton,
+            ]}
+            onPress={handleAddToCart}
+            disabled={!selectedSize}>
+            <Text
+              style={
+                selectedSize ? styles.cartButtonText : styles.disabledButtonText
+              }>
+              장바구니 담기
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buyButton}
-            onPress={() => navigation.navigate('Order')}>
+            onPress={() => navigation.navigate('Order')}
+            disabled={!selectedSize}>
             <Text style={styles.buyButtonText}>바로 구매</Text>
           </TouchableOpacity>
         </View>
@@ -445,8 +629,9 @@ const styles = StyleSheet.create({
   },
   originalSize: {
     fontSize: 14,
-    color: '#555',
+    color: '#000',
     marginVertical: '2.5%',
+    marginRight: '72%',
   },
   sizeChart: {
     width: '100%',
@@ -609,6 +794,70 @@ const styles = StyleSheet.create({
   },
   selectedSizeButtonText: {
     color: '#fff',
+  },
+  sizeChartContainer: {
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sizeChartTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#000',
+  },
+  sizeChartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+    paddingVertical: 10,
+    backgroundColor: '#f2f2f2',
+  },
+  sizeChartHeaderText: {
+    flex: 1,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  sizeChartRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e1e1',
+  },
+  sizeChartRowTitle: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  sizeChartRowText: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  customFitContainer: {
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sizeChartRow2: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+    paddingVertical: 10,
+  },
+  sizeChartCell: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#F4F4F4',
+  },
+  disabledButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

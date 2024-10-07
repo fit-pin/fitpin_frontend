@@ -67,7 +67,7 @@ const LognSignin = () => {
         // 로그인 성공 처리
         Alert.alert(
           '로그인 성공',
-          `환영합니다, ${loginRes.userName || 'Unknown User'}!`,
+          `환영합니다, ${loginRes.userName || 'Unknown User'}님!`,
         );
         setUserName(loginRes.userName || 'Unknown User');
         setUserEmail(loginRes.userEmail);
@@ -107,7 +107,10 @@ const LognSignin = () => {
         setUserEmail(email);
         setUserPwd(password);
 
-        Alert.alert('회원가입 성공', `환영합니다, ${name || 'Unknown User'}!`);
+        Alert.alert(
+          '회원가입 성공',
+          `환영합니다, ${name || 'Unknown User'}님!`,
+        );
 
         navigation.reset({
           index: 0,
@@ -148,7 +151,7 @@ const LognSignin = () => {
         // 로그인 성공 처리
         Alert.alert(
           '로그인 성공',
-          `환영합니다, ${loginRes.userName || 'Unknown User'}!`,
+          `환영합니다, ${loginRes.userName || 'Unknown User'}님!`,
         );
         setUserName(loginRes.userName || 'Unknown User');
         setUserEmail(loginRes.userEmail);
@@ -190,7 +193,7 @@ const LognSignin = () => {
 
         Alert.alert(
           '회원가입 성공',
-          `환영합니다, ${nickname || 'Unknown User'}!`,
+          `환영합니다, ${nickname || 'Unknown User'}님!`,
         );
 
         navigation.reset({
