@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   StyleSheet,
@@ -8,23 +8,28 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { RNCamera } from 'react-native-camera';
+import {RNCamera} from 'react-native-camera';
 import {
   request,
   PERMISSIONS,
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App';
-import { reqFileUpload } from '../../utills/Request';  // API 요청 함수
-import { useUser } from '../UserContext'; // 유저 정보를 가져오는 컨텍스트
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../../../../App';
+import {reqFileUpload} from '../../utills/Request'; // API 요청 함수
+import {useUser} from '../UserContext'; // 유저 정보를 가져오는 컨텍스트
+import {DATA_URL} from '../../Constant';
+import path from 'path';
 
-type CameraBodyPhotoNavigationProp = StackNavigationProp<RootStackParamList, 'CameraBodyPhoto'>;
+type CameraBodyPhotoNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'CameraBodyPhoto'
+>;
 
 const CameraBodyPhoto = () => {
-  const { userEmail } = useUser(); // 유저 이메일 가져오기
+  const {userEmail} = useUser(); // 유저 이메일 가져오기
   const [hasPermission, setHasPermission] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -89,53 +94,39 @@ const CameraBodyPhoto = () => {
   const uploadToBackend = async (localUri: string) => {
     const formData = new FormData();
     const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
-  
+
     formData.append('image', {
       uri: localUri,
       name: `photo_${timestamp}.jpg`,
       type: 'image/jpeg',
     });
     formData.append('userEmail', userEmail);
-  
+
     try {
-      const response = await fetch('http://fitpitback.kro.kr:8080/api/fitStorageImages/upload', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-  
-      const result = await response.json();
-  
+      // 이미지 업로드
+      const response = await reqFileUpload(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'upload'),
+        formData,
+      );
+
       if (response.ok) {
-        console.log('업로드 성공:', result.message);
-        return result; // 업로드 성공 시 서버 응답 반환
+        console.log('업로드 성공:', response.data);
+        return response.data; // 업로드 성공 시 서버 응답 반환
       } else {
-        throw new Error(result.message);
+        throw new Error(response.data);
       }
     } catch (error) {
       console.error('이미지 업로드 실패:', error);
       Alert.alert('Error', 'Failed to upload image.');
     }
   };
-  
+
   const confirmPicture = async () => {
     if (photoUri) {
       const uploadResponse = await uploadToBackend(photoUri);
       if (uploadResponse) {
-        const message = uploadResponse.message;
-        const imageUrlMatch = message.match(/\/home\/.+\.jpg$/); // 이미지 경로 추출 (정규 표현식 사용)
-        const imageUrl = imageUrlMatch ? imageUrlMatch[0] : null;
-
-        if (imageUrl) {
-          const fullImageUrl = `http://fitpitback.kro.kr:8080${imageUrl}`; // 전체 URL로 변환
-          Alert.alert('Success', 'Image uploaded successfully.');
-          console.log('Uploaded image URL:', fullImageUrl);  // 업로드된 이미지 URL 확인
-          navigation.replace('Fit_box', { newPhotoUri: fullImageUrl });
-        } else {
-          Alert.alert('Error', 'Failed to get image URL.');
-        }
+        Alert.alert('Success', 'Image uploaded successfully.' + uploadResponse);
+        navigation.replace('Fit_box');
       } else {
         Alert.alert('Error', 'Failed to upload image.');
       }
@@ -150,9 +141,11 @@ const CameraBodyPhoto = () => {
   if (photoUri) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: photoUri }} style={styles.preview} />
+        <Image source={{uri: photoUri}} style={styles.preview} />
         <View style={styles.bottomControls}>
-          <TouchableOpacity style={styles.actionButton} onPress={confirmPicture}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={confirmPicture}>
             <Text style={styles.buttonText}>확인</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>

@@ -60,9 +60,9 @@ export type RootStackParamList = {
   Purchase: undefined;
   My_Fit: undefined;
   Remeasure: undefined;
-  Fit_box: {newPhotoUri?: string};
-  WriteComment: { review: any; fromWritePage?: boolean };
-  ReviewDetail: { review: any };
+  Fit_box: undefined;
+  WriteComment: {review: any; fromWritePage?: boolean};
+  ReviewDetail: {review: any};
   BottomTabNavigator: undefined;
   Loading: {uri: string};
 };
@@ -264,15 +264,15 @@ const App = () => {
             }}
           />
           <Stack.Screen
-          name="ReviewDetail"
-          component={ReviewDetail}
-          options={{ 
-            headerTitle: '내가 작성한 핏코멘트',
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            },
-           }}
-        />
+            name="ReviewDetail"
+            component={ReviewDetail}
+            options={{
+              headerTitle: '내가 작성한 핏코멘트',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

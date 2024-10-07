@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,13 +8,21 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RootStackParamList } from '../../../../../App';
+import {RootStackParamList} from '../../../../../App';
 
 type WriteCommentRouteProp = RouteProp<RootStackParamList, 'WriteComment'>;
-type WriteCommentNavigationProp = StackNavigationProp<RootStackParamList, 'WriteComment'>;
+type WriteCommentNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'WriteComment'
+>;
 
 interface Review {
   imageUrl: string;
@@ -35,7 +43,9 @@ const WriteComment: React.FC = () => {
     const storedReviews = await AsyncStorage.getItem('reviews');
     if (storedReviews) {
       const parsedReviews = JSON.parse(storedReviews) as Review[];
-      parsedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      parsedReviews.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
       setReviews(parsedReviews);
     }
   };
@@ -52,15 +62,15 @@ const WriteComment: React.FC = () => {
         if (route.params?.fromWritePage) {
           navigation.reset({
             index: 0,
-            routes: [{ name: 'Comment' }],
+            routes: [{name: 'Comment'}],
           });
         }
       };
-    }, [navigation, route.params?.fromWritePage])
+    }, [navigation, route.params?.fromWritePage]),
   );
 
   const handleReviewPress = (review: Review) => {
-    navigation.navigate('ReviewDetail', { review });
+    navigation.navigate('ReviewDetail', {review});
   };
 
   return (
@@ -74,10 +84,7 @@ const WriteComment: React.FC = () => {
               <Text style={styles.comment}>{review.reviewText}</Text>
             </View>
             <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: review.imageUrl }}
-                style={styles.image}
-              />
+              <Image source={{uri: review.imageUrl}} style={styles.image} />
             </View>
           </View>
         </TouchableOpacity>

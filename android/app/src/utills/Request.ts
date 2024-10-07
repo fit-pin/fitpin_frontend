@@ -100,17 +100,20 @@ export async function ArRequest(
  * // async, await 방식
  * async function any() {
  *   const data = await reqFileUpload('url', formData);
- *   console.log(data.아무개);
+ *   console.log(data.data.아무개);
  * }
  * // callback 방식
  * reqFileUpload('url', formData)
- *  .then(data => console.log(data.아무개))
+ *  .then(data => console.log(data.data.아무개))
  *  .catch(err => console.log(err));
  */
 export async function reqFileUpload(
   url: string,
   formData: FormData,
-): Promise<any> {
+): Promise<{
+  ok: boolean;
+  data: any;
+}> {
   const res = await fetch(url, {
     method: 'post',
     headers: {
@@ -120,5 +123,8 @@ export async function reqFileUpload(
     body: formData,
   });
 
-  return await res.json();
+  return {
+    ok: res.ok,
+    data: await res.json(),
+  };
 }

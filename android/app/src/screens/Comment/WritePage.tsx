@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,19 +14,25 @@ import {
   Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext';
+import {RootStackParamList} from '../../../../../App';
+import {useUser} from '../UserContext';
+import {reqGet} from '../../utills/Request';
+import path from 'path';
+import {DATA_URL} from '../../Constant';
 
 type WritePageRouteProp = RouteProp<RootStackParamList, 'WritePage'>;
-type WritePageNavigationProp = StackNavigationProp<RootStackParamList, 'WritePage'>;
+type WritePageNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'WritePage'
+>;
 
 const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
   const route = useRoute<WritePageRouteProp>();
-  const { userEmail } = useUser();
+  const {userEmail} = useUser();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -43,17 +49,23 @@ const WritePage: React.FC = () => {
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      const data = await response.json();
+      // 이미지 목록 불러오기
+      const response = reqGet(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
+      );
+
+      const data = await response;
 
       if (Array.isArray(data)) {
         const imageUrls = data.map(item =>
-          `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
+          path.join(
+            DATA_URL,
+            'api',
+            'img',
+            'imgserve',
+            'fitstorageimg',
+            item.fitStorageImg,
+          ),
         );
         // 이미지 목록을 최신순으로 정렬
         setImages(imageUrls.reverse());
@@ -114,13 +126,24 @@ const WritePage: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
-        <TouchableOpacity onPress={openImageSelector} style={styles.imageTouchArea}>
+        <TouchableOpacity
+          onPress={openImageSelector}
+          style={styles.imageTouchArea}>
           {selectedImageUri ? (
-            <Image source={{ uri: selectedImageUri }} style={styles.selectedImage} />
+            <Image
+              source={{uri: selectedImageUri}}
+              style={styles.selectedImage}
+            />
           ) : (
             <View style={styles.selectImageButton}>
-              <Image source={require('../../assets/img/write/camera.png')} style={styles.cameraIcon} />
-              <Image source={require('../../assets/img/write/add.png')} style={styles.plusIcon} />
+              <Image
+                source={require('../../assets/img/write/camera.png')}
+                style={styles.cameraIcon}
+              />
+              <Image
+                source={require('../../assets/img/write/add.png')}
+                style={styles.plusIcon}
+              />
             </View>
           )}
         </TouchableOpacity>
@@ -130,21 +153,21 @@ const WritePage: React.FC = () => {
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
         <RNPickerSelect
-          onValueChange={(value) => setSelectedCategory(value)}
+          onValueChange={value => setSelectedCategory(value)}
           items={[
-            { label: '반팔', value: '반팔' },
-            { label: '긴팔', value: '긴팔' },
-            { label: '반팔 아우터', value: '반팔 아우터' },
-            { label: '긴팔 아우터', value: '긴팔 아우터' },
-            { label: '조끼', value: '조끼' },
-            { label: '슬링', value: '슬링' },
-            { label: '반바지', value: '반바지' },
-            { label: '긴바지', value: '긴바지' },
-            { label: '치마', value: '치마' },
-            { label: '반팔 원피스', value: '반팔 원피스' },
-            { label: '긴팔 원피스', value: '긴팔 원피스' },
-            { label: '조끼 원피스', value: '조끼 원피스' },
-            { label: '슬링 원피스', value: '슬링 원피스' },
+            {label: '반팔', value: '반팔'},
+            {label: '긴팔', value: '긴팔'},
+            {label: '반팔 아우터', value: '반팔 아우터'},
+            {label: '긴팔 아우터', value: '긴팔 아우터'},
+            {label: '조끼', value: '조끼'},
+            {label: '슬링', value: '슬링'},
+            {label: '반바지', value: '반바지'},
+            {label: '긴바지', value: '긴바지'},
+            {label: '치마', value: '치마'},
+            {label: '반팔 원피스', value: '반팔 원피스'},
+            {label: '긴팔 원피스', value: '긴팔 원피스'},
+            {label: '조끼 원피스', value: '조끼 원피스'},
+            {label: '슬링 원피스', value: '슬링 원피스'},
           ]}
           placeholder={{
             label: '카테고리를 선택하세요',
@@ -186,13 +209,21 @@ const WritePage: React.FC = () => {
       <View style={styles.sizeContainer}>
         <Text style={styles.sizeTitle}>사이즈 선택</Text>
         <View style={styles.sizeButtons}>
-          {['S', 'M', 'L', 'XL', 'XXL', 'Free'].map((size) => (
+          {['S', 'M', 'L', 'XL', 'XXL', 'Free'].map(size => (
             <TouchableOpacity
               key={size}
-              style={[styles.sizeButton, selectedSize === size && styles.selectedSizeButton]}
-              onPress={() => setSelectedSize(size)}
-            >
-              <Text style={[styles.sizeButtonText, selectedSize === size && styles.selectedSizeButtonText]}>{size}</Text>
+              style={[
+                styles.sizeButton,
+                selectedSize === size && styles.selectedSizeButton,
+              ]}
+              onPress={() => setSelectedSize(size)}>
+              <Text
+                style={[
+                  styles.sizeButtonText,
+                  selectedSize === size && styles.selectedSizeButtonText,
+                ]}>
+                {size}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -206,10 +237,18 @@ const WritePage: React.FC = () => {
         {['약간 작다', '딱 맞는다', '약간 크다'].map((fit, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.fitButton, selectedFit === fit && styles.selectedFitButton]}
-            onPress={() => setSelectedFit(fit)}
-          >
-            <Text style={[styles.fitButtonText, selectedFit === fit && styles.selectedFitButtonText]}>{fit}</Text>
+            style={[
+              styles.fitButton,
+              selectedFit === fit && styles.selectedFitButton,
+            ]}
+            onPress={() => setSelectedFit(fit)}>
+            <Text
+              style={[
+                styles.fitButtonText,
+                selectedFit === fit && styles.selectedFitButtonText,
+              ]}>
+              {fit}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -230,7 +269,10 @@ const WritePage: React.FC = () => {
       </TouchableOpacity>
 
       {/* 이미지 선택 모달 */}
-      <Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {isLoading ? (
@@ -239,19 +281,20 @@ const WritePage: React.FC = () => {
               <FlatList
                 data={images}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
+                renderItem={({item}) => (
                   <TouchableOpacity
                     onPress={() => selectImage(item)}
-                    style={styles.modalImageContainer}
-                  >
-                    <Image source={{ uri: item }} style={styles.modalImage} />
+                    style={styles.modalImageContainer}>
+                    <Image source={{uri: item}} style={styles.modalImage} />
                   </TouchableOpacity>
                 )}
                 numColumns={2}
-                columnWrapperStyle={{ justifyContent: 'space-between' }} // 두 개씩 보이도록 행 스타일 적용
+                columnWrapperStyle={{justifyContent: 'space-between'}} // 두 개씩 보이도록 행 스타일 적용
               />
             )}
-            <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setIsModalVisible(false)}>
               <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>

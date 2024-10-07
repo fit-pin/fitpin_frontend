@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,14 +14,19 @@ import {
   Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext';
+import {RootStackParamList} from '../../../../../App';
+import {useUser} from '../UserContext';
+import {DATA_URL} from '../../Constant';
+import path from 'path';
 
 type ReviewDetailRouteProp = RouteProp<RootStackParamList, 'ReviewDetail'>;
-type ReviewDetailNavigationProp = StackNavigationProp<RootStackParamList, 'ReviewDetail'>;
+type ReviewDetailNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'ReviewDetail'
+>;
 
 interface Review {
   imageUrl: string;
@@ -37,7 +42,7 @@ interface Review {
 const ReviewDetail: React.FC = () => {
   const navigation = useNavigation<ReviewDetailNavigationProp>();
   const route = useRoute<ReviewDetailRouteProp>();
-  const { userEmail } = useUser();
+  const {userEmail} = useUser();
   const [review, setReview] = useState<Review>(route.params.review);
   const [editMode, setEditMode] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -55,23 +60,22 @@ const ReviewDetail: React.FC = () => {
   useEffect(() => {
     console.log('Current Image URL:', review.imageUrl);
     setImageLoadError(false);
-    setForceUpdateKey((prevKey) => prevKey + 1); // 이미지 URL 변경 시 강제 렌더링
+    setForceUpdateKey(prevKey => prevKey + 1); // 이미지 URL 변경 시 강제 렌더링
   }, [review.imageUrl]);
 
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      const data = await response.json();
+      const response = await fetch(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
+      );
+
+      const data = response;
 
       if (Array.isArray(data)) {
-        const imageUrls = data.map((item: { fitStorageImg: string }) =>
-          `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
+        const imageUrls = data.map(
+          (item: {fitStorageImg: string}) =>
+            `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`,
         );
         setImages(imageUrls);
       }
@@ -105,7 +109,9 @@ const ReviewDetail: React.FC = () => {
       const storedReviews = await AsyncStorage.getItem('reviews');
       if (storedReviews) {
         const reviews = JSON.parse(storedReviews) as Review[];
-        const filteredReviews = reviews.filter((r: Review) => r.date !== review.date);
+        const filteredReviews = reviews.filter(
+          (r: Review) => r.date !== review.date,
+        );
         await AsyncStorage.setItem('reviews', JSON.stringify(filteredReviews));
         Alert.alert('리뷰가 삭제되었습니다.');
         navigation.goBack();
@@ -148,11 +154,11 @@ const ReviewDetail: React.FC = () => {
           <TouchableOpacity onPress={openImageSelector}>
             {review.imageUrl && !imageLoadError ? (
               <Image
-                source={{ uri: review.imageUrl }}
+                source={{uri: review.imageUrl}}
                 style={styles.selectedImage}
                 key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
                 resizeMode="cover"
-                onError={(error) => {
+                onError={error => {
                   console.error('Image Load Error:', error.nativeEvent.error);
                   setImageLoadError(true);
                 }}
@@ -160,46 +166,50 @@ const ReviewDetail: React.FC = () => {
             ) : (
               <Text style={styles.placeholderText}>이미지를 선택하세요</Text>
             )}
-            {imageLoadError && <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>}
+            {imageLoadError && (
+              <Text style={styles.errorText}>
+                이미지를 불러오지 못했습니다.
+              </Text>
+            )}
           </TouchableOpacity>
+        ) : review.imageUrl && !imageLoadError ? (
+          <Image
+            source={{uri: review.imageUrl}}
+            style={styles.selectedImage}
+            key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
+            resizeMode="cover"
+            onError={error => {
+              console.error('Image Load Error:', error.nativeEvent.error);
+              setImageLoadError(true);
+            }}
+          />
         ) : (
-          review.imageUrl && !imageLoadError ? (
-            <Image
-              source={{ uri: review.imageUrl }}
-              style={styles.selectedImage}
-              key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
-              resizeMode="cover"
-              onError={(error) => {
-                console.error('Image Load Error:', error.nativeEvent.error);
-                setImageLoadError(true);
-              }}
-            />
-          ) : (
-            <Text style={styles.placeholderText}>이미지 없음</Text>
-          )
+          <Text style={styles.placeholderText}>이미지 없음</Text>
         )}
-        {imageLoadError && <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>}
+        {imageLoadError && (
+          <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>
+        )}
       </View>
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
         {editMode ? (
           <RNPickerSelect
-            onValueChange={(value) => setReview({ ...review, category: value })}
+            onValueChange={value => setReview({...review, category: value})}
             items={[
-              { label: '반팔', value: '반팔' },
-              { label: '긴팔', value: '긴팔' },
-              { label: '반팔 아우터', value: '반팔 아우터' },
-              { label: '긴팔 아우터', value: '긴팔 아우터' },
-              { label: '조끼', value: '조끼' },
-              { label: '슬링', value: '슬링' },
-              { label: '반바지', value: '반바지' },
-              { label: '긴바지', value: '긴바지' },
-              { label: '치마', value: '치마' },
-              { label: '반팔 원피스', value: '반팔 원피스' },
-              { label: '긴팔 원피스', value: '긴팔 원피스' },
-              { label: '조끼 원피스', value: '조끼 원피스' },
-              { label: '슬링 원피스', value: '슬링 원피스' },
+              {label: '반팔', value: '반팔'},
+              {label: '긴팔', value: '긴팔'},
+              {label: '반팔 아우터', value: '반팔 아우터'},
+              {label: '긴팔 아우터', value: '긴팔 아우터'},
+              {label: '조끼', value: '조끼'},
+              {label: '슬링', value: '슬링'},
+              {label: '반바지', value: '반바지'},
+              {label: '긴바지', value: '긴바지'},
+              {label: '치마', value: '치마'},
+              {label: '반팔 원피스', value: '반팔 원피스'},
+              {label: '긴팔 원피스', value: '긴팔 원피스'},
+              {label: '조끼 원피스', value: '조끼 원피스'},
+              {label: '슬링 원피스', value: '슬링 원피스'},
             ]}
             value={review.category}
           />
@@ -217,7 +227,7 @@ const ReviewDetail: React.FC = () => {
           style={styles.input}
           value={review.brandName}
           editable={editMode}
-          onChangeText={(text) => setReview({ ...review, brandName: text })}
+          onChangeText={text => setReview({...review, brandName: text})}
         />
       </View>
 
@@ -230,7 +240,7 @@ const ReviewDetail: React.FC = () => {
           style={styles.input}
           value={review.productName}
           editable={editMode}
-          onChangeText={(text) => setReview({ ...review, productName: text })}
+          onChangeText={text => setReview({...review, productName: text})}
         />
       </View>
 
@@ -246,7 +256,7 @@ const ReviewDetail: React.FC = () => {
                 review.size === size && styles.selectedSizeButton,
               ]}
               disabled={!editMode}
-              onPress={() => setReview({ ...review, size })}>
+              onPress={() => setReview({...review, size})}>
               <Text
                 style={[
                   styles.sizeButtonText,
@@ -270,7 +280,7 @@ const ReviewDetail: React.FC = () => {
               review.fit === fit && styles.selectedFitButton,
             ]}
             disabled={!editMode}
-            onPress={() => setReview({ ...review, fit })}>
+            onPress={() => setReview({...review, fit})}>
             <Text
               style={[
                 styles.fitButtonText,
@@ -290,21 +300,30 @@ const ReviewDetail: React.FC = () => {
         style={styles.reviewInput}
         value={review.reviewText}
         editable={editMode}
-        onChangeText={(text) => setReview({ ...review, reviewText: text })}
+        onChangeText={text => setReview({...review, reviewText: text})}
       />
 
-      <TouchableOpacity style={styles.submitButton} onPress={editMode ? handleSave : enableEditMode}>
-        <Text style={styles.submitButtonText}>{editMode ? "저장" : "수정"}</Text>
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={editMode ? handleSave : enableEditMode}>
+        <Text style={styles.submitButtonText}>
+          {editMode ? '저장' : '수정'}
+        </Text>
       </TouchableOpacity>
 
       {!editMode && (
-        <TouchableOpacity style={[styles.submitButton, { backgroundColor: 'red' }]} onPress={handleDelete}>
+        <TouchableOpacity
+          style={[styles.submitButton, {backgroundColor: 'red'}]}
+          onPress={handleDelete}>
           <Text style={styles.submitButtonText}>삭제</Text>
         </TouchableOpacity>
       )}
 
       {/* 이미지 선택 모달 */}
-      <Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {isLoading ? (
@@ -313,16 +332,20 @@ const ReviewDetail: React.FC = () => {
               <FlatList
                 data={images}
                 keyExtractor={(_item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => selectImage(item)} style={styles.modalImageContainer}>
-                    <Image source={{ uri: item }} style={styles.modalImage} />
+                renderItem={({item}) => (
+                  <TouchableOpacity
+                    onPress={() => selectImage(item)}
+                    style={styles.modalImageContainer}>
+                    <Image source={{uri: item}} style={styles.modalImage} />
                   </TouchableOpacity>
                 )}
                 numColumns={2}
                 columnWrapperStyle={styles.row}
               />
             )}
-            <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setIsModalVisible(false)}>
               <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>

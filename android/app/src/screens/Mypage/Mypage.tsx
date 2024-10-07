@@ -8,21 +8,21 @@ import {
   Alert,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import { RootStackParamList } from '../../../../../App';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
-import { setItem, useUser } from '../UserContext.tsx';
+import {RootStackParamList} from '../../../../../App';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+import {setItem, useUser} from '../UserContext.tsx';
 
 type MypageNavigationProp = StackNavigationProp<RootStackParamList, 'Mypage'>;
 
 const Mypage: React.FC = () => {
   const navigation = useNavigation<MypageNavigationProp>();
-  const { userEmail, userName } = useUser();
+  const {userEmail, userName} = useUser();
 
   const workLogout = async () => {
     await setItem('userEmail', '');
     await setItem('userPwd', '');
-    navigation.reset({ routes: [{ name: 'LognSignin' }] });
+    navigation.reset({routes: [{name: 'LognSignin'}]});
   };
 
   const handleLogout = () => {
@@ -39,7 +39,7 @@ const Mypage: React.FC = () => {
           onPress: workLogout,
         },
       ],
-      { cancelable: false },
+      {cancelable: false},
     );
   };
 
@@ -57,7 +57,7 @@ const Mypage: React.FC = () => {
           onPress: () => console.log('Withdrawal confirmed'),
         },
       ],
-      { cancelable: false },
+      {cancelable: false},
     );
   };
 
@@ -93,7 +93,7 @@ const Mypage: React.FC = () => {
         <View style={styles.line} />
 
         {/* 구매내역 / 내 체형 정보 */}
-        <View style={[styles.section, { marginBottom: -30 }]}>
+        <View style={[styles.section, {marginBottom: -30}]}>
           <Image
             source={require('../../assets/img/mypage/buy.png')}
             style={styles.image}
@@ -119,14 +119,14 @@ const Mypage: React.FC = () => {
         <View style={styles.line} />
 
         {/* 핏보관함 / 내가 작성한 핏 코멘트 */}
-        <View style={[styles.section, { marginBottom: -30 }]}>
+        <View style={[styles.section, {marginBottom: -30}]}>
           <Image
             source={require('../../assets/img/mypage/fitbox.png')}
             style={styles.image}
           />
           <Text
             style={styles.text}
-            onPress={() => navigation.navigate('Fit_box', {})}>
+            onPress={() => navigation.navigate('Fit_box')}>
             핏 보관함
           </Text>
         </View>
@@ -138,7 +138,7 @@ const Mypage: React.FC = () => {
           />
           <Text
             style={styles.text}
-            onPress={() => navigation.navigate('WriteComment', { review: {} })}>
+            onPress={() => navigation.navigate('WriteComment', {review: {}})}>
             내가 작성한 핏 코멘트
           </Text>
         </View>
@@ -146,7 +146,7 @@ const Mypage: React.FC = () => {
 
         {/* 로그아웃 / 계정 삭제 */}
         <TouchableOpacity
-          style={[styles.section, { marginBottom: -30 }]}
+          style={[styles.section, {marginBottom: -30}]}
           onPress={handleLogout}>
           <Image
             source={require('../../assets/img/mypage/logout.png')}
