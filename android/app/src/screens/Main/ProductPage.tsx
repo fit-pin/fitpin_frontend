@@ -184,13 +184,12 @@ const ProductPage = () => {
     }
 
     const reqfile = await reqGet(
-      path.join(DATA_URL, 'api', 'userbodyinfo', userEmail),
+      path.join(DATA_URL, 'api', 'userForm', userEmail),
     );
 
-    // TODO: 서버 수정 필요
     formData.append('clothesImg', {
       uri: path.join(
-        AR_URL,
+        DATA_URL,
         'api',
         'img',
         'imgserve',
@@ -198,13 +197,12 @@ const ProductPage = () => {
         productInfo.itemImgName,
       ),
       name: productInfo.itemImgName,
-      type: 'image/png',
+      type: 'image/jpeg',
     } as FormDataValue);
 
-    formData.append('clothesType', 'TOP');
-    formData.append('fileName', reqfile.fileName);
-    formData.append('personKey', userHeight);
-    formData.append('clothesLenth', '0');
+    formData.append('bodyFileName', reqfile.fileName);
+    // TODO: 백엔드 서버 의류타입 확인 필요
+    formData.append('category', '상의');
 
     const res = await ArRequest(path.join(AR_URL, 'try-on'), formData);
     if (!res.ok) {
@@ -391,11 +389,15 @@ const ProductPage = () => {
           <TouchableWithoutFeedback onPress={closeModal}>
             <View style={styles.modalBackground}>
               <View style={styles.modalContent}>
-                <Image
-                  source={require('../../assets/img/main/top/top1.png')}
-                  style={styles.modalImage}
-                  resizeMode="contain"
-                />
+                {tryimgUri ? (
+                  <Image
+                    source={{uri: tryimgUri}}
+                    style={styles.modalImage}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <></>
+                )}
               </View>
             </View>
           </TouchableWithoutFeedback>
