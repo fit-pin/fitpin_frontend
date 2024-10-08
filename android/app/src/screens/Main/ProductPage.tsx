@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -129,53 +129,51 @@ const ProductPage = () => {
     }
   };
 
+  // 상품 정보 가져오기
   const fetchProductData = async () => {
-    try {
-      // 제품 상세 정보 요청
-      const productRes = await reqGet(
-        path.join(DATA_URL, 'api', 'item-info', '1'),
-      );
+    // 제품 상세 정보 요청
+    const productRes = await reqGet(
+      path.join(DATA_URL, 'api', 'item-info', '1'),
+    );
 
-      // 오류 체크 콘솔 로그
-      console.log('Product response:', productRes);
+    // 오류 체크 콘솔 로그
+    console.log('Product response:', productRes);
 
-      // productInfo 업데이트
-      setProductInfo({
-        itemKey: productRes.itemKey,
-        itemName: productRes.itemName,
-        itemBrand: productRes.itemBrand,
-        itemType: productRes.itemType,
-        itemStyle: productRes.itemStyle,
-        itemPrice: productRes.itemPrice,
-        itemContent: productRes.itemContent,
-        itemTopInfo: {
-          itemSize: productRes.itemTopInfo.itemSize,
-          itemHeight: productRes.itemTopInfo.itemHeight,
-          itemShoulder: productRes.itemTopInfo.itemShoulder,
-          itemArm: productRes.itemTopInfo.itemArm,
-          itemChest: productRes.itemTopInfo.itemChest,
-          itemSleeve: productRes.itemTopInfo.itemSleeve,
-        },
-        itemBottomInfo: productRes.itemBottomInfo,
-        itemImgName: productRes.itemImgName[0],
-      });
+    // productInfo 업데이트
+    setProductInfo({
+      itemKey: productRes.itemKey,
+      itemName: productRes.itemName,
+      itemBrand: productRes.itemBrand,
+      itemType: productRes.itemType,
+      itemStyle: productRes.itemStyle,
+      itemPrice: productRes.itemPrice,
+      itemContent: productRes.itemContent,
+      itemTopInfo: {
+        itemSize: productRes.itemTopInfo.itemSize,
+        itemHeight: productRes.itemTopInfo.itemHeight,
+        itemShoulder: productRes.itemTopInfo.itemShoulder,
+        itemArm: productRes.itemTopInfo.itemArm,
+        itemChest: productRes.itemTopInfo.itemChest,
+        itemSleeve: productRes.itemTopInfo.itemSleeve,
+      },
+      itemBottomInfo: productRes.itemBottomInfo,
+      itemImgName: productRes.itemImgName[0],
+    });
 
-      setProdUri(
-        path.join(
-          DATA_URL,
-          'api',
-          'img',
-          'imgserve',
-          'itemimg',
-          productRes.itemImgName[0],
-        ),
-      );
-    } catch (error) {
-      console.error('Error fetching product data:', error);
-    }
+    setProdUri(
+      path.join(
+        DATA_URL,
+        'api',
+        'img',
+        'imgserve',
+        'itemimg',
+        productRes.itemImgName[0],
+      ),
+    );
   };
 
-  const handleSetimg = useCallback(async () => {
+  // 가상피팅 이미지 가져오기
+  const handleSetimg = async (fileName: string) => {
     const formData = new FormData();
 
     if (!userEmail || !userHeight) {
@@ -188,15 +186,8 @@ const ProductPage = () => {
     );
 
     formData.append('clothesImg', {
-      uri: path.join(
-        DATA_URL,
-        'api',
-        'img',
-        'imgserve',
-        'itemimg',
-        productInfo.itemImgName,
-      ),
-      name: productInfo.itemImgName,
+      uri: path.join(DATA_URL, 'api', 'img', 'imgserve', 'itemimg', fileName),
+      name: fileName,
       type: 'image/jpeg',
     } as FormDataValue);
 
@@ -206,7 +197,7 @@ const ProductPage = () => {
 
     const res = await ArRequest(path.join(AR_URL, 'try-on'), formData);
     if (!res.ok) {
-      return;
+      throw Error(JSON.stringify(await res.json()));
     }
     const blob = await res.blob();
 
@@ -215,20 +206,24 @@ const ProductPage = () => {
     fileReaderInstance.onload = () => {
       const base64data = fileReaderInstance.result;
       settryimgUri(base64data as string);
-
-      // 콘솔 로그
-      console.log('Base64 image data:', base64data);
     };
-  }, [userEmail, userHeight, productInfo.itemImgName]);
+  };
 
   useEffect(() => {
-    fetchProductData();
+    fetchProductData().catch(e => {
+      console.error(`제품 이미지 로드 오류: ${e}`);
+    });
   }, []);
 
   useEffect(() => {
-    handleSetimg();
+    if (productInfo.itemImgName && PordimgUri) {
+      handleSetimg(productInfo.itemImgName).catch(e => {
+        console.log(`가상 피팅 오류: ${e}`);
+        settryimgUri(PordimgUri);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [productInfo.itemImgName, PordimgUri]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
