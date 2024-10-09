@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,14 +14,14 @@ import {
   Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {RootStackParamList} from '../../../../../App';
-import {useUser} from '../UserContext';
-import {reqGet} from '../../utills/Request';
+import { RootStackParamList } from '../../../../../App';
+import { useUser } from '../UserContext';
+import { reqGet } from '../../utills/Request';
 import path from 'path';
-import {DATA_URL} from '../../Constant';
+import { DATA_URL } from '../../Constant';
 
 type WritePageRouteProp = RouteProp<RootStackParamList, 'WritePage'>;
 type WritePageNavigationProp = StackNavigationProp<
@@ -32,7 +32,7 @@ type WritePageNavigationProp = StackNavigationProp<
 const WritePage: React.FC = () => {
   const navigation = useNavigation<WritePageNavigationProp>();
   const route = useRoute<WritePageRouteProp>();
-  const {userEmail} = useUser();
+  const { userEmail } = useUser();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -49,7 +49,6 @@ const WritePage: React.FC = () => {
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
     try {
-      // 이미지 목록 불러오기
       const response = reqGet(
         path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
       );
@@ -67,7 +66,6 @@ const WritePage: React.FC = () => {
             item.fitStorageImg,
           ),
         );
-        // 이미지 목록을 최신순으로 정렬
         setImages(imageUrls.reverse());
       }
     } catch (error) {
@@ -79,37 +77,84 @@ const WritePage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchImagesFromBackend(); // 컴포넌트 마운트 시 이미지 목록 불러오기
+    fetchImagesFromBackend();
   }, [userEmail]);
 
+  // 이미지 업로드 및 코멘트 저장
   const handleSubmit = async () => {
     if (!selectedImageUri) {
       Alert.alert('이미지를 선택해주세요.');
       return;
     }
-
-    const review = {
-      imageUrl: selectedImageUri,
-      brandName,
-      productName,
-      size: selectedSize,
-      fit: selectedFit,
-      reviewText,
-      category: selectedCategory,
-      date: new Date().toISOString(),
-    };
-
+  
+    if (!reviewText) {
+      Alert.alert('코멘트를 작성해주세요.');
+      return;
+    }
+  
+    let imageName = selectedImageUri.split('/').pop(); // 기본적으로 선택한 이미지 이름 사용
     try {
-      const storedReviews = await AsyncStorage.getItem('reviews');
-      const reviews = storedReviews ? JSON.parse(storedReviews) : [];
-      reviews.push(review);
-      await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
-
-      // 핏 코멘트 페이지로 이동
-      navigation.navigate('Comment');
+      // 1. 이미지 업로드 처리 (중복 확인 후)
+      const checkResponse = await fetch(
+        `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${imageName}`
+      );
+  
+      if (checkResponse.status === 404) {
+        const formData = new FormData();
+        formData.append('userEmail', userEmail);
+        formData.append('image', {
+          uri: selectedImageUri,
+          type: 'image/jpeg',
+          name: imageName,
+        });
+  
+        const uploadResponse = await fetch(
+          'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+  
+        const uploadResult = await uploadResponse.json();
+  
+        if (uploadResponse.ok) {
+          imageName = uploadResult.message.split(': ')[1];
+        } else {
+          Alert.alert('이미지 업로드 실패', uploadResult.message);
+          return;
+        }
+      }
+  
+      // 2. 코멘트 저장 (JSON 방식)
+      const commentData = {
+        userEmail: userEmail,
+        imageName: imageName, // 서버에 있는 이미지 이름 사용
+        comment: reviewText,
+      };
+  
+      const commentResponse = await fetch(
+        'http://fitpitback.kro.kr:8080/api/fit_comment/save_comment',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(commentData),
+        }
+      );
+  
+      const commentResult = await commentResponse.json();
+  
+      if (commentResponse.ok) {
+        Alert.alert('코멘트가 성공적으로 저장되었습니다.');
+        navigation.navigate('Comment');
+      } else {
+        Alert.alert('코멘트 저장 실패', commentResult.message);
+      }
     } catch (error) {
       if (error instanceof Error) {
-        Alert.alert('리뷰 작성 중 오류가 발생했습니다.', error.message);
+        Alert.alert('처리 중 오류가 발생했습니다.', error.message);
       }
     }
   };
@@ -131,7 +176,7 @@ const WritePage: React.FC = () => {
           style={styles.imageTouchArea}>
           {selectedImageUri ? (
             <Image
-              source={{uri: selectedImageUri}}
+              source={{ uri: selectedImageUri }}
               style={styles.selectedImage}
             />
           ) : (
@@ -149,25 +194,24 @@ const WritePage: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* 카테고리 선택 */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
         <RNPickerSelect
           onValueChange={value => setSelectedCategory(value)}
           items={[
-            {label: '반팔', value: '반팔'},
-            {label: '긴팔', value: '긴팔'},
-            {label: '반팔 아우터', value: '반팔 아우터'},
-            {label: '긴팔 아우터', value: '긴팔 아우터'},
-            {label: '조끼', value: '조끼'},
-            {label: '슬링', value: '슬링'},
-            {label: '반바지', value: '반바지'},
-            {label: '긴바지', value: '긴바지'},
-            {label: '치마', value: '치마'},
-            {label: '반팔 원피스', value: '반팔 원피스'},
-            {label: '긴팔 원피스', value: '긴팔 원피스'},
-            {label: '조끼 원피스', value: '조끼 원피스'},
-            {label: '슬링 원피스', value: '슬링 원피스'},
+            { label: '반팔', value: '반팔' },
+            { label: '긴팔', value: '긴팔' },
+            { label: '반팔 아우터', value: '반팔 아우터' },
+            { label: '긴팔 아우터', value: '긴팔 아우터' },
+            { label: '조끼', value: '조끼' },
+            { label: '슬링', value: '슬링' },
+            { label: '반바지', value: '반바지' },
+            { label: '긴바지', value: '긴바지' },
+            { label: '치마', value: '치마' },
+            { label: '반팔 원피스', value: '반팔 원피스' },
+            { label: '긴팔 원피스', value: '긴팔 원피스' },
+            { label: '조끼 원피스', value: '조끼 원피스' },
+            { label: '슬링 원피스', value: '슬링 원피스' },
           ]}
           placeholder={{
             label: '카테고리를 선택하세요',
@@ -205,7 +249,6 @@ const WritePage: React.FC = () => {
 
       <View style={styles.line} />
 
-      {/* 사이즈 선택 */}
       <View style={styles.sizeContainer}>
         <Text style={styles.sizeTitle}>사이즈 선택</Text>
         <View style={styles.sizeButtons}>
@@ -281,15 +324,15 @@ const WritePage: React.FC = () => {
               <FlatList
                 data={images}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => selectImage(item)}
                     style={styles.modalImageContainer}>
-                    <Image source={{uri: item}} style={styles.modalImage} />
+                    <Image source={{ uri: item }} style={styles.modalImage} />
                   </TouchableOpacity>
                 )}
                 numColumns={2}
-                columnWrapperStyle={{justifyContent: 'space-between'}} // 두 개씩 보이도록 행 스타일 적용
+                columnWrapperStyle={{ justifyContent: 'space-between' }} // 두 개씩 보이도록 행 스타일 적용
               />
             )}
             <TouchableOpacity
@@ -484,7 +527,7 @@ const styles = StyleSheet.create({
   modalImageContainer: {
     flex: 1,
     margin: 5,
-    maxWidth: '48%', // 각 이미지가 동일한 넓이를 유지하도록 설정
+    maxWidth: '48%',
   },
   modalImage: {
     width: '100%',
