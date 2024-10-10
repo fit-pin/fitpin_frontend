@@ -94,12 +94,13 @@ const WritePage: React.FC = () => {
   
     let imageName = selectedImageUri.split('/').pop(); // 기본적으로 선택한 이미지 이름 사용
     try {
-      // 1. 이미지 업로드 처리 (중복 확인 후)
+      // 1. 이미지가 이미 서버에 있는지 확인 (중복 방지)
       const checkResponse = await fetch(
         `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${imageName}`
       );
   
       if (checkResponse.status === 404) {
+        // 서버에 이미지가 없을 경우 업로드 진행
         const formData = new FormData();
         formData.append('userEmail', userEmail);
         formData.append('image', {
@@ -119,18 +120,25 @@ const WritePage: React.FC = () => {
         const uploadResult = await uploadResponse.json();
   
         if (uploadResponse.ok) {
-          imageName = uploadResult.message.split(': ')[1];
+          imageName = uploadResult.message.split(': ')[1]; // 업로드 성공시 반환된 이미지 이름 사용
         } else {
           Alert.alert('이미지 업로드 실패', uploadResult.message);
           return;
         }
+      } else if (checkResponse.ok) {
+        // 이미지가 이미 서버에 존재하는 경우 처리
+        console.log('이미지가 이미 존재합니다. 중복 업로드를 방지합니다.');
       }
   
-      // 2. 코멘트 저장 (JSON 방식)
+      // 2. 코멘트 저장
       const commentData = {
         userEmail: userEmail,
-        imageName: imageName, // 서버에 있는 이미지 이름 사용
-        comment: reviewText,
+        fitStorageImg: imageName, // 서버에서 반환된 이미지 이름 사용
+        fitComment: reviewText,
+        itemType: selectedCategory,
+        itemBrand: brandName,
+        itemSize: selectedSize,
+        option: selectedFit
       };
   
       const commentResponse = await fetch(
