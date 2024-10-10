@@ -77,6 +77,9 @@ export async function ArRequest(
 
   return await fetch(url, {
     method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
     body: formData,
   });
 }
