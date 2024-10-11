@@ -129,6 +129,25 @@ const ProductPage = () => {
     }
   };
 
+  const handlePurchase = () => {
+    if (!selectedSize) {
+      Alert.alert('사이즈를 선택해 주세요.');
+      return;
+    }
+
+    const purchaseData = {
+      itemKey: productInfo.itemKey,
+      userEmail: userEmail,
+      itemName: productInfo.itemName,
+      itemSize: selectedSize,
+      itemType: productInfo.itemType,
+      itemPrice: productInfo.itemPrice,
+      pit: 1,
+    };
+
+    // 결제 페이지로 데이터를 전달합니다
+    navigation.navigate('Order', {purchaseData});
+  };
   // 상품 정보 가져오기
   const fetchProductData = async () => {
     // 제품 상세 정보 요청
@@ -498,22 +517,13 @@ const ProductPage = () => {
       <View style={styles.bottomSection}>
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            style={[
-              styles.cartButtonBottom,
-              !selectedSize && styles.disabledButton,
-            ]}
-            onPress={handleAddToCart}
-            disabled={!selectedSize}>
-            <Text
-              style={
-                selectedSize ? styles.cartButtonText : styles.disabledButtonText
-              }>
-              장바구니 담기
-            </Text>
+            style={styles.cartButtonBottom}
+            onPress={handleAddToCart}>
+            <Text style={styles.cartButtonText}>장바구니 담기</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buyButton}
-            onPress={() => navigation.navigate('Order')}
+            onPress={handlePurchase}
             disabled={!selectedSize}>
             <Text style={styles.buyButtonText}>바로 구매</Text>
           </TouchableOpacity>
@@ -847,14 +857,6 @@ const styles = StyleSheet.create({
   sizeChartCell: {
     flex: 1,
     textAlign: 'center',
-  },
-  disabledButton: {
-    backgroundColor: '#F4F4F4',
-  },
-  disabledButtonText: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });
 
