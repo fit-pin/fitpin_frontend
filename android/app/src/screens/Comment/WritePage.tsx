@@ -34,10 +34,13 @@ const WritePage: React.FC = () => {
   const route = useRoute<WritePageRouteProp>();
   const { userEmail } = useUser();
 
+  // 라우트에서 넘어온 이미지 URI를 가져옴
+  const passedImageUri = route.params?.selectedImageUri || null;
+
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
-  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(passedImageUri); // 라우트에서 넘어온 이미지 자동 설정
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
