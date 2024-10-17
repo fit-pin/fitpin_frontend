@@ -51,10 +51,16 @@ const Fit_box: React.FC = () => {
       const data = await response.json();
 
       if (Array.isArray(data) && data.length > 0) {
-        const imageUrls = data.map((item) =>
+        // 최신순 정렬 후 배열 역순으로 변경
+        const sortedData = data
+          .sort((a, b) => extractTimestamp(b.fitStorageImg) - extractTimestamp(a.fitStorageImg))
+          .reverse(); // 역순 정렬로 최신 사진이 위로 오도록
+
+        const imageUrls = sortedData.map((item) =>
           `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`.replace(/([^:]\/)\/+/g, "$1")
         );
-        console.log('Fetched Image URLs:', imageUrls);
+
+        console.log('Sorted Image URLs:', imageUrls);
         setImages(imageUrls);
       } else {
         Alert.alert('알림', '저장된 사진이 없습니다.');
@@ -65,6 +71,14 @@ const Fit_box: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const extractTimestamp = (imageName: string): number => {
+    const match = imageName.match(/photo_(\d{8}T\d{6}\d{3}Z)\.jpg$/);
+    if (match) {
+      return new Date(match[1]).getTime();
+    }
+    return 0; // 타임스탬프 추출 실패 시 0 반환
   };
 
   const deleteImage = async (imageUri: string) => {
@@ -101,16 +115,13 @@ const Fit_box: React.FC = () => {
     <View style={styles.container}>
       <FlatList
         contentContainerStyle={styles.flatListContent}
-        data={images}
+        data={images} // 최신순으로 정렬된 데이터 전달
         keyExtractor={(item, index) => index.toString()}
         numColumns={2}
-        renderItem={({ item, index }) => (
+        renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => setSelectedImage(item)}
-            style={[
-              styles.imageWrapper,
-              index % 2 === 0 ? styles.leftAligned : {},
-            ]}
+            style={styles.imageWrapper}
           >
             <Image
               source={{ uri: item }}
@@ -159,22 +170,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   flatListContent: {
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
     paddingVertical: 20,
   },
   imageWrapper: {
     margin: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
     width: Dimensions.get('window').width * 0.45,
-  },
-  leftAligned: {
-    alignSelf: 'flex-start',
+    aspectRatio: 1,
   },
   image: {
-    width: Dimensions.get('window').width * 0.45,
-    height: Dimensions.get('window').width * 0.45,
+    width: '100%',
+    height: '100%',
     borderRadius: 10,
   },
   modalContainer: {
