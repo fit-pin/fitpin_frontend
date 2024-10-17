@@ -11,13 +11,11 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native';
-import { useNavigation, useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useUser } from '../UserContext';
 import { RootStackParamList } from '../../../../../App';
-import path from 'path';
 import { DATA_URL } from '../../Constant';
-import { reqGet } from '../../utills/Request';
 
 type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
@@ -28,9 +26,6 @@ const Fit_box: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation<FitBoxNavigationProp>();
-  const route = useRoute<FitBoxRouteProp>();
-  const isFromUpload = route.params?.fromUpload ?? false;
-  const backPressed = useRef(false); // 뒤로가기 중복 방지
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -43,36 +38,26 @@ const Fit_box: React.FC = () => {
 
   const fetchImagesFromBackend = async () => {
     try {
-      const response = await reqGet(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail!!)
-      );
-      const data = await response;
+      // 중복된 슬래시 문제 해결
+      const url = `${DATA_URL}/api/fitStorageImages/user/${userEmail}`.replace(/([^:]\/)\/+/g, "$1");
+      console.log('API 호출 URL:', url);
 
-      if (Array.isArray(data)) {
-        console.log('Fetched Data:', data);
+      const response = await fetch(url);
 
-        const sortedData = data
-          .map(item => ({
-            ...item,
-            timestamp: extractTimestamp(item.fitStorageImg),
-          }))
-          .sort((a, b) => b.timestamp - a.timestamp); // 최신순 정렬
+      if (!response.ok) {
+        console.error('API 호출 실패:', response.status);
+        throw new Error(`Failed to fetch images: ${response.status}`);
+      }
 
-        const imageUrls = sortedData.map(item =>
-          encodeURI(
-            path.join(
-              DATA_URL,
-              'api',
-              'img',
-              'imgserve',
-              'fitstorageimg',
-              item.fitStorageImg!!
-            )
-          )
+      const data = await response.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        const imageUrls = data.map(
+          (item) => `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
         );
-
-        console.log('Sorted Image URLs:', imageUrls);
         setImages(imageUrls);
+      } else {
+        Alert.alert('알림', '저장된 사진이 없습니다.');
       }
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -82,40 +67,25 @@ const Fit_box: React.FC = () => {
     }
   };
 
-  const extractTimestamp = (imageName: string): number => {
-    const match = imageName.match(/^photo_(\d{8}T\d{6}\d{3}Z)\.jpg$/);
-
-    if (match) {
-      console.log(`Extracted Timestamp: ${match[1]}`);
-      return new Date(match[1]).getTime(); // 타임스탬프 반환
-    } else {
-      console.warn(`Invalid image format: ${imageName}`);
-      return 0; // 형식이 맞지 않는 경우 0 반환
-    }
-  };
-
-  const selectImage = (imageUri: string) => {
-    setSelectedImage(imageUri);
-  };
-
   const deleteImage = async (imageUri: string) => {
     try {
       const imageName = imageUri.split('/').pop();
       const response = await fetch(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'delete', imageName!!),
-        { method: 'DELETE', headers: { Accept: 'application/json' } }
+        `${DATA_URL}/api/fitStorageImages/delete/${imageName}`,
+        { method: 'DELETE' }
       );
 
       const result = await response.json();
 
-      if (response.ok && result.message.includes('이미지 삭제 성공')) {
-        setImages(images.filter(image => image !== imageUri));
-        Alert.alert('Success', 'Image deleted successfully.');
+      if (response.ok) {
+        setImages(images.filter((image) => image !== imageUri));
+        Alert.alert('성공', '이미지가 삭제되었습니다.');
       } else {
-        Alert.alert('Error', result.message || 'Failed to delete image.');
+        Alert.alert('Error', result.message || '이미지 삭제 실패');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete image.');
+      console.error('Error deleting image:', error);
+      Alert.alert('Error', '이미지 삭제 중 오류가 발생했습니다.');
     } finally {
       setSelectedImage(null);
     }
@@ -136,7 +106,7 @@ const Fit_box: React.FC = () => {
         numColumns={2}
         renderItem={({ item, index }) => (
           <TouchableOpacity
-            onPress={() => selectImage(item)}
+            onPress={() => setSelectedImage(item)}
             style={[
               styles.imageWrapper,
               index % 2 === 0 ? styles.leftAligned : {},
@@ -152,7 +122,10 @@ const Fit_box: React.FC = () => {
           <View style={styles.modalContainer}>
             <Image source={{ uri: selectedImage }} style={styles.fullImage} />
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedImage(null)}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setSelectedImage(null)}
+              >
                 <Text style={styles.closeButtonText}>닫기</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -175,9 +148,6 @@ const Fit_box: React.FC = () => {
   );
 };
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -192,14 +162,14 @@ const styles = StyleSheet.create({
     margin: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    width: screenWidth * 0.45,
+    width: Dimensions.get('window').width * 0.45,
   },
   leftAligned: {
     alignSelf: 'flex-start',
   },
   image: {
-    width: screenWidth * 0.45,
-    height: screenWidth * 0.45,
+    width: Dimensions.get('window').width * 0.45,
+    height: Dimensions.get('window').width * 0.45,
     borderRadius: 10,
   },
   modalContainer: {
@@ -209,8 +179,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   fullImage: {
-    width: screenWidth * 0.9,
-    height: screenHeight * 0.7,
+    width: Dimensions.get('window').width * 0.9,
+    height: Dimensions.get('window').height * 0.7,
     borderRadius: 10,
   },
   buttonContainer: {
@@ -218,7 +188,7 @@ const styles = StyleSheet.create({
     bottom: 30,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: screenWidth * 0.9,
+    width: Dimensions.get('window').width * 0.9,
   },
   closeButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',

@@ -9,8 +9,8 @@ import {
   ActivityIndicator 
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../../App';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
 import { useUser } from '../UserContext';
 
 type SizeInfoScreenRouteProp = RouteProp<RootStackParamList, 'SizeInfoScreen'>;
@@ -23,6 +23,7 @@ const SizeInfoScreen: React.FC = () => {
   const { photoUri } = route.params;
   const [isUploading, setIsUploading] = useState(false);
 
+  // **타임스탬프 기반 파일명 생성 함수**
   const generateTimestampedName = (): string => {
     const now = new Date();
     const year = now.getFullYear();
@@ -35,6 +36,7 @@ const SizeInfoScreen: React.FC = () => {
     return `photo_${year}${month}${day}T${hours}${minutes}${seconds}${milliseconds}Z.jpg`;
   };
 
+  // **이미지 업로드 함수**
   const handleUploadImage = async () => {
     setIsUploading(true);
     const formData = new FormData();
