@@ -19,41 +19,59 @@ type SizeInfoScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Siz
 const SizeInfoScreen: React.FC = () => {
   const route = useRoute<SizeInfoScreenRouteProp>();
   const navigation = useNavigation<SizeInfoScreenNavigationProp>();
-  const { userEmail } = useUser(); // 유저 이메일 가져오기
-  const { photoUri } = route.params; // 전달된 이미지 URI
-  const [isUploading, setIsUploading] = useState(false); // 업로드 로딩 상태
+  const { userEmail } = useUser();
+  const { photoUri } = route.params;
+  const [isUploading, setIsUploading] = useState(false);
 
-  // 이미지 업로드 핸들러
+  const generateTimestampedName = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+    return `photo_${year}${month}${day}T${hours}${minutes}${seconds}${milliseconds}Z.jpg`;
+  };
+
   const handleUploadImage = async () => {
     setIsUploading(true);
     const formData = new FormData();
-    const imageName = photoUri.split('/').pop(); // 이미지 이름 추출
+    const timestampedName = generateTimestampedName();
 
     formData.append('userEmail', userEmail);
     formData.append('image', {
       uri: photoUri,
       type: 'image/jpeg',
-      name: imageName,
+      name: timestampedName,
     });
 
     try {
+      console.log('Uploading image:', timestampedName);
+
       const response = await fetch(
         'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
         {
           method: 'POST',
           body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         }
       );
 
       const result = await response.json();
+      console.log('Upload result:', result);
 
       if (response.ok) {
         Alert.alert('성공', '사진이 핏 보관함에 저장되었습니다.');
-        navigation.navigate('Fit_box'); // Fit_box 페이지로 이동
+        navigation.navigate('Fit_box', { fromUpload: true });
       } else {
-        Alert.alert('업로드 실패', result.message);
+        Alert.alert('업로드 실패', result.message || '업로드에 실패했습니다.');
       }
     } catch (error) {
+      console.error('Upload error:', error);
       Alert.alert('오류', '사진 업로드 중 오류가 발생했습니다.');
     } finally {
       setIsUploading(false);
@@ -61,7 +79,7 @@ const SizeInfoScreen: React.FC = () => {
   };
 
   const goToWritePage = () => {
-    navigation.navigate('WritePage', { selectedImageUri: photoUri }); // WritePage로 이동
+    navigation.navigate('WritePage', { selectedImageUri: photoUri });
   };
 
   return (

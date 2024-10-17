@@ -1,126 +1,96 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
   Image,
   Dimensions,
-  ScrollView,
   Modal,
   TouchableOpacity,
   Text,
   Alert,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {useUser} from '../UserContext'; // 유저 이메일 정보 가져오기
-import {RootStackParamList} from '../../../../../App';
+import { useNavigation, useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useUser } from '../UserContext';
+import { RootStackParamList } from '../../../../../App';
 import path from 'path';
-import {DATA_URL} from '../../Constant';
-import {reqGet} from '../../utills/Request';
+import { DATA_URL } from '../../Constant';
+import { reqGet } from '../../utills/Request';
 
 type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
+type FitBoxRouteProp = RouteProp<RootStackParamList, 'Fit_box'>;
 
 const Fit_box: React.FC = () => {
-  const {userEmail} = useUser(); // 유저 이메일 가져오기
+  const { userEmail } = useUser();
   const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation<FitBoxNavigationProp>();
+  const route = useRoute<FitBoxRouteProp>();
+  const isFromUpload = route.params?.fromUpload ?? false;
+  const backPressed = useRef(false); // 뒤로가기 중복 방지
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (userEmail) {
+        await fetchImagesFromBackend();
+      }
+    };
+    fetchImages();
+  }, [userEmail]);
 
   const fetchImagesFromBackend = async () => {
     try {
       const response = await reqGet(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail!!),
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail!!)
       );
       const data = await response;
 
-      console.log('Fetched data:', data);
-
       if (Array.isArray(data)) {
-        // 타임스탬프 추출 후 최신순 정렬
-        const sortedData = data.sort((a, b) => {
-          const extractTimestamp = (fitStorageImgURL: string) => {
-            const match = fitStorageImgURL.match(
-              /photo_(\d{8}T\d{6}\d{3}Z)\.jpg$/,
-            );
-            if (match) {
-              const timestamp = match[1];
-              // 날짜 형식을 변환하여 new Date()가 인식할 수 있도록 변경
-              const formattedTimestamp = `${timestamp.slice(
-                0,
-                4,
-              )}-${timestamp.slice(4, 6)}-${timestamp.slice(
-                6,
-                8,
-              )}T${timestamp.slice(9, 11)}:${timestamp.slice(
-                11,
-                13,
-              )}:${timestamp.slice(13, 15)}Z`;
-              console.log(`Formatted timestamp: ${formattedTimestamp}`);
-              return new Date(formattedTimestamp).getTime();
-            }
-            return 0;
-          };
+        console.log('Fetched Data:', data);
 
-          const timeA = extractTimestamp(a.fitStorageImg);
-          const timeB = extractTimestamp(b.fitStorageImg);
+        const sortedData = data
+          .map(item => ({
+            ...item,
+            timestamp: extractTimestamp(item.fitStorageImg),
+          }))
+          .sort((a, b) => b.timestamp - a.timestamp); // 최신순 정렬
 
-          console.log(`Time A: ${timeA}, Time B: ${timeB}`); // 타임스탬프 확인
-          return timeB - timeA; // 최신순 정렬
-        });
-
-        // 정렬된 데이터를 기반으로 이미지 URL 생성
         const imageUrls = sortedData.map(item =>
-          path.join(
-            DATA_URL,
-            'api',
-            'img',
-            'imgserve',
-            'fitstorageimg',
-            item.fitStorageImg!!,
-          ),
+          encodeURI(
+            path.join(
+              DATA_URL,
+              'api',
+              'img',
+              'imgserve',
+              'fitstorageimg',
+              item.fitStorageImg!!
+            )
+          )
         );
-        console.log('Sorted images:', imageUrls); // 정렬된 이미지 URL 확인
+
+        console.log('Sorted Image URLs:', imageUrls);
         setImages(imageUrls);
       }
     } catch (error) {
       console.error('Error fetching images:', error);
       Alert.alert('Error', 'Failed to fetch images.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchImagesFromBackend(); // 컴포넌트 마운트 시 이미지 목록 불러오기
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const extractTimestamp = (imageName: string): number => {
+    const match = imageName.match(/^photo_(\d{8}T\d{6}\d{3}Z)\.jpg$/);
 
-  const deleteImage = async (imageUri: string) => {
-    try {
-      const imageName = imageUri.split('/').pop(); // 이미지 이름만 추출
-      const response = await fetch(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'delete', imageName!!),
-        {
-          method: 'DELETE',
-          headers: {
-            Accept: 'application/json',
-          },
-        },
-      );
-
-      const result = await response.json();
-
-      if (response.ok && result.message.includes('이미지 삭제 성공')) {
-        setImages(images.filter(image => image !== imageUri));
-        Alert.alert('Success', 'Image deleted successfully.');
-      } else if (response.status === 404) {
-        Alert.alert('Error', 'Image not found.');
-      } else {
-        throw new Error(result.message || 'Failed to delete image.');
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error deleting image:', errorMessage);
-      Alert.alert('Error', `Failed to delete image: ${errorMessage}`);
+    if (match) {
+      console.log(`Extracted Timestamp: ${match[1]}`);
+      return new Date(match[1]).getTime(); // 타임스탬프 반환
+    } else {
+      console.warn(`Invalid image format: ${imageName}`);
+      return 0; // 형식이 맞지 않는 경우 0 반환
     }
   };
 
@@ -128,55 +98,80 @@ const Fit_box: React.FC = () => {
     setSelectedImage(imageUri);
   };
 
-  const navigateToReviewPage = (imageUri: string) => {
-    navigation.navigate({
-      name: 'WritePage',
-      params: {selectedImageUri: imageUri}, // 선택한 이미지 URI를 params로 전달
-    });
+  const deleteImage = async (imageUri: string) => {
+    try {
+      const imageName = imageUri.split('/').pop();
+      const response = await fetch(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'delete', imageName!!),
+        { method: 'DELETE', headers: { Accept: 'application/json' } }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.message.includes('이미지 삭제 성공')) {
+        setImages(images.filter(image => image !== imageUri));
+        Alert.alert('Success', 'Image deleted successfully.');
+      } else {
+        Alert.alert('Error', result.message || 'Failed to delete image.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete image.');
+    } finally {
+      setSelectedImage(null);
+    }
   };
 
-  return (
-    <ScrollView
-      style={styles.scrollContainer}
-      contentContainerStyle={styles.contentContainer}>
-      <View style={styles.row}>
-        {images.map((imageUri, index) => (
-          <TouchableOpacity key={index} onPress={() => selectImage(imageUri)}>
-            <Image source={{uri: imageUri}} style={styles.image} />
+  const navigateToReviewPage = (imageUri: string) => {
+    navigation.navigate('WritePage', { selectedImageUri: imageUri });
+  };
+
+  return isLoading ? (
+    <ActivityIndicator size="large" color="#0000ff" style={{ flex: 1 }} />
+  ) : (
+    <View style={styles.container}>
+      <FlatList
+        contentContainerStyle={styles.flatListContent}
+        data={images}
+        keyExtractor={(item, index) => index.toString()}
+        numColumns={2}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            onPress={() => selectImage(item)}
+            style={[
+              styles.imageWrapper,
+              index % 2 === 0 ? styles.leftAligned : {},
+            ]}
+          >
+            <Image source={{ uri: item }} style={styles.image} />
           </TouchableOpacity>
-        ))}
-      </View>
+        )}
+      />
+
       {selectedImage && (
-        <Modal
-          visible={true}
-          transparent={true}
-          onRequestClose={() => setSelectedImage(null)}>
+        <Modal visible transparent onRequestClose={() => setSelectedImage(null)}>
           <View style={styles.modalContainer}>
-            <Image source={{uri: selectedImage}} style={styles.fullImage} />
+            <Image source={{ uri: selectedImage }} style={styles.fullImage} />
             <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setSelectedImage(null)}>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedImage(null)}>
                 <Text style={styles.closeButtonText}>닫기</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => {
-                  deleteImage(selectedImage);
-                  setSelectedImage(null);
-                }}>
+                onPress={() => deleteImage(selectedImage)}
+              >
                 <Text style={styles.deleteButtonText}>삭제</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.reviewButton}
-                onPress={() => navigateToReviewPage(selectedImage)}>
+                onPress={() => navigateToReviewPage(selectedImage)}
+              >
                 <Text style={styles.reviewButtonText}>리뷰 작성</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
       )}
-    </ScrollView>
+    </View>
   );
 };
 
@@ -184,23 +179,28 @@ const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  contentContainer: {
-    padding: 10,
+  flatListContent: {
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingVertical: 20,
   },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  imageWrapper: {
+    margin: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: screenWidth * 0.45,
+  },
+  leftAligned: {
+    alignSelf: 'flex-start',
   },
   image: {
     width: screenWidth * 0.45,
     height: screenWidth * 0.45,
     borderRadius: 10,
-    marginBottom: 10,
   },
   modalContainer: {
     flex: 1,
