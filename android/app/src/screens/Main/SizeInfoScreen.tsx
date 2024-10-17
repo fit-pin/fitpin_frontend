@@ -6,7 +6,9 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   Alert, 
-  ActivityIndicator 
+  ActivityIndicator, 
+  LayoutChangeEvent ,
+  Dimensions
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -22,8 +24,8 @@ const SizeInfoScreen: React.FC = () => {
   const { userEmail } = useUser();
   const { photoUri } = route.params;
   const [isUploading, setIsUploading] = useState(false);
+  const [imageWidth, setImageWidth] = useState(300); // 초기 값 설정
 
-  // **타임스탬프 기반 파일명 생성 함수**
   const generateTimestampedName = (): string => {
     const now = new Date();
     const year = now.getFullYear();
@@ -36,7 +38,6 @@ const SizeInfoScreen: React.FC = () => {
     return `photo_${year}${month}${day}T${hours}${minutes}${seconds}${milliseconds}Z.jpg`;
   };
 
-  // **이미지 업로드 함수**
   const handleUploadImage = async () => {
     setIsUploading(true);
     const formData = new FormData();
@@ -84,64 +85,93 @@ const SizeInfoScreen: React.FC = () => {
     navigation.navigate('WritePage', { selectedImageUri: photoUri });
   };
 
+  const handleImageLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    setImageWidth(width); // 이미지의 실제 가로 길이 저장
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>사이즈 정보를 알려드릴게요</Text>
 
       <View style={styles.imageContainer}>
-        <Image source={{ uri: photoUri }} style={styles.image} />
+        <Image 
+          source={{ uri: photoUri }} 
+          style={styles.image} 
+          onLayout={handleImageLayout} 
+        />
       </View>
 
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={handleUploadImage} 
-        disabled={isUploading}
-      >
-        {isUploading ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>사진 보관하기</Text>
-        )}
-      </TouchableOpacity>
+      <View style={[styles.buttonContainer, { width: imageWidth }]}>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleUploadImage} 
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>사진 보관하기</Text>
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={goToWritePage}>
-        <Text style={styles.buttonText}>다른 사람들과 사진 공유하기 →</Text>
-      </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={goToWritePage}
+        >
+          <Text style={styles.buttonText}>다른 사람들과 사진 공유하기 →</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: width * 0.03,
     backgroundColor: '#fff',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   title: {
-    textAlign: 'center',
-    fontSize: 18,
+    textAlign: 'left',
+    fontSize: width * 0.05,
     fontWeight: 'bold',
-    marginVertical: 20,
+    color: '#000',
+    alignSelf: 'flex-start',
+    marginLeft: width * 0.08,
+    marginBottom: height * 0.02,
   },
   imageContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: height * 0.02,
   },
   image: {
-    width: 300,
-    height: 400,
+    width: width * 0.9,
+    height: height * 0.5,
     resizeMode: 'contain',
+    marginBottom: height * 0.02,
+  },
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'center',
   },
   button: {
     backgroundColor: '#000',
-    paddingVertical: 15,
-    marginVertical: 10,
-    borderRadius: 8,
+    paddingVertical: height * 0.018,
+    marginVertical: height * 0.01,
+    borderRadius: 20,
     alignItems: 'center',
+    marginBottom: height * 0.015,
+    width: width * 0.8,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: width * 0.042,
+    fontWeight: 'bold',
   },
 });
 
