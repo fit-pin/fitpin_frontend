@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -38,7 +38,6 @@ const Fit_box: React.FC = () => {
 
   const fetchImagesFromBackend = async () => {
     try {
-      // 중복된 슬래시 문제 해결
       const url = `${DATA_URL}/api/fitStorageImages/user/${userEmail}`.replace(/([^:]\/)\/+/g, "$1");
       console.log('API 호출 URL:', url);
 
@@ -52,9 +51,10 @@ const Fit_box: React.FC = () => {
       const data = await response.json();
 
       if (Array.isArray(data) && data.length > 0) {
-        const imageUrls = data.map(
-          (item) => `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
+        const imageUrls = data.map((item) =>
+          `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`.replace(/([^:]\/)\/+/g, "$1")
         );
+        console.log('Fetched Image URLs:', imageUrls);
         setImages(imageUrls);
       } else {
         Alert.alert('알림', '저장된 사진이 없습니다.');
@@ -112,7 +112,12 @@ const Fit_box: React.FC = () => {
               index % 2 === 0 ? styles.leftAligned : {},
             ]}
           >
-            <Image source={{ uri: item }} style={styles.image} />
+            <Image
+              source={{ uri: item }}
+              style={styles.image}
+              resizeMode="cover"
+              onError={(e) => console.error('Image Load Error:', e.nativeEvent.error)}
+            />
           </TouchableOpacity>
         )}
       />
