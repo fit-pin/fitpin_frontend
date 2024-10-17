@@ -84,22 +84,30 @@ const Fit_box: React.FC = () => {
   const deleteImage = async (imageUri: string) => {
     try {
       const imageName = imageUri.split('/').pop();
-      const response = await fetch(
-        `${DATA_URL}/api/fitStorageImages/delete/${imageName}`,
-        { method: 'DELETE' }
-      );
+      console.log('삭제 요청 이미지 이름:', imageName);
+
+      const url = `${DATA_URL}/api/fitStorageImages/delete/${imageName}`.replace(/([^:]\/)\/+/g, "$1");
+      console.log('API 호출 URL:', url);
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       const result = await response.json();
+      console.log('삭제 API 응답:', result);
 
       if (response.ok) {
-        setImages(images.filter((image) => image !== imageUri));
+        setImages((prevImages) => prevImages.filter((image) => image !== imageUri));
         Alert.alert('성공', '이미지가 삭제되었습니다.');
+      } else if (response.status === 404) {
+        Alert.alert('오류', '이미지를 찾을 수 없습니다.');
       } else {
-        Alert.alert('Error', result.message || '이미지 삭제 실패');
+        Alert.alert('오류', result.message || '이미지 삭제 실패');
       }
     } catch (error) {
       console.error('Error deleting image:', error);
-      Alert.alert('Error', '이미지 삭제 중 오류가 발생했습니다.');
+      Alert.alert('오류', '이미지 삭제 중 오류가 발생했습니다.');
     } finally {
       setSelectedImage(null);
     }
