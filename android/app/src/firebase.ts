@@ -1,5 +1,6 @@
-import {initializeApp} from 'firebase/app';
-import {getAuth} from 'firebase/auth';
+// firebase.ts
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDuRjZrFgIDXPJ0etON9fhOOdPhk4crhKY',
@@ -10,10 +11,8 @@ const firebaseConfig = {
   appId: '1:943488852904:android:b1411da16fd88dd99b739d',
 };
 
-// Firebase 초기화
-const app = initializeApp(firebaseConfig);
-
-// Auth 초기화
+// 이미 초기화된 앱이 있는지 확인 후 가져오기
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
-export {auth};
+export { auth };
