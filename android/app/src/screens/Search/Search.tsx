@@ -388,18 +388,20 @@ const styles = StyleSheet.create({
   },
   recommendedSearchWrapper: {
     marginBottom: '3%',
+    paddingHorizontal: '5%',
   },
   recommendedSearchContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
   },
   recommendedSearchContent: {
-    paddingHorizontal: '5%',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
   },
   recommendItem: {
     marginRight: 10,
     paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#A69E9E',
