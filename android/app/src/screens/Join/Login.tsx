@@ -79,7 +79,7 @@ const Login = () => {
         getStyleInfo();
 
         // 로컬에 저장
-        Emailcheck();
+        saveUserAuth();
       } else if (res.message) {
         Alert.alert('응답', res.message);
       } else {
@@ -118,7 +118,7 @@ const Login = () => {
     }
   };
 
-  const Emailcheck = async () => {
+  const saveUserAuth = async () => {
     try {
       await setItem('userEmail', userEmail);
       await setItem('userPwd', userPwd);

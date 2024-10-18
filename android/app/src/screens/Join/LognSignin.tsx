@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {useUser} from '../UserContext';
+import {setItem, useUser} from '../UserContext';
 import {reqPost} from '../../utills/Request';
 import {DATA_URL} from '../../Constant';
 import path from 'path';
@@ -43,6 +43,17 @@ const LognSignin = () => {
   const handleLoginPress = () => {
     navigation.navigate('Login');
   };
+
+  // 구글, 카카오 로그인 저장
+  const saveUserAuth = async (userEmail: string, userPwd: string) => {
+    try {
+      await setItem('userEmail', userEmail);
+      await setItem('userPwd', userPwd);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   // 구글 로그인
   const handleGoogleSignin = async () => {
     try {
@@ -80,6 +91,9 @@ const LognSignin = () => {
           index: 0,
           routes: [{name: 'Main'}],
         });
+
+        // 로컬로 저장
+        saveUserAuth(loginBody.userEmail, loginBody.userPwd);
         return;
       } else if (loginRes.message) {
         Alert.alert('오류', loginRes.message);
@@ -164,6 +178,9 @@ const LognSignin = () => {
           index: 0,
           routes: [{name: 'Main'}],
         });
+
+        // 로컬로 저장
+        saveUserAuth(loginBody.userEmail, loginBody.userPwd);
         return;
       } else if (loginRes.message) {
         Alert.alert('오류', loginRes.message);
