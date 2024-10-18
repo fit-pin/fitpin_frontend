@@ -21,6 +21,7 @@ import {DATA_URL} from '../../Constant.ts';
 import path from 'path';
 import {reqGet} from '../../utills/Request.ts';
 import {useUser} from '../UserContext.tsx';
+import {reqPost} from '../../utills/Request.ts';
 
 type OrderNavigationProp = StackNavigationProp<RootStackParamList, 'Order'>;
 type OrderRouteProp = RouteProp<RootStackParamList, 'Order'>;
@@ -142,6 +143,8 @@ const Order = () => {
           console.error('Failed to open URL:', err);
           Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
         });
+        // 결제 성공 시 주문 정보 저장
+        await postOrder(); // 주문 정보를 DB에 저장하는 함수 호출
 
         // 결제 성공 시
         navigation.navigate('OrderComplete');
@@ -152,6 +155,47 @@ const Order = () => {
     } catch (error) {
       console.error('결제 요청 중 오류 발생:', error);
       Alert.alert('결제 실패', '결제 요청 중 오류가 발생했습니다.');
+    }
+  };
+
+  const postOrder = async () => {
+    if (!cartItems.length) {
+      console.error('장바구니가 비어 있습니다.');
+      return;
+    }
+
+    try {
+      if (userEmail) {
+        const data = {
+          itemKey: cartItems[0].itemKey, // 상품 키
+          userKey: '186', // 회원 고유번호 (예: 회원 정보에서 가져옴)
+          userName: buyerName, // 구매자 이름
+          userAddr: address, // 배송지 주소
+          userNumber: buyerTel, // 구매자 전화번호
+          itemName: cartItems[0].itemName, // 상품명
+          itemSize: cartItems[0].itemSize, // 상품 사이즈
+          itemPrice: cartItems[0].itemPrice, // 상품 가격
+          itemTotal: totalPrice, // 총 결제 금액
+          pitPrice: isChecked ? 20000 : 0, // 맞춤비용 (선택 사항)
+          pcs: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
+        };
+
+        // API 호출: 주문 정보 전송
+        const response = await reqPost(
+          path.join(DATA_URL, 'api', 'order', 'post_order'), // API URL
+          data, // 전송할 데이터
+        );
+
+        if (response) {
+          // 주문 완료 알림
+          Alert.alert('주문 완료', '주문이 성공적으로 등록되었습니다.');
+        } else {
+          // 주문 실패 시 오류 출력
+          console.error('주문 등록에 실패했습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('주문 등록 중 오류가 발생했습니다:', error);
     }
   };
 

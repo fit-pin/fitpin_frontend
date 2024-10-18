@@ -12,6 +12,9 @@ import {RootStackParamList} from '../../../../../App';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import {setItem, useUser} from '../UserContext.tsx';
+import {DATA_URL} from '../../Constant.ts';
+import path from 'path';
+import {reqPost} from '../../utills/Request.ts';
 
 type MypageNavigationProp = StackNavigationProp<RootStackParamList, 'Mypage'>;
 
@@ -36,14 +39,14 @@ const Mypage: React.FC = () => {
         },
         {
           text: '확인',
-          onPress: workLogout,
+          onPress: () => workLogout(), // 함수 호출을 함수로 래핑
         },
       ],
       {cancelable: false},
     );
   };
 
-  const handleWithdrawal = () => {
+  const handleWithdrawal = async () => {
     Alert.alert(
       '계정 삭제',
       '정말 삭제하시겠습니까?',
@@ -54,7 +57,28 @@ const Mypage: React.FC = () => {
         },
         {
           text: '확인',
-          onPress: () => console.log('Withdrawal confirmed'),
+          onPress: async () => {
+            try {
+              const response = await reqPost(
+                path.join(DATA_URL, 'api', 'members', 'delete_id'),
+                {userEmail},
+              );
+
+              if (response) {
+                // 탈퇴 완료 알림
+                Alert.alert(
+                  '탈퇴 완료',
+                  '회원탈퇴가 성공적으로 완료되었습니다.',
+                );
+
+                await workLogout();
+              } else {
+                console.error('회원탈퇴에 실패했습니다.');
+              }
+            } catch (error) {
+              console.error('회원탈퇴 중 오류가 발생했습니다:', error);
+            }
+          },
         },
       ],
       {cancelable: false},

@@ -86,6 +86,11 @@ const ProductPage = () => {
   const handleIncrementSleeve = () => setSleeve(sleeve + 1);
   const handleDecrementSleeve = () => sleeve > 0 && setSleeve(sleeve - 1);
   const handleSizeSelect = (size: string) => setSelectedSize(size);
+  const [qty, setQty] = useState(1);
+
+  // 수량
+  const handleIncrementQty = () => setQty(qty + 1);
+  const handleDecrementQty = () => qty > 1 && setQty(qty - 1);
 
   // 모달 열기
   const openModal = () => {
@@ -110,6 +115,7 @@ const ProductPage = () => {
       itemType: productInfo.itemType,
       itemPrice: productInfo.itemPrice,
       pit: 1,
+      qty: qty,
     };
 
     try {
@@ -513,6 +519,23 @@ const ProductPage = () => {
         )}
       </View>
 
+      <View style={styles.quantityContainer}>
+        <Text style={styles.quantityLabel}>수량:</Text>
+        <View style={styles.quantityControls}>
+          <TouchableOpacity
+            onPress={handleDecrementQty}
+            style={styles.quantityButton}>
+            <Text style={styles.quantityButtonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{qty}</Text>
+          <TouchableOpacity
+            onPress={handleIncrementQty}
+            style={styles.quantityButton}>
+            <Text style={styles.quantityButtonText2}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* 아래 버튼 */}
       <View style={styles.bottomSection}>
         <View style={styles.buttonsContainer}>
@@ -521,10 +544,7 @@ const ProductPage = () => {
             onPress={handleAddToCart}>
             <Text style={styles.cartButtonText}>장바구니 담기</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.buyButton}
-            onPress={handlePurchase}
-            disabled={!selectedSize}>
+          <TouchableOpacity style={styles.buyButton} onPress={handlePurchase}>
             <Text style={styles.buyButtonText}>바로 구매</Text>
           </TouchableOpacity>
         </View>
@@ -857,6 +877,39 @@ const styles = StyleSheet.create({
   sizeChartCell: {
     flex: 1,
     textAlign: 'center',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  quantityLabel: {
+    fontSize: 18,
+    color: '#000',
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityButton: {
+    padding: 5,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  quantityText: {
+    width: 30,
+    textAlign: 'center',
+    fontSize: 20,
+    color: '#000',
+  },
+  quantityButtonText: {
+    fontSize: 20,
+    color: '#000',
+  },
+  quantityButtonText2: {
+    fontSize: 20,
+    color: '#000',
   },
 });
 
