@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import {
   useNavigation,
@@ -14,9 +15,9 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {RootStackParamList} from '../../../../../App';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../../App';
+import { useUser } from '../UserContext';  // 유저 정보 가져오는 Context 사용
 
 type WriteCommentRouteProp = RouteProp<RootStackParamList, 'WriteComment'>;
 type WriteCommentNavigationProp = StackNavigationProp<
@@ -25,70 +26,92 @@ type WriteCommentNavigationProp = StackNavigationProp<
 >;
 
 interface Review {
-  imageUrl: string;
-  brandName: string;
-  productName: string;
-  size: string | null;
-  fit: string | null;
-  reviewText: string;
-  date: string;
+  userEmail: string;
+  fitStorageImg: string;
+  fitComment: string;
+  itemType: string;
+  itemBrand: string;
+  itemSize: string;
+  option: string;
 }
 
 const WriteComment: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const navigation = useNavigation<WriteCommentNavigationProp>();
-  const route = useRoute<WriteCommentRouteProp>();
+  const { userEmail } = useUser();  // 로그인한 유저의 이메일 가져옴
 
+  // 서버에서 리뷰 데이터 가져오기
   const fetchReviews = async () => {
-    const storedReviews = await AsyncStorage.getItem('reviews');
-    if (storedReviews) {
-      const parsedReviews = JSON.parse(storedReviews) as Review[];
-      parsedReviews.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    try {
+      const response = await fetch(
+        `http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`
       );
-      setReviews(parsedReviews);
+
+      if (response.ok) {
+        const data = await response.json();
+        setReviews(data);
+      } else {
+        Alert.alert('오류', '리뷰를 불러오는 데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('리뷰를 불러오는 중 오류 발생:', error);
+      Alert.alert('오류', '서버와의 연결에 문제가 있습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchReviews();
+    fetchReviews();  // 컴포넌트가 마운트될 때 리뷰를 가져옴
   }, []);
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchReviews(); // 페이지가 포커스될 때마다 리뷰 데이터를 다시 불러옴
+      fetchReviews();  // 페이지 포커스 시 리뷰 데이터 갱신
 
       return () => {
-        if (route.params?.fromWritePage) {
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'Comment'}],
-          });
-        }
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Comment' }],
+        });
       };
-    }, [navigation, route.params?.fromWritePage]),
+    }, [navigation])
   );
 
   const handleReviewPress = (review: Review) => {
-    navigation.navigate('ReviewDetail', {review});
+    navigation.navigate('ReviewDetail', { review });
   };
 
   return (
     <ScrollView style={styles.container}>
-      {reviews.map((review, index) => (
-        <TouchableOpacity key={index} onPress={() => handleReviewPress(review)}>
-          <View style={styles.commentContainer}>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.title}>{review.productName}</Text>
-              <Text style={styles.size}>{review.size}</Text>
-              <Text style={styles.comment}>{review.reviewText}</Text>
+      {loading ? (
+        <Text>로딩 중...</Text>
+      ) : reviews.length > 0 ? (
+        reviews.map((review, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => handleReviewPress(review)}>
+            <View style={styles.commentContainer}>
+              <View style={styles.detailsContainer}>
+                <Text style={styles.title}>{review.itemBrand}</Text>
+                <Text style={styles.size}>{review.itemSize}</Text>
+                <Text style={styles.comment}>{review.fitComment}</Text>
+              </View>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{
+                    uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`,
+                  }}
+                  style={styles.image}
+                />
+              </View>
             </View>
-            <View style={styles.imageContainer}>
-              <Image source={{uri: review.imageUrl}} style={styles.image} />
-            </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text>작성된 리뷰가 없습니다.</Text>
+      )}
     </ScrollView>
   );
 };
