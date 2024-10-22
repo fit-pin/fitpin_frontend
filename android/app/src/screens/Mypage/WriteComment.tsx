@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
   View,
-  Image,
-  Dimensions,
+  Text,
   ScrollView,
   TouchableOpacity,
+  Image,
+  StyleSheet,
+  Dimensions,
   Alert,
 } from 'react-native';
 import {
   useNavigation,
   useRoute,
   RouteProp,
-  useFocusEffect,
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext';  // 유저 정보 가져오는 Context 사용
+import { useUser } from '../UserContext';
 
 type WriteCommentRouteProp = RouteProp<RootStackParamList, 'WriteComment'>;
 type WriteCommentNavigationProp = StackNavigationProp<
@@ -37,57 +36,39 @@ interface Review {
 
 const WriteComment: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const navigation = useNavigation<WriteCommentNavigationProp>();
-  const { userEmail } = useUser();  // 로그인한 유저의 이메일 가져옴
+  const { userEmail } = useUser();
 
-  // 서버에서 리뷰 데이터 가져오기
+  // 리뷰 목록 불러오기
   const fetchReviews = async () => {
     try {
       const response = await fetch(
         `http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`
       );
-
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
+      if (Array.isArray(data)) {
         setReviews(data);
       } else {
-        Alert.alert('오류', '리뷰를 불러오는 데 실패했습니다.');
+        Alert.alert('오류', '리뷰 데이터를 불러오지 못했습니다.');
       }
     } catch (error) {
-      console.error('리뷰를 불러오는 중 오류 발생:', error);
-      Alert.alert('오류', '서버와의 연결에 문제가 있습니다.');
-    } finally {
-      setLoading(false);
+      console.error('리뷰 로드 오류:', error);
+      Alert.alert('오류', '리뷰를 불러오는 중 문제가 발생했습니다.');
     }
   };
 
   useEffect(() => {
-    fetchReviews();  // 컴포넌트가 마운트될 때 리뷰를 가져옴
+    fetchReviews();
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchReviews();  // 페이지 포커스 시 리뷰 데이터 갱신
-
-      return () => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Comment' }],
-        });
-      };
-    }, [navigation])
-  );
-
+  // 리뷰 클릭 시 상세 페이지로 이동하는 함수
   const handleReviewPress = (review: Review) => {
     navigation.navigate('ReviewDetail', { review });
   };
 
   return (
     <ScrollView style={styles.container}>
-      {loading ? (
-        <Text>로딩 중...</Text>
-      ) : reviews.length > 0 ? (
+      {reviews.length > 0 ? (
         reviews.map((review, index) => (
           <TouchableOpacity
             key={index}
@@ -110,7 +91,7 @@ const WriteComment: React.FC = () => {
           </TouchableOpacity>
         ))
       ) : (
-        <Text>작성된 리뷰가 없습니다.</Text>
+        <Text style={styles.noReviewText}>작성된 리뷰가 없습니다.</Text>
       )}
     </ScrollView>
   );
@@ -141,12 +122,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#000',
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 5,
   },
   size: {
     fontSize: 17,
     color: '#767676',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   comment: {
     fontSize: 15,
@@ -166,6 +147,12 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
     borderRadius: 10,
+  },
+  noReviewText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#999',
+    marginTop: 20,
   },
 });
 
