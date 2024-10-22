@@ -29,13 +29,13 @@ type ReviewDetailNavigationProp = StackNavigationProp<
 >;
 
 interface Review {
-  imageUrl: string;
-  brandName: string;
-  productName: string;
-  size: string | null;
-  fit: string | null;
-  reviewText: string;
-  category: string;
+  userEmail: string;
+  fitStorageImg: string;
+  fitComment: string;
+  itemType: string;
+  itemBrand: string;
+  itemSize: string;
+  option: string;
   date: string;
 }
 
@@ -58,10 +58,10 @@ const ReviewDetail: React.FC = () => {
   }, [editMode]);
 
   useEffect(() => {
-    console.log('Current Image URL:', review.imageUrl);
+    console.log('Current Image URL:', review.fitStorageImg);
     setImageLoadError(false);
     setForceUpdateKey(prevKey => prevKey + 1); // 이미지 URL 변경 시 강제 렌더링
-  }, [review.imageUrl]);
+  }, [review.fitStorageImg]);
 
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
@@ -98,7 +98,7 @@ const ReviewDetail: React.FC = () => {
     console.log('Selected Image URL:', imageUri);
     setReview(prevReview => ({
       ...prevReview,
-      imageUrl: imageUri,
+      fitStorageImg: imageUri, // 올바른 필드 이름 사용
     }));
     setImageLoadError(false);
     setIsModalVisible(false);
@@ -152,9 +152,9 @@ const ReviewDetail: React.FC = () => {
       <View style={styles.imageContainer}>
         {editMode ? (
           <TouchableOpacity onPress={openImageSelector}>
-            {review.imageUrl && !imageLoadError ? (
+            {review.fitStorageImg && !imageLoadError ? (
               <Image
-                source={{uri: review.imageUrl}}
+                source={{uri: review.fitStorageImg}}
                 style={styles.selectedImage}
                 key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
                 resizeMode="cover"
@@ -172,9 +172,9 @@ const ReviewDetail: React.FC = () => {
               </Text>
             )}
           </TouchableOpacity>
-        ) : review.imageUrl && !imageLoadError ? (
+        ) : review.fitStorageImg && !imageLoadError ? (
           <Image
-            source={{uri: review.imageUrl}}
+            source={{uri: review.fitStorageImg}}
             style={styles.selectedImage}
             key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
             resizeMode="cover"
@@ -195,7 +195,7 @@ const ReviewDetail: React.FC = () => {
         <Text style={styles.label}>카테고리</Text>
         {editMode ? (
           <RNPickerSelect
-            onValueChange={value => setReview({...review, category: value})}
+            onValueChange={value => setReview({...review, itemType: value})}
             items={[
               {label: '반팔', value: '반팔'},
               {label: '긴팔', value: '긴팔'},
@@ -211,10 +211,10 @@ const ReviewDetail: React.FC = () => {
               {label: '조끼 원피스', value: '조끼 원피스'},
               {label: '슬링 원피스', value: '슬링 원피스'},
             ]}
-            value={review.category}
+            value={review.itemType}
           />
         ) : (
-          <Text style={styles.categoryText}>{review.category}</Text>
+          <Text style={styles.categoryText}>{review.itemType}</Text>
         )}
       </View>
 
@@ -225,9 +225,9 @@ const ReviewDetail: React.FC = () => {
           placeholder="브랜드 이름을 적어주세요📝"
           placeholderTextColor="#999"
           style={styles.input}
-          value={review.brandName}
+          value={review.itemBrand}
           editable={editMode}
-          onChangeText={text => setReview({...review, brandName: text})}
+          onChangeText={text => setReview({...review, itemBrand: text})}
         />
       </View>
 
@@ -238,9 +238,9 @@ const ReviewDetail: React.FC = () => {
           placeholder="제품명을 적어주세요📝"
           placeholderTextColor="#999"
           style={styles.input}
-          value={review.productName}
+          value={review.itemBrand} // ProductName
           editable={editMode}
-          onChangeText={text => setReview({...review, productName: text})}
+          onChangeText={text => setReview({...review, itemBrand: text})} // ProductName
         />
       </View>
 
@@ -253,14 +253,14 @@ const ReviewDetail: React.FC = () => {
               key={size}
               style={[
                 styles.sizeButton,
-                review.size === size && styles.selectedSizeButton,
+                review.itemSize === size && styles.selectedSizeButton,
               ]}
               disabled={!editMode}
-              onPress={() => setReview({...review, size})}>
+              onPress={() => setReview({...review, itemSize: size})}>
               <Text
                 style={[
                   styles.sizeButtonText,
-                  review.size === size && styles.selectedSizeButtonText,
+                  review.itemSize === size && styles.selectedSizeButtonText,
                 ]}>
                 {size}
               </Text>
@@ -277,14 +277,14 @@ const ReviewDetail: React.FC = () => {
             key={index}
             style={[
               styles.fitButton,
-              review.fit === fit && styles.selectedFitButton,
+              review.option === fit && styles.selectedFitButton,
             ]}
             disabled={!editMode}
-            onPress={() => setReview({...review, fit})}>
+            onPress={() => setReview({...review, option: fit})}>
             <Text
               style={[
                 styles.fitButtonText,
-                review.fit === fit && styles.selectedFitButtonText,
+                review.option === fit && styles.selectedFitButtonText,
               ]}>
               {fit}
             </Text>
@@ -298,9 +298,9 @@ const ReviewDetail: React.FC = () => {
         placeholder="한줄평을 적어주세요"
         placeholderTextColor="#999"
         style={styles.reviewInput}
-        value={review.reviewText}
+        value={review.fitComment}
         editable={editMode}
-        onChangeText={text => setReview({...review, reviewText: text})}
+        onChangeText={text => setReview({...review, fitComment: text})}
       />
 
       <TouchableOpacity
