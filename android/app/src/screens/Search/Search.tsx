@@ -14,6 +14,14 @@ import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {DATA_URL} from '../../Constant';
 import {reqGet} from '../../utills/Request';
 import path from 'path';
+import {RootStackParamList} from '../../../../../App';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+
+type ProductPageoNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Search'
+>;
 
 interface Item {
   itemKey: number;
@@ -36,12 +44,19 @@ interface RecommendResponse {
   recommendations: string[];
 }
 
+// 검색 결과를 보여주는 함수 수정: 부분 일치 검색을 위해 filter 사용
 const fetchSearchResults = async (searchWord: string): Promise<Item[]> => {
   try {
     const response: SearchResponse = await reqGet(
       path.join(DATA_URL, 'api', 'item-search', 'search', searchWord),
     );
-    return response.searchResult;
+
+    // 부분 일치 검색 구현
+    const filteredResults = response.searchResult.filter(item =>
+      item.itemName.includes(searchWord),
+    );
+
+    return filteredResults;
   } catch (error) {
     console.error(error);
     return [];
@@ -62,13 +77,20 @@ const fetchRecommendedSearches = async (): Promise<string[]> => {
 };
 
 const Search = () => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [results, setResults] = useState<Item[]>([]);
-  const [recentSearches, setRecentSearches] = useState<Item[]>([]);
-  const [recommendedSearches, setRecommendedSearches] = useState<string[]>([]);
+  const navigation = useNavigation<ProductPageoNavigationProp>();
+  const [searchTerm, setSearchTerm] = useState<string>(''); // 사용자가 입력한 검색어
+  const [results, setResults] = useState<Item[]>([]); // 검색 결과
+  const [suggestions, setSuggestions] = useState<Item[]>([]); // 연관 검색어 제안
+  const [recentSearches, setRecentSearches] = useState<Item[]>([]); // 최근 검색어
+  const [recommendedSearches, setRecommendedSearches] = useState<string[]>([]); // 추천 검색어
+  const [selectedRecommendation, setSelectedRecommendation] = useState<
+    string | null
+  >(null);
+  const [isRecommendationSelected, setIsRecommendationSelected] =
+    useState(false);
 
   useEffect(() => {
-    // 컴포넌트가 마운트될 때 추천 검색어를 불러옴
+    // 추천 검색어
     const loadRecommendedSearches = async () => {
       const recommendations = await fetchRecommendedSearches();
       setRecommendedSearches(recommendations);
@@ -77,22 +99,29 @@ const Search = () => {
     loadRecommendedSearches();
   }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = async (searchWord?: string) => {
+    const term = searchWord || searchTerm;
+
     // 검색어가 비어 있을 경우 알림
-    if (searchTerm.trim() === '') {
+    if (term.trim() === '') {
       Alert.alert('알림', '검색어를 입력하세요.');
       return;
     }
-    const searchResults = await fetchSearchResults(searchTerm);
+
+    const searchResults = await fetchSearchResults(term);
+
     // 검색 결과가 없을 경우 알림
     if (searchResults.length === 0) {
       Alert.alert('알림', '검색 결과가 없습니다.');
     }
     setResults(searchResults);
 
+    // 검색 결과가 있으면 연관 검색어를 숨김
+    setSuggestions([]);
+
     // 최근 검색어 중복 체크 후 추가
     const isAlreadySearched = recentSearches.some(
-      item => item.itemName === searchTerm,
+      item => item.itemName === term,
     );
 
     if (!isAlreadySearched) {
@@ -100,7 +129,7 @@ const Search = () => {
         ...prevSearches,
         {
           itemKey: Date.now(),
-          itemName: searchTerm,
+          itemName: term,
           itemType: '',
           itemBrand: '',
           itemStyle: '',
@@ -112,6 +141,40 @@ const Search = () => {
         },
       ]);
     }
+
+    // 추천 검색어가 선택된 상태에서 다른 검색어 입력 시 선택 해제
+    if (isRecommendationSelected) {
+      setSelectedRecommendation(null);
+      setIsRecommendationSelected(false);
+    }
+  };
+
+  const handleRecommendClick = async (recommend: string) => {
+    setSelectedRecommendation(recommend);
+    setIsRecommendationSelected(true);
+    setSearchTerm(recommend);
+    await handleSearch(recommend);
+  };
+
+  const handleRecentClick = async (item: Item) => {
+    setSearchTerm(item.itemName);
+    await handleSearch(item.itemName);
+  };
+
+  // 선택된 연관 검색어로 검색 실행
+  const handleSuggestionClick = (item: Item) => {
+    setSearchTerm(item.itemName);
+    setSuggestions([]); // 연관 검색어 리스트를 숨김
+    handleSearch(item.itemName);
+  };
+
+  // 검색어 입력시 호출
+  const handleInputChange = async (text: string) => {
+    setSearchTerm(text);
+
+    // 연관 검색어를 가져오는 로직 추가 필요
+    const searchResults = await fetchSearchResults(text);
+    setSuggestions(searchResults);
   };
 
   return (
@@ -120,78 +183,125 @@ const Search = () => {
         <Text style={styles.headerText}>무엇을</Text>
         <Text style={styles.headerText2}>찾고 계신가요?</Text>
       </View>
+
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="검색어를 입력하세요"
           placeholderTextColor="#999"
           value={searchTerm}
-          onChangeText={text => setSearchTerm(text)}
+          onChangeText={handleInputChange}
         />
-        <TouchableOpacity onPress={handleSearch}>
+        <TouchableOpacity onPress={() => handleSearch()}>
           <Image
             source={require('../../assets/img/search/search.png')}
             style={styles.icon}
           />
         </TouchableOpacity>
       </View>
+
+      {/* 연관 검색어 리스트 */}
+      {suggestions.length > 0 && (
+        <FlatList
+          data={suggestions}
+          keyExtractor={item => item.itemKey.toString()}
+          renderItem={({item}) => (
+            <TouchableOpacity onPress={() => handleSuggestionClick(item)}>
+              <View style={styles.suggestionItem}>
+                <Text>{item.itemName}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+
       <Text style={styles.recenttext}>최근 검색어</Text>
       <FlatList
         data={recentSearches}
         keyExtractor={item => item.itemKey.toString()}
         renderItem={({item}) => (
-          <View style={styles.searchItem}>
-            <Text>{item.itemName}</Text>
-          </View>
+          <TouchableOpacity onPress={() => handleRecentClick(item)}>
+            <View style={styles.searchItem}>
+              <Text>{item.itemName}</Text>
+            </View>
+          </TouchableOpacity>
         )}
         horizontal
         style={styles.recentSearchContainer}
         contentContainerStyle={styles.recentSearchContent}
       />
+
       <Text style={styles.recommendtext}>추천 검색어</Text>
-      <FlatList
-        data={recommendedSearches}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => (
-          <View style={styles.recommendItem}>
-            <Text>{item}</Text>
-          </View>
-        )}
-        horizontal
-        style={styles.recommendedSearchContainer}
-        contentContainerStyle={styles.recommendedSearchContent}
-      />
-      <Text style={styles.headerText3}>검색 결과를 보여드릴게요</Text>
-      <FlatList
-        data={results}
-        keyExtractor={item => item.itemKey.toString()}
-        renderItem={({item}) => (
-          <View style={styles.resultContainer}>
-            <View style={styles.imgRectangle}>
-              <Image
-                source={{
-                  uri: 'http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/optimize.png',
-                }}
-                style={styles.productImage}
-              />
-            </View>
-            <View style={styles.bottomRectangle}>
-              <View style={styles.textContainer}>
-                <View style={styles.brandAndPrice}>
-                  <Text style={[styles.text, styles.brandName]}>
-                    {item.itemBrand}
+      {/* View 태그 수정 */}
+      <View style={styles.recommendedSearchWrapper}>
+        <FlatList
+          data={recommendedSearches}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({item}) => (
+            <TouchableOpacity
+              style={[
+                styles.recommendItem,
+                {
+                  backgroundColor:
+                    selectedRecommendation === item ? '#000' : '#fff',
+                },
+              ]}
+              onPress={() => handleRecommendClick(item)}>
+              <Text
+                style={{
+                  color: selectedRecommendation === item ? '#fff' : '#000',
+                }}>
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )}
+          horizontal
+          style={styles.recommendedSearchContainer}
+          contentContainerStyle={styles.recommendedSearchContent}
+        />
+      </View>
+
+      {/* 검색 결과 영역 */}
+      <View style={styles.resultsWrapper}>
+        <Text style={styles.headerText3}>검색 결과를 보여드릴게요</Text>
+        <FlatList
+          data={results}
+          keyExtractor={item => item.itemKey.toString()}
+          renderItem={({item}) => (
+            <View style={styles.resultContainer}>
+              <View style={styles.imgRectangle}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProductPage')}>
+                  <Image
+                    source={{
+                      uri:
+                        item.itemImgURL ||
+                        'http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/optimize.png',
+                    }}
+                    style={styles.productImage}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.bottomRectangle}>
+                <View style={styles.textContainer}>
+                  <View style={styles.brandAndPrice}>
+                    <Text style={[styles.text, styles.brandName]}>
+                      {item.itemBrand}
+                    </Text>
+                    <Text style={styles.price}>{item.itemPrice}₩</Text>
+                  </View>
+                  <Text style={[styles.text, styles.clothName]}>
+                    {item.itemName}
                   </Text>
-                  <Text style={styles.price}>{item.itemPrice}₩</Text>
                 </View>
-                <Text style={[styles.text, styles.clothName]}>
-                  {item.itemName}
-                </Text>
               </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.resultContent}
-      />
+          )}
+          contentContainerStyle={styles.resultContent}
+          style={styles.scrollableResults}
+        />
+      </View>
+
       <BottomTabNavigator />
     </SafeAreaView>
   );
@@ -221,7 +331,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     paddingHorizontal: '5%',
-    marginTop: '-1%',
+    marginTop: '10%',
   },
   searchContainer: {
     marginTop: '3%',
@@ -256,108 +366,106 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5%',
   },
   recentSearchContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: '3%',
+    maxHeight: 40,
   },
   recentSearchContent: {
-    paddingHorizontal: '5%',
+    paddingLeft: '5%',
   },
   searchItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 20,
+    marginRight: 10,
+    borderColor: '#A69E9E',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: '3%',
   },
   recommendtext: {
     fontSize: 15,
-    marginTop: '-3%',
+    marginTop: '10%',
     marginBottom: '3%',
+    paddingHorizontal: '5%',
     color: '#000',
+  },
+  recommendedSearchWrapper: {
+    marginBottom: '3%',
     paddingHorizontal: '5%',
   },
   recommendedSearchContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: '3%',
   },
   recommendedSearchContent: {
-    paddingHorizontal: '5%',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
   },
   recommendItem: {
-    padding: 8,
+    marginRight: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: '3%',
+    borderColor: '#A69E9E',
   },
   resultContainer: {
-    marginTop: '5%',
+    flexDirection: 'row',
+    marginBottom: '5%',
     paddingHorizontal: '5%',
-  },
-  resultContent: {
-    paddingBottom: '5%',
+    marginTop: '4%',
   },
   imgRectangle: {
-    position: 'relative',
-    backgroundColor: '#EBEBEB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 300,
-    width: 380,
-    borderRadius: 15,
-    marginTop: '-1%',
-  },
-  productImage: {
-    width: '60%',
-    height: '80%',
-    borderRadius: 15,
-    marginTop: '-15%',
+    width: 90,
+    height: 90,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 5,
+    marginRight: '5%',
   },
   bottomRectangle: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
-    paddingHorizontal: 8,
+    flex: 1,
     justifyContent: 'center',
-    zIndex: 2,
   },
   textContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flex: 1,
-    marginTop: '-3%',
+    paddingVertical: '2%',
   },
   brandAndPrice: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   text: {
-    color: '#000',
-    marginRight: 20,
+    fontSize: 15,
   },
   brandName: {
     fontWeight: 'bold',
-    fontSize: 16,
-    marginRight: 15,
-    marginLeft: 20,
+    color: '#000',
   },
   price: {
-    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3B82F6',
   },
   clothName: {
-    fontSize: 16,
-    color: '#999',
+    marginTop: '2%',
+  },
+  resultsWrapper: {
+    flex: 1,
+    marginTop: '5%',
+  },
+  scrollableResults: {
+    flexGrow: 1,
+  },
+  resultContent: {
+    paddingBottom: '10%',
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 15,
+  },
+  suggestionItem: {
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    width: 350,
+    marginLeft: 15,
   },
 });
 

@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {RouteProp, useRoute} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -9,6 +10,7 @@ import {
   Image,
   Dimensions,
   Alert,
+  Linking,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import {RootStackParamList} from '../../../../../App';
@@ -19,12 +21,10 @@ import {DATA_URL} from '../../Constant.ts';
 import path from 'path';
 import {reqGet} from '../../utills/Request.ts';
 import {useUser} from '../UserContext.tsx';
+import {reqPost} from '../../utills/Request.ts';
 
-type OrderNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'BasicInformation'
->;
-
+type OrderNavigationProp = StackNavigationProp<RootStackParamList, 'Order'>;
+type OrderRouteProp = RouteProp<RootStackParamList, 'Order'>;
 const screenWidth = Dimensions.get('window').width;
 
 // 금액 포맷 함수
@@ -44,6 +44,8 @@ interface CartItem {
 
 const Order = () => {
   const navigation = useNavigation<OrderNavigationProp>();
+  const route = useRoute<OrderRouteProp>(); // route의 타입을 지정
+  const {purchaseData} = route.params || {};
   const {userEmail} = useUser(); // userEmail 가져오기
   const [cartItems, setCartItems] = useState<CartItem[]>([]); // cartItems 상태 추가
   const [isChecked, setIsChecked] = useState(true);
@@ -52,29 +54,42 @@ const Order = () => {
   const [address, setAddress] = useState('');
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
+  //이름, 전화번호
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerTel, setBuyerTel] = useState('');
+
   const fetchCartItems = async () => {
-    try {
-      if (userEmail) {
-        const response: CartItem[] = await reqGet(
-          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-        );
-        if (response) {
-          setCartItems(response);
-        } else {
-          console.error(`장바구니 항목을 가져오는데 실패했습니다`);
-          setCartItems([]);
+    if (!purchaseData) {
+      // 바로 구매가 아닌 경우에만 장바구니 항목을 불러옵니다.
+      try {
+        if (userEmail) {
+          const response: CartItem[] = await reqGet(
+            path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+          );
+          if (response) {
+            setCartItems(response);
+          } else {
+            console.error(`장바구니 항목을 가져오는데 실패했습니다`);
+            setCartItems([]);
+          }
         }
+      } catch (error) {
+        console.error(
+          '장바구니 항목을 가져오는 중 오류가 발생했습니다:',
+          error,
+        );
+        setCartItems([]);
       }
-    } catch (error) {
-      console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다:', error);
-      setCartItems([]);
+    } else {
+      // 바로 구매인 경우 purchaseData를 cartItems 배열에 넣어줍니다.
+      setCartItems([purchaseData]);
     }
   };
 
   useEffect(() => {
     fetchCartItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [purchaseData]);
 
   const handleQuantityChange = (itemKey: number, delta: number) => {
     setQuantities(prevQuantities => ({
@@ -95,25 +110,46 @@ const Order = () => {
     setAddress(data.address);
     setIsPostcodeVisible(false);
   };
-
   const handlePayment = async (item: CartItem) => {
     const quantity = quantities[item.itemKey] || 1;
     const totalAmount = totalPrice + (isChecked ? 20000 : 0) + 2000; // 수선 비용
+
+    const data = {
+      pg: 'kakaopay', // 카카오페이
+      pay_method: 'card', // 결제 방식
+      merchant_uid: `mid_${new Date().getTime()}`, // 고유 주문번호
+      name: item.itemName, // 상품 이름
+      amount: totalAmount, // 총 결제 금액
+      buyer_email: userEmail || 'example@example.com', // 구매자 이메일
+      buyer_name: buyerName, // 구매자 이름
+      buyer_tel: buyerTel, // 구매자 전화번호
+      buyer_addr: address, // 배송지 주소
+      buyer_postcode: postcode, // 우편번호
+    };
+
     try {
       const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
         method: 'POST',
         headers: {
-          Authorization: 'KakaoAK 502625ee7d37c750f8771d99cf7b8cf9',
+          Authorization: 'KakaoAK 5373c1e966f8f0143755d67cd8980ebd',
           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
         },
-        body: `cid=TC0ONETIME&partner_order_id=${item.itemKey}&partner_user_id=${userEmail}&item_name=${item.itemName}&quantity=${quantity}&total_amount=${totalAmount}&vat_amount=200&tax_free_amount=0&approval_url=https://fit-pin.github.io/fitpin_frontend_web/success&fail_url=https://fit-pin.github.io/fitpin_frontend_web/fail&cancel_url=https://fit-pin.github.io/fitpin_frontend_web/cancel`,
+        body: `cid=TC0ONETIME&partner_order_id=${data.merchant_uid}&partner_user_id=${userEmail}&item_name=${data.name}&quantity=${quantity}&total_amount=${data.amount}&vat_amount=200&tax_free_amount=0&approval_url=https://fit-pin.github.io/fitpin_frontend_web/success&fail_url=https://fit-pin.github.io/fitpin_frontend_web/fail&cancel_url=https://fit-pin.github.io/fitpin_frontend_web/cancel`,
       });
+      const result = await response.json();
 
-      if (response) {
-        Alert.alert('카카오페이 결제', '결제 페이지로 이동합니다.');
-        navigation.navigate('OrderComplete'); // 결제 완료 페이지로 이동
+      if (result && result.next_redirect_pc_url) {
+        Linking.openURL(result.next_redirect_pc_url).catch(err => {
+          console.error('Failed to open URL:', err);
+          Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
+        });
+        // 결제 성공 시 주문 정보 저장
+        await postOrder(); // 주문 정보를 DB에 저장하는 함수 호출
+
+        // 결제 성공 시
+        navigation.navigate('OrderComplete');
       } else {
-        console.error(`결제 요청에 실패했습니다.`);
+        console.error(`결제 요청에 실패했습니다.`, result);
         Alert.alert('결제 실패', '결제 요청에 실패했습니다.');
       }
     } catch (error) {
@@ -122,12 +158,58 @@ const Order = () => {
     }
   };
 
+  const postOrder = async () => {
+    if (!cartItems.length) {
+      console.error('장바구니가 비어 있습니다.');
+      return;
+    }
+
+    try {
+      if (userEmail) {
+        const data = {
+          itemKey: cartItems[0].itemKey, // 상품 키
+          userKey: '186', // 회원 고유번호 (예: 회원 정보에서 가져옴)
+          userName: buyerName, // 구매자 이름
+          userAddr: address, // 배송지 주소
+          userNumber: buyerTel, // 구매자 전화번호
+          itemName: cartItems[0].itemName, // 상품명
+          itemSize: cartItems[0].itemSize, // 상품 사이즈
+          itemPrice: cartItems[0].itemPrice, // 상품 가격
+          itemTotal: totalPrice, // 총 결제 금액
+          pitPrice: isChecked ? 20000 : 0, // 맞춤비용 (선택 사항)
+          pcs: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
+        };
+
+        // API 호출: 주문 정보 전송
+        const response = await reqPost(
+          path.join(DATA_URL, 'api', 'order', 'post_order'), // API URL
+          data, // 전송할 데이터
+        );
+
+        if (response) {
+          // 주문 완료 알림
+          Alert.alert('주문 완료', '주문이 성공적으로 등록되었습니다.');
+        } else {
+          // 주문 실패 시 오류 출력
+          console.error('주문 등록에 실패했습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('주문 등록 중 오류가 발생했습니다:', error);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>배송지</Text>
         <Text style={styles.sectionTitle2}>이름</Text>
-        <TextInput style={styles.input} placeholder="" />
+        <TextInput
+          style={styles.input}
+          placeholder=""
+          value={buyerName}
+          onChangeText={setBuyerName}
+        />
         <Text style={styles.sectionTitle2}>주소</Text>
         <View style={styles.inputWithButton}>
           <TextInput
@@ -150,9 +232,13 @@ const Order = () => {
         />
         <TextInput style={styles.input} placeholder="상세 주소" />
         <Text style={styles.sectionTitle2}>전화번호</Text>
-        <TextInput style={styles.input} placeholder="010-1111-2222" />
+        <TextInput
+          style={styles.input}
+          placeholder="010-1111-2222"
+          value={buyerTel}
+          onChangeText={setBuyerTel}
+        />
       </View>
-
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>상품정보</Text>
         {cartItems.map(item => (
@@ -234,7 +320,16 @@ const Order = () => {
           <Text style={styles.totalLabel}>배송비</Text>
           <Text style={styles.totalValue}>2,000원</Text>
         </View>
-        <TouchableOpacity style={styles.payButton}>
+        <TouchableOpacity
+          style={styles.payButton}
+          onPress={() => {
+            // 결제 처리 함수 호출
+            if (cartItems.length === 0) {
+              Alert.alert('장바구니가 비어 있습니다.');
+              return;
+            }
+            handlePayment(cartItems[0]);
+          }}>
           <View style={styles.payButtonContent}>
             <View style={styles.payButtonImageContainer}>
               <Image
@@ -242,17 +337,7 @@ const Order = () => {
                 style={styles.payButtonImage}
               />
             </View>
-            <TouchableOpacity
-              onPress={() => {
-                // 결제 처리 함수 호출
-                if (cartItems.length === 0) {
-                  Alert.alert('장바구니가 비어 있습니다.');
-                  return;
-                }
-                handlePayment(cartItems[0]);
-              }}>
-              <Text style={styles.payButtonText}>결제하기</Text>
-            </TouchableOpacity>
+            <Text style={styles.payButtonText}>결제하기</Text>
           </View>
         </TouchableOpacity>
       </View>
