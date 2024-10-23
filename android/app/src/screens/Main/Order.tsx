@@ -189,23 +189,27 @@ const Order = () => {
         if (param.state === 'approval') {
           postOrder()
             .then(() => {
-              navigation.navigate('OrderComplete');
+              //TODO: 이제 결제 완료하고 웹 웹소켓 통신을 구현 해야...
+              navigation.reset({
+                index: 1,
+                routes: [{name: 'Main'}, {name: 'OrderComplete'}],
+              });
             })
             .catch(_ => {
-              Alert.alert('주문 등록에 실패했습니다.');
-            }); // 주문 정보를 DB에 저장하는 함수 호출
+              Alert.alert('결제 실패', '주문 등록에 실패했습니다.');
+            });
         } else if (param.state === 'cancel') {
-          Alert.alert('주문을 취소했습니다.');
+          Alert.alert('결제 실패', '주문을 취소했습니다.');
         } else {
-          Alert.alert('카카오 페이 결제를 실패하였습니다.');
+          Alert.alert('결제 실패', '카카오 페이 결제를 실패하였습니다.');
         }
+        // 중복 이벤트 발생 해결
+        Linking.removeAllListeners('url');
       });
 
       Linking.openURL(result.next_redirect_mobile_url).catch(() => {
         Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
       });
-
-      // 결제 성공 시 주문 정보 저장
     } catch (error) {
       console.error('결제 요청 중 오류 발생:', error);
       Alert.alert('결제 실패', '결제 요청 중 오류가 발생했습니다.');
@@ -241,7 +245,7 @@ const Order = () => {
 
       if (response) {
         // 주문 완료 알림
-        console.log('주문 완료', '주문이 성공적으로 등록되었습니다.');
+        console.log('주문이 성공적으로 등록되었습니다.');
       } else {
         // 주문 실패 시 오류 출력
         console.error('주문 등록에 실패했습니다.');

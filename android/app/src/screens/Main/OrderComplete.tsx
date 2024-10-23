@@ -23,7 +23,12 @@ const OrderComplete = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Purchase')}>
+          onPress={() =>
+            navigation.reset({
+              index: 1,
+              routes: [{name: 'Main'}, {name: 'Purchase'}],
+            })
+          }>
           <Text style={styles.buttonText}>주문 내역 보기</Text>
         </TouchableOpacity>
         <TouchableOpacity
