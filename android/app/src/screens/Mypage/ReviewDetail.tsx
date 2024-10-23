@@ -52,6 +52,8 @@ const ReviewDetail: React.FC = () => {
   const [imageLoadError, setImageLoadError] = useState<boolean>(false);
   const [forceUpdateKey, setForceUpdateKey] = useState<number>(0); // 렌더링을 강제할 키 값
 
+  const formattedImageUri = `${DATA_URL.replace(/\/$/, '')}/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`;
+
   useEffect(() => {
     if (editMode) {
       setImageLoadError(false);
@@ -59,26 +61,24 @@ const ReviewDetail: React.FC = () => {
   }, [editMode]);
 
   useEffect(() => {
-    console.log('Current Image URL:', review.fitStorageImg);
+    console.log('Current Image URL:', formattedImageUri);
     setImageLoadError(false);
-    setForceUpdateKey(prevKey => prevKey + 1); // 이미지 URL 변경 시 강제 렌더링
+    setForceUpdateKey(prevKey => prevKey + 1); // 강제 렌더링
   }, [review.fitStorageImg]);
 
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
-      );
-
-      const data = response;
-
+      const response = await fetch(`${DATA_URL}/api/fitStorageImages/user/${userEmail}`);
+      const data = await response.json();
+  
       if (Array.isArray(data)) {
-        const imageUrls = data.map(
-          (item: {fitStorageImg: string}) =>
-            `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`,
+        const imageUrls = data.map(item =>
+          `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
         );
         setImages(imageUrls);
+      } else {
+        throw new Error('Invalid data format');
       }
     } catch (error) {
       console.error('Error fetching images:', error);
@@ -96,10 +96,10 @@ const ReviewDetail: React.FC = () => {
   };
 
   const selectImage = (imageUri: string) => {
-    console.log('Selected Image URL:', imageUri);
+    console.log('Selected Image:', imageUri);
     setReview(prevReview => ({
       ...prevReview,
-      fitStorageImg: imageUri, // 올바른 필드 이름 사용
+      fitStorageImg: imageUri.split('/').pop() || imageUri, // 이미지 이름만 저장
     }));
     setImageLoadError(false);
     setIsModalVisible(false);
@@ -152,14 +152,14 @@ const ReviewDetail: React.FC = () => {
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
         {editMode ? (
-          <TouchableOpacity onPress={openImageSelector}>
+          <TouchableOpacity onPress={fetchImagesFromBackend}>
             {review.fitStorageImg && !imageLoadError ? (
               <Image
-                source={{uri: review.fitStorageImg}}
+                source={{ uri: formattedImageUri }}
                 style={styles.selectedImage}
-                key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
+                key={`image-${forceUpdateKey}`} // 강제 렌더링 키
                 resizeMode="cover"
-                onError={error => {
+                onError={(error) => {
                   console.error('Image Load Error:', error.nativeEvent.error);
                   setImageLoadError(true);
                 }}
@@ -168,27 +168,20 @@ const ReviewDetail: React.FC = () => {
               <Text style={styles.placeholderText}>이미지를 선택하세요</Text>
             )}
             {imageLoadError && (
-              <Text style={styles.errorText}>
-                이미지를 불러오지 못했습니다.
-              </Text>
+              <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>
             )}
           </TouchableOpacity>
-        ) : review.fitStorageImg && !imageLoadError ? (
+        ) : (
           <Image
-            source={{uri: review.fitStorageImg}}
+            source={{ uri: formattedImageUri }}
             style={styles.selectedImage}
-            key={`image-${forceUpdateKey}`} // 렌더링 강제 키 값 사용
+            key={`image-${forceUpdateKey}`} // 강제 렌더링 키
             resizeMode="cover"
-            onError={error => {
+            onError={(error) => {
               console.error('Image Load Error:', error.nativeEvent.error);
               setImageLoadError(true);
             }}
           />
-        ) : (
-          <Text style={styles.placeholderText}>이미지 없음</Text>
-        )}
-        {imageLoadError && (
-          <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>
         )}
       </View>
 
@@ -321,10 +314,7 @@ const ReviewDetail: React.FC = () => {
       )}
 
       {/* 이미지 선택 모달 */}
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}>
+      <Modal visible={isModalVisible} transparent onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {isLoading ? (
@@ -332,12 +322,10 @@ const ReviewDetail: React.FC = () => {
             ) : (
               <FlatList
                 data={images}
-                keyExtractor={(_item, index) => index.toString()}
-                renderItem={({item}) => (
-                  <TouchableOpacity
-                    onPress={() => selectImage(item)}
-                    style={styles.modalImageContainer}>
-                    <Image source={{uri: item}} style={styles.modalImage} />
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => selectImage(item)} style={styles.modalImageContainer}>
+                    <Image source={{ uri: item }} style={styles.modalImage} />
                   </TouchableOpacity>
                 )}
                 numColumns={2}
