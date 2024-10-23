@@ -39,15 +39,22 @@ const WriteComment: React.FC = () => {
   const navigation = useNavigation<WriteCommentNavigationProp>();
   const { userEmail } = useUser();
 
-  // 리뷰 목록 불러오기
+  // 리뷰 목록 불러오기 및 필터링
   const fetchReviews = async () => {
     try {
       const response = await fetch(
         `http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`
       );
       const data = await response.json();
+
+      console.log('Fetched Data:', data); // 응답 데이터 확인
+
       if (Array.isArray(data)) {
-        setReviews(data);
+        // fitComment가 있는 데이터만 필터링
+        const filteredReviews = data.filter(
+          review => review.fitComment && review.fitComment.trim() !== ''
+        );
+        setReviews(filteredReviews);
       } else {
         Alert.alert('오류', '리뷰 데이터를 불러오지 못했습니다.');
       }

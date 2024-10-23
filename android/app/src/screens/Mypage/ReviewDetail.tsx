@@ -32,6 +32,7 @@ interface Review {
   userEmail: string;
   fitStorageImg: string;
   fitComment: string;
+  itemName: string;
   itemType: string;
   itemBrand: string;
   itemSize: string;
@@ -238,9 +239,9 @@ const ReviewDetail: React.FC = () => {
           placeholder="제품명을 적어주세요📝"
           placeholderTextColor="#999"
           style={styles.input}
-          value={review.itemBrand} // ProductName
+          value={review.itemName}
           editable={editMode}
-          onChangeText={text => setReview({...review, itemBrand: text})} // ProductName
+          onChangeText={text => setReview({...review, itemName: text})}
         />
       </View>
 
