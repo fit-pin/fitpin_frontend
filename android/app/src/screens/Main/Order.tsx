@@ -128,30 +128,84 @@ const Order = () => {
     };
 
     try {
-      const response = await fetch('https://kapi.kakao.com/v1/payment/ready', {
-        method: 'POST',
-        headers: {
-          Authorization: 'KakaoAK 5373c1e966f8f0143755d67cd8980ebd',
-          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      // 카카오 결제 API 변경 https://developers.kakaopay.com
+      // 기존에 있던 API는 이제 지원 중단임
+      const response = await fetch(
+        path.join(
+          'https://open-api.kakaopay.com',
+          'online',
+          'v1',
+          'payment',
+          'ready',
+        ),
+        {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization:
+              'SECRET_KEY DEV5BCEBFA4ED006CF1EA64F2466AE8D2F6343B8',
+          },
+          body: JSON.stringify({
+            cid: 'TC0ONETIME',
+            partner_order_id: data.merchant_uid,
+            partner_user_id: userEmail,
+            item_name: data.name,
+            quantity: quantity,
+            total_amount: data.amount,
+            tax_free_amount: 0,
+            // 리다이렉트 처리는 AR 백엔드에 해놓음
+            approval_url: 'http://dmumars.kro.kr/payment/approval',
+            cancel_url: 'http://dmumars.kro.kr/payment/cancel',
+            fail_url: 'http://dmumars.kro.kr/payment/fail',
+          }),
         },
-        body: `cid=TC0ONETIME&partner_order_id=${data.merchant_uid}&partner_user_id=${userEmail}&item_name=${data.name}&quantity=${quantity}&total_amount=${data.amount}&vat_amount=200&tax_free_amount=0&approval_url=https://fit-pin.github.io/fitpin_frontend_web/success&fail_url=https://fit-pin.github.io/fitpin_frontend_web/fail&cancel_url=https://fit-pin.github.io/fitpin_frontend_web/cancel`,
+      );
+
+      //next_redirect_app_url 값에 경우 백엔드에 요청이 가지 않아서 next_redirect_mobile_url로 요청함
+      const result = (await response.json()) as {
+        tid: string;
+        next_redirect_app_url: string;
+        next_redirect_mobile_url: string;
+        next_redirect_pc_url: string;
+        android_app_scheme: string;
+        ios_app_scheme: string;
+        created_at: Date;
+      };
+
+      Linking.addEventListener('url', res => {
+        // 등록한 url에서 재대로 redirect 처리 된 경우 해당 callback 작동함
+        const getParamLine = res.url.split('?')[1];
+        const param: {
+          state: string;
+          pg_token: string;
+        } = getParamLine.split('&').reduce((obj, i) => {
+          const [k, v] = i.split('=');
+          obj[k] = v;
+          return obj;
+        }, {} as any);
+
+        console.log(`카카오 페이 응답: ${JSON.stringify(param)}`);
+
+        if (param.state === 'approval') {
+          postOrder()
+            .then(() => {
+              navigation.navigate('OrderComplete');
+            })
+            .catch(_ => {
+              Alert.alert('주문 등록에 실패했습니다.');
+            }); // 주문 정보를 DB에 저장하는 함수 호출
+        } else if (param.state === 'cancel') {
+          Alert.alert('주문을 취소했습니다.');
+        } else {
+          Alert.alert('카카오 페이 결제를 실패하였습니다.');
+        }
       });
-      const result = await response.json();
 
-      if (result && result.next_redirect_pc_url) {
-        Linking.openURL(result.next_redirect_pc_url).catch(err => {
-          console.error('Failed to open URL:', err);
-          Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
-        });
-        // 결제 성공 시 주문 정보 저장
-        await postOrder(); // 주문 정보를 DB에 저장하는 함수 호출
+      Linking.openURL(result.next_redirect_mobile_url).catch(() => {
+        Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
+      });
 
-        // 결제 성공 시
-        navigation.navigate('OrderComplete');
-      } else {
-        console.error(`결제 요청에 실패했습니다.`, result);
-        Alert.alert('결제 실패', '결제 요청에 실패했습니다.');
-      }
+      // 결제 성공 시 주문 정보 저장
     } catch (error) {
       console.error('결제 요청 중 오류 발생:', error);
       Alert.alert('결제 실패', '결제 요청 중 오류가 발생했습니다.');
@@ -164,38 +218,34 @@ const Order = () => {
       return;
     }
 
-    try {
-      if (userEmail) {
-        const data = {
-          itemKey: cartItems[0].itemKey, // 상품 키
-          userKey: '186', // 회원 고유번호 (예: 회원 정보에서 가져옴)
-          userName: buyerName, // 구매자 이름
-          userAddr: address, // 배송지 주소
-          userNumber: buyerTel, // 구매자 전화번호
-          itemName: cartItems[0].itemName, // 상품명
-          itemSize: cartItems[0].itemSize, // 상품 사이즈
-          itemPrice: cartItems[0].itemPrice, // 상품 가격
-          itemTotal: totalPrice, // 총 결제 금액
-          pitPrice: isChecked ? 20000 : 0, // 맞춤비용 (선택 사항)
-          pcs: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
-        };
+    if (userEmail) {
+      const data = {
+        itemKey: cartItems[0].itemKey, // 상품 키
+        userKey: '186', // 회원 고유번호 (예: 회원 정보에서 가져옴)
+        userName: buyerName, // 구매자 이름
+        userAddr: address, // 배송지 주소
+        userNumber: buyerTel, // 구매자 전화번호
+        itemName: cartItems[0].itemName, // 상품명
+        itemSize: cartItems[0].itemSize, // 상품 사이즈
+        itemPrice: cartItems[0].itemPrice, // 상품 가격
+        itemTotal: totalPrice, // 총 결제 금액
+        pitPrice: isChecked ? 20000 : 0, // 맞춤비용 (선택 사항)
+        pcs: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
+      };
 
-        // API 호출: 주문 정보 전송
-        const response = await reqPost(
-          path.join(DATA_URL, 'api', 'order', 'post_order'), // API URL
-          data, // 전송할 데이터
-        );
+      // API 호출: 주문 정보 전송
+      const response = await reqPost(
+        path.join(DATA_URL, 'api', 'order', 'post_order'), // API URL
+        data, // 전송할 데이터
+      );
 
-        if (response) {
-          // 주문 완료 알림
-          Alert.alert('주문 완료', '주문이 성공적으로 등록되었습니다.');
-        } else {
-          // 주문 실패 시 오류 출력
-          console.error('주문 등록에 실패했습니다.');
-        }
+      if (response) {
+        // 주문 완료 알림
+        console.log('주문 완료', '주문이 성공적으로 등록되었습니다.');
+      } else {
+        // 주문 실패 시 오류 출력
+        console.error('주문 등록에 실패했습니다.');
       }
-    } catch (error) {
-      console.error('주문 등록 중 오류가 발생했습니다:', error);
     }
   };
 
