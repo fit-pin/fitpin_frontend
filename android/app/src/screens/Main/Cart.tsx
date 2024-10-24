@@ -20,6 +20,7 @@ const screenWidth = Dimensions.get('window').width;
 interface CartItem {
   itemKey: number;
   userEmail: string;
+  itemImgName: string;
   itemName: string;
   itemSize: string;
   itemType: string;
@@ -84,7 +85,9 @@ const Cart = () => {
           <View key={item.itemKey} style={styles.item}>
             <View style={styles.imageContainer}>
               <Image
-                source={require('../../assets/img/main/top/top1.png')}
+                source={{
+                  uri: item.itemImgName[0],
+                }}
                 style={styles.itemImage}
               />
             </View>

@@ -50,6 +50,7 @@ export type RootStackParamList = {
     purchaseData: {
       itemKey: number;
       userEmail: string;
+      itemImgName: string;
       itemName: string;
       itemSize: string;
       itemType: string;

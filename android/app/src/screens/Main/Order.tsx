@@ -35,11 +35,13 @@ const formatPrice = (price: number) => {
 interface CartItem {
   itemKey: number;
   userEmail: string;
+  itemImgName: string;
   itemName: string;
   itemSize: string;
   itemType: string;
   itemPrice: number;
   pit: number;
+  qty: number;
 }
 
 const Order = () => {
@@ -299,7 +301,9 @@ const Order = () => {
           <View key={item.itemKey} style={styles.item}>
             <View style={styles.imageContainer}>
               <Image
-                source={require('../../assets/img/main/top/top1.png')}
+                source={{
+                  uri: `http://fitpitback.kro.kr:8080/images/${item.itemImgName}.png`,
+                }}
                 style={styles.itemImage}
               />
             </View>

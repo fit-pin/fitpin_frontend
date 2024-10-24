@@ -53,7 +53,7 @@ const ProductPage = () => {
       itemSleeve: number;
     };
     itemBottomInfo: any;
-    itemImgName: string;
+    itemImgNames: string;
   }>({
     itemKey: 0,
     itemName: '',
@@ -71,7 +71,7 @@ const ProductPage = () => {
       itemSleeve: 0,
     },
     itemBottomInfo: null,
-    itemImgName: '',
+    itemImgNames: '',
   });
 
   const {userHeight, userEmail} = useUser();
@@ -110,6 +110,7 @@ const ProductPage = () => {
     const body = {
       itemKey: productInfo.itemKey,
       userEmail: userEmail,
+      itemImgName: productInfo.itemImgNames,
       itemName: productInfo.itemName,
       itemSize: selectedSize || '',
       itemType: productInfo.itemType,
@@ -144,11 +145,13 @@ const ProductPage = () => {
     const purchaseData = {
       itemKey: productInfo.itemKey,
       userEmail: userEmail,
+      itemImgName: productInfo.itemImgNames,
       itemName: productInfo.itemName,
       itemSize: selectedSize,
       itemType: productInfo.itemType,
       itemPrice: productInfo.itemPrice,
       pit: 1,
+      qty: qty,
     };
 
     // 결제 페이지로 데이터를 전달합니다
@@ -182,7 +185,7 @@ const ProductPage = () => {
         itemSleeve: productRes.itemTopInfo.itemSleeve,
       },
       itemBottomInfo: productRes.itemBottomInfo,
-      itemImgName: productRes.itemImgName[0],
+      itemImgNames: productRes.itemImgName[0],
     });
 
     setProdUri(
@@ -241,14 +244,14 @@ const ProductPage = () => {
   }, []);
 
   useEffect(() => {
-    if (productInfo.itemImgName && PordimgUri) {
-      handleSetimg(productInfo.itemImgName).catch(e => {
+    if (productInfo.itemImgNames && PordimgUri) {
+      handleSetimg(productInfo.itemImgNames).catch(e => {
         console.log(`가상 피팅 오류: ${e}`);
         settryimgUri(PordimgUri);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productInfo.itemImgName, PordimgUri]);
+  }, [productInfo.itemImgNames, PordimgUri]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -857,6 +860,7 @@ const styles = StyleSheet.create({
   sizeChartRowTitle: {
     fontWeight: 'bold',
     textAlign: 'center',
+    letterSpacing: 50,
   },
   sizeChartRowText: {
     flex: 1,
