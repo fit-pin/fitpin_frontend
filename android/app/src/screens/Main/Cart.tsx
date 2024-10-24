@@ -35,22 +35,14 @@ const Cart = () => {
 
   const fetchCartItems = async () => {
     try {
-      if (userEmail) {
-        const response: CartItem[] = await reqGet(
-          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-        );
-        if (
-          response
-          // response.message === '장바구니 항목을 성공적으로 가져왔습니다.'
-        ) {
-          setCartItems(response);
-          console.log(cartItems);
-          // setCartItems(response.data || []);
-        } else {
-          console.error(`장바구니 항목을 가져오는데 실패했습니다`);
-          setCartItems([]);
-        }
-      }
+      // 어차피 userEmail 없으면 알아서 예외 발생되어 아래 catch 문 실행
+      const response: CartItem[] = await reqGet(
+        path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+      );
+
+      setCartItems(response);
+      console.log(cartItems);
+      // setCartItems(response.data || []);
     } catch (error) {
       console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다:', error);
       setCartItems([]);
@@ -86,7 +78,14 @@ const Cart = () => {
             <View style={styles.imageContainer}>
               <Image
                 source={{
-                  uri: item.itemImgName[0],
+                  uri: path.join(
+                    DATA_URL,
+                    'api',
+                    'img',
+                    'imgserve',
+                    'itemimg',
+                    item.itemImgName,
+                  ),
                 }}
                 style={styles.itemImage}
               />

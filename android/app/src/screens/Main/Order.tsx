@@ -64,17 +64,12 @@ const Order = () => {
     if (!purchaseData) {
       // 바로 구매가 아닌 경우에만 장바구니 항목을 불러옵니다.
       try {
-        if (userEmail) {
-          const response: CartItem[] = await reqGet(
-            path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-          );
-          if (response) {
-            setCartItems(response);
-          } else {
-            console.error(`장바구니 항목을 가져오는데 실패했습니다`);
-            setCartItems([]);
-          }
-        }
+        // 어차피 userEmail 없으면 알아서 예외 발생되어 아래 catch 문 실행
+        const response: CartItem[] = await reqGet(
+          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+        );
+
+        setCartItems(response);
       } catch (error) {
         console.error(
           '장바구니 항목을 가져오는 중 오류가 발생했습니다:',
@@ -84,7 +79,7 @@ const Order = () => {
       }
     } else {
       // 바로 구매인 경우 purchaseData를 cartItems 배열에 넣어줍니다.
-      setCartItems([purchaseData]);
+      setCartItems([{...route.params?.purchaseData!!, qty: 1}]);
     }
   };
 
@@ -302,7 +297,14 @@ const Order = () => {
             <View style={styles.imageContainer}>
               <Image
                 source={{
-                  uri: `http://fitpitback.kro.kr:8080/images/${item.itemImgName}.png`,
+                  uri: path.join(
+                    DATA_URL,
+                    'api',
+                    'img',
+                    'imgserve',
+                    'itemimg',
+                    item.itemImgName,
+                  ),
                 }}
                 style={styles.itemImage}
               />
