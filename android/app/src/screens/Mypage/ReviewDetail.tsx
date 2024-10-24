@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
 import {DATA_URL} from '../../Constant';
+import {useFocusEffect} from '@react-navigation/native'; // 추가
 import path from 'path';
 
 type ReviewDetailRouteProp = RouteProp<RootStackParamList, 'ReviewDetail'>;
@@ -55,17 +56,19 @@ const ReviewDetail: React.FC = () => {
   const formattedImageUri = `${DATA_URL.replace(/\/$/, '')}/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`;
 
   useEffect(() => {
-    if (editMode) {
-      setImageLoadError(false);
-    }
+    if (editMode) setImageLoadError(false);
   }, [editMode]);
-
+  
   useEffect(() => {
-    console.log('Current Image URL:', formattedImageUri);
-    setImageLoadError(false);
-    setForceUpdateKey(prevKey => prevKey + 1); // 강제 렌더링
-  }, [review.fitStorageImg]);
+    setForceUpdateKey(prevKey => prevKey + 1); // 이미지 강제 렌더링
+  }, [review.fitStorageImg]); // 이미지 변경 시 렌더링
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchReview(); // 리뷰 데이터 가져오기
+    }, [])
+  );
+  
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
     try {
@@ -96,50 +99,117 @@ const ReviewDetail: React.FC = () => {
   };
 
   const selectImage = (imageUri: string) => {
-    console.log('Selected Image:', imageUri);
+    const imageName = imageUri.split('/').pop()?.trim();
     setReview(prevReview => ({
       ...prevReview,
-      fitStorageImg: imageUri.split('/').pop() || imageUri, // 이미지 이름만 저장
+      fitStorageImg: imageName || '',
     }));
-    setImageLoadError(false);
     setIsModalVisible(false);
   };
 
   const handleDelete = async () => {
+    const url = `${DATA_URL.replace(/\/$/, '')}/api/fit_comment/delete_comment`;
+  
+    // FormData에 필요한 파라미터 추가
+    const formData = new FormData();
+    formData.append('userEmail', review.userEmail);
+    formData.append('fitStorageImg', review.fitStorageImg);
+  
+    console.log('FormData for Delete:', {
+      userEmail: review.userEmail,
+      fitStorageImg: review.fitStorageImg,
+    });
+  
     try {
-      const storedReviews = await AsyncStorage.getItem('reviews');
-      if (storedReviews) {
-        const reviews = JSON.parse(storedReviews) as Review[];
-        const filteredReviews = reviews.filter(
-          (r: Review) => r.date !== review.date,
-        );
-        await AsyncStorage.setItem('reviews', JSON.stringify(filteredReviews));
+      const response = await fetch(url, {
+        method: 'DELETE',
+        body: formData, // FormData로 요청
+      });
+  
+      const responseText = await response.text(); // 응답 본문 로깅
+      console.log('Response Status:', response.status);
+      console.log('Response Body:', responseText);
+  
+      if (response.ok) {
         Alert.alert('리뷰가 삭제되었습니다.');
         navigation.goBack();
+      } else if (response.status === 404) {
+        Alert.alert('이미지를 찾을 수 없습니다.');
+      } else {
+        Alert.alert('삭제 중 오류가 발생했습니다.');
       }
     } catch (error) {
-      Alert.alert('삭제 중 오류가 발생했습니다.');
+      Alert.alert('네트워크 오류가 발생했습니다.');
+      console.error('Network Error:', error);
     }
   };
 
   const handleSave = async () => {
+    const url = `${DATA_URL.replace(/\/$/, '')}/api/fit_comment/update_comment`;
+  
+    const updatedReview = {
+      userEmail: review.userEmail,
+      fitStorageImg: review.fitStorageImg,
+      fitComment: review.fitComment || '',
+      itemName: review.itemName || '',
+      itemType: review.itemType || '',
+      itemBrand: review.itemBrand || '',
+      itemSize: review.itemSize || '',
+      option: review.option || '',
+    };
+  
     try {
-      const storedReviews = await AsyncStorage.getItem('reviews');
-      if (storedReviews) {
-        const reviews = JSON.parse(storedReviews) as Review[];
-        const updatedReviews = reviews.map((r: Review) => {
-          if (r.date === review.date) {
-            return review;
-          }
-          return r;
-        });
-        await AsyncStorage.setItem('reviews', JSON.stringify(updatedReviews));
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedReview),
+      });
+  
+      if (response.ok) {
         Alert.alert('리뷰가 수정되었습니다.');
-        setEditMode(false);
-        setImageLoadError(false);
+        await fetchReview(); // 최신 리뷰 데이터 가져오기
+        setEditMode(false); // 수정 모드 해제
+        setImageLoadError(false); // 이미지 오류 초기화
+      } else if (response.status === 404) {
+        Alert.alert('이미지를 찾을 수 없습니다.');
+      } else {
+        Alert.alert('수정 중 오류가 발생했습니다.');
       }
     } catch (error) {
-      Alert.alert('저장 중 오류가 발생했습니다.');
+      Alert.alert('네트워크 오류가 발생했습니다.');
+      console.error('Network Error:', error);
+    }
+  };
+
+  const fetchReview = async () => {
+    try {
+      const response = await fetch(
+        `${DATA_URL.replace(/\/$/, '')}/api/fitStorageImages/user/${userEmail}`
+      );
+  
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reviews. Status: ${response.status}`);
+      }
+  
+      const data: Review[] = await response.json();
+      console.log('Fetched Data:', data);
+  
+      const latestReview = data.find(
+        (item: Review) => item.fitStorageImg === review.fitStorageImg
+      );
+  
+      if (latestReview) {
+        console.log('Latest Review Found:', latestReview);
+        setReview(latestReview); // 최신 리뷰로 상태 업데이트
+        setForceUpdateKey(prevKey => prevKey + 1); // 강제 렌더링
+      } else {
+        console.warn('Latest review not found.');
+      }
+    } catch (error) {
+      console.error('Error fetching review:', error);
+      Alert.alert('리뷰를 가져오는 중 오류가 발생했습니다.');
     }
   };
 
