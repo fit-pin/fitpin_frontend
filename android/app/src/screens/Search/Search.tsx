@@ -216,20 +216,17 @@ const Search = () => {
       )}
 
       <Text style={styles.recenttext}>최근 검색어</Text>
-      <FlatList
-        data={recentSearches}
-        keyExtractor={item => item.itemKey.toString()}
-        renderItem={({item}) => (
-          <TouchableOpacity onPress={() => handleRecentClick(item)}>
-            <View style={styles.searchItem}>
-              <Text>{item.itemName}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        horizontal
-        style={styles.recentSearchContainer}
-        contentContainerStyle={styles.recentSearchContent}
-      />
+      <View style={styles.recentSearchContainer}>
+        {recentSearches.map((item, i) => {
+          return (
+            <TouchableOpacity onPress={() => handleRecentClick(item)} key={i}>
+              <View style={styles.searchItem}>
+                <Text>{item.itemName}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       <Text style={styles.recommendtext}>추천 검색어</Text>
       {/* View 태그 수정 */}
@@ -364,6 +361,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5%',
   },
   recentSearchContainer: {
+    flexDirection: 'row',
+    paddingLeft: '5%',
     maxHeight: 40,
   },
   recentSearchContent: {
