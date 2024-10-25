@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
+  useFocusEffect, // 추가
 } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../../../App';
@@ -64,9 +65,12 @@ const WriteComment: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
+  // 화면에 들어올 때마다 리뷰를 새로 불러오기
+  useFocusEffect(
+    useCallback(() => {
+      fetchReviews(); // 리뷰 목록 갱신
+    }, []) // 의존성 배열 비워두기 -> 페이지 진입마다 실행
+  );
 
   // 리뷰 클릭 시 상세 페이지로 이동하는 함수
   const handleReviewPress = (review: Review) => {

@@ -121,16 +121,17 @@ const ReviewDetail: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body), // JSON 형식으로 데이터 전송
+        body: JSON.stringify(body),
       });
-  
-      const responseText = await response.text();
-      console.log('Response Status:', response.status);
-      console.log('Response Body:', responseText);
   
       if (response.ok) {
         Alert.alert('리뷰가 삭제되었습니다.');
-        navigation.goBack();
+  
+        // 리뷰 목록 화면으로 이동 + 리뷰 전달
+        navigation.navigate('WriteComment', { 
+          review: review, 
+        });
+  
       } else if (response.status === 404) {
         Alert.alert('이미지를 찾을 수 없습니다.');
       } else {
