@@ -234,31 +234,29 @@ const Search = () => {
       <Text style={styles.recommendtext}>추천 검색어</Text>
       {/* View 태그 수정 */}
       <View style={styles.recommendedSearchWrapper}>
-        <FlatList
-          data={recommendedSearches}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({item}) => (
-            <TouchableOpacity
-              style={[
-                styles.recommendItem,
-                {
-                  backgroundColor:
-                    selectedRecommendation === item ? '#000' : '#fff',
-                },
-              ]}
-              onPress={() => handleRecommendClick(item)}>
-              <Text
-                style={{
-                  color: selectedRecommendation === item ? '#fff' : '#000',
-                }}>
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )}
-          horizontal
-          style={styles.recommendedSearchContainer}
-          contentContainerStyle={styles.recommendedSearchContent}
-        />
+        <View style={styles.recommendedSearchContainer}>
+          {recommendedSearches.map((item, i) => {
+            return (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.recommendItem,
+                  {
+                    backgroundColor:
+                      selectedRecommendation === item ? '#000' : '#fff',
+                  },
+                ]}
+                onPress={() => handleRecommendClick(item)}>
+                <Text
+                  style={{
+                    color: selectedRecommendation === item ? '#fff' : '#000',
+                  }}>
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {/* 검색 결과 영역 */}
@@ -400,6 +398,8 @@ const styles = StyleSheet.create({
   },
   recommendItem: {
     marginRight: 10,
+    display: 'flex',
+    justifyContent: 'center',
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 20,
