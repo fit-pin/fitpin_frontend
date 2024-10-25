@@ -126,9 +126,9 @@ const ProductPage = () => {
       );
 
       if (res.message === '장바구니에 상품이 성공적으로 추가되었습니다.') {
-        Alert.alert('장바구니에 담았습니다');
+        Alert.alert('장바구니 담기 성공');
       } else {
-        Alert.alert('장바구니에 담는 데 실패했습니다. 다시 시도해 주세요.');
+        Alert.alert('장바구니 담기 실패 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('장바구니에 추가하는 도중 오류가 발생했습니다:', error);

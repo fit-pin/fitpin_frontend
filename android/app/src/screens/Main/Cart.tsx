@@ -26,6 +26,7 @@ interface CartItem {
   itemType: string;
   itemPrice: number;
   pit: number;
+  qty: number;
 }
 
 const Cart = () => {
@@ -35,25 +36,21 @@ const Cart = () => {
 
   const fetchCartItems = async () => {
     try {
-      if (userEmail) {
-        const response: CartItem[] = await reqGet(
-          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-        );
-        if (
-          response
-          // response.message === '장바구니 항목을 성공적으로 가져왔습니다.'
-        ) {
-          setCartItems(response);
-          console.log(cartItems);
-          // setCartItems(response.data || []);
-        } else {
-          console.error(`장바구니 항목을 가져오는데 실패했습니다`);
-          setCartItems([]);
-        }
+      // 어차피 userEmail 없으면 알아서 예외 발생되어 아래 catch 문 실행
+      const response: CartItem[] = await reqGet(
+        path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+      );
+
+      if (Array.isArray(response)) {
+        setCartItems(response);
+        console.log('Fetched cart items:', response); // 여기서 응답을 확인
+      } else {
+        console.error('장바구니에 담긴 상품이 없습니다:', response);
+        setCartItems([]); // 잘못된 형식의 응답 시 빈 배열로 초기화
       }
     } catch (error) {
       console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다:', error);
-      setCartItems([]);
+      setCartItems([]); // 오류 발생 시 빈 배열로 초기화
     }
   };
 
@@ -64,6 +61,14 @@ const Cart = () => {
 
   // 각 아이템의 수량과 가격을 관리하기 위한 상태
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    const initialQuantities: Record<number, number> = {};
+    cartItems.forEach(item => {
+      initialQuantities[item.itemKey] = item.qty;
+    });
+    setQuantities(initialQuantities);
+  }, [cartItems]);
 
   const handleQuantityChange = (itemKey: number, delta: number) => {
     setQuantities(prevQuantities => ({
@@ -81,49 +86,64 @@ const Cart = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
-        {cartItems.map(item => (
-          <View key={item.itemKey} style={styles.item}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={{
-                  uri: item.itemImgName[0],
-                }}
-                style={styles.itemImage}
-              />
-            </View>
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{item.itemName}</Text>
-              <Text style={styles.itemDescription}>{item.itemType}</Text>
-              <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
-              <Text style={styles.itemQuantity}>
-                수량 : {quantities[item.itemKey] || 1}
-              </Text>
-              <View style={styles.quantityAndPrice}>
-                <View style={styles.quantityControl}>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => handleQuantityChange(item.itemKey, -1)}>
-                    <Text style={styles.quantityButtonText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.itemQuantityText}>
-                    {quantities[item.itemKey] || 1}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => handleQuantityChange(item.itemKey, 1)}>
-                    <Text style={styles.quantityButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.itemPrice}>
-                  {(
-                    item.itemPrice * (quantities[item.itemKey] || 1)
-                  ).toLocaleString()}
-                  원
+        {cartItems.length === 0 ? (
+          <View style={styles.emptyCartContainer}>
+            <Text style={styles.emptyCartText}>
+              장바구니에 담긴 상품이 없습니다
+            </Text>
+          </View>
+        ) : (
+          cartItems.map(item => (
+            <View key={item.itemKey} style={styles.item}>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{
+                    uri: path.join(
+                      DATA_URL,
+                      'api',
+                      'img',
+                      'imgserve',
+                      'itemimg',
+                      item.itemImgName,
+                    ),
+                  }}
+                  style={styles.itemImage}
+                />
+              </View>
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemTitle}>{item.itemName}</Text>
+                <Text style={styles.itemDescription}>{item.itemType}</Text>
+                <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
+                <Text style={styles.itemQuantity}>
+                  수량 : {quantities[item.itemKey] || item.qty}
                 </Text>
+                <View style={styles.quantityAndPrice}>
+                  <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                      style={styles.quantityButton}
+                      onPress={() => handleQuantityChange(item.itemKey, -1)}>
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.itemQuantityText}>
+                      {quantities[item.itemKey] || item.qty}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.quantityButton}
+                      onPress={() => handleQuantityChange(item.itemKey, 1)}>
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.itemPrice}>
+                    {(
+                      item.itemPrice * (quantities[item.itemKey] || item.qty)
+                    ).toLocaleString()}
+                    원
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
         <View>
           <View style={styles.textContainer}>
             <Text style={styles.sectionTitle}>수선 ver</Text>
@@ -183,19 +203,21 @@ const Cart = () => {
           </View>
         </View>
       </ScrollView>
-      <View style={styles.footer}>
-        <View style={styles.footerTextContainer}>
-          <Text style={styles.footerText}>예상 결제 금액</Text>
-          <Text style={styles.footerPrice}>
-            {totalPrice.toLocaleString()}원
-          </Text>
+      {cartItems.length > 0 && (
+        <View style={styles.footer}>
+          <View style={styles.footerTextContainer}>
+            <Text style={styles.footerText}>예상 결제 금액</Text>
+            <Text style={styles.footerPrice}>
+              {totalPrice.toLocaleString()}원
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.orderButton}
+            onPress={() => navigation.navigate('Order')}>
+            <Text style={styles.orderButtonText}>주문하기</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.orderButton}
-          onPress={() => navigation.navigate('Order')}>
-          <Text style={styles.orderButtonText}>주문하기</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </View>
   );
 };
@@ -371,6 +393,17 @@ const styles = StyleSheet.create({
   orderButtonText: {
     fontSize: 20,
     color: '#fff',
+    fontWeight: 'bold',
+  },
+  emptyCartContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyCartText: {
+    fontSize: 18,
+    color: '#787878',
     fontWeight: 'bold',
   },
 });
