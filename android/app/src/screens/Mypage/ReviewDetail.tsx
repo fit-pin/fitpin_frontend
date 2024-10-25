@@ -110,23 +110,21 @@ const ReviewDetail: React.FC = () => {
   const handleDelete = async () => {
     const url = `${DATA_URL.replace(/\/$/, '')}/api/fit_comment/delete_comment`;
   
-    // FormData에 필요한 파라미터 추가
-    const formData = new FormData();
-    formData.append('userEmail', review.userEmail);
-    formData.append('fitStorageImg', review.fitStorageImg);
-  
-    console.log('FormData for Delete:', {
+    const body = {
       userEmail: review.userEmail,
       fitStorageImg: review.fitStorageImg,
-    });
+    };
   
     try {
       const response = await fetch(url, {
         method: 'DELETE',
-        body: formData, // FormData로 요청
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body), // JSON 형식으로 데이터 전송
       });
   
-      const responseText = await response.text(); // 응답 본문 로깅
+      const responseText = await response.text();
       console.log('Response Status:', response.status);
       console.log('Response Body:', responseText);
   
