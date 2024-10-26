@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -16,12 +16,12 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
 import {DATA_URL} from '../../Constant';
 import {useFocusEffect} from '@react-navigation/native'; // 추가
 import path from 'path';
+import {reqGet, reqPost} from '../../utills/Request';
 
 type ReviewDetailRouteProp = RouteProp<RootStackParamList, 'ReviewDetail'>;
 type ReviewDetailNavigationProp = StackNavigationProp<
@@ -51,33 +51,35 @@ const ReviewDetail: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageLoadError, setImageLoadError] = useState<boolean>(false);
-  const [forceUpdateKey, setForceUpdateKey] = useState<number>(0); // 렌더링을 강제할 키 값
-
-  const formattedImageUri = `${DATA_URL.replace(/\/$/, '')}/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`;
-
-  useEffect(() => {
-    if (editMode) setImageLoadError(false);
-  }, [editMode]);
-  
-  useEffect(() => {
-    setForceUpdateKey(prevKey => prevKey + 1); // 이미지 강제 렌더링
-  }, [review.fitStorageImg]); // 이미지 변경 시 렌더링
+  const formattedImageUri = `${DATA_URL.replace(
+    /\/$/,
+    '',
+  )}/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`;
 
   useFocusEffect(
     React.useCallback(() => {
       fetchReview(); // 리뷰 데이터 가져오기
-    }, [])
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
   );
-  
+
   const fetchImagesFromBackend = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${DATA_URL}/api/fitStorageImages/user/${userEmail}`);
-      const data = await response.json();
-  
+      const data = await reqGet(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
+      );
+
       if (Array.isArray(data)) {
         const imageUrls = data.map(item =>
-          `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`
+          path.join(
+            DATA_URL,
+            'api',
+            'img',
+            'imgserve',
+            'fitstorageimg',
+            item.fitStorageImg,
+          ),
         );
         setImages(imageUrls);
       } else {
@@ -91,6 +93,7 @@ const ReviewDetail: React.FC = () => {
     }
   };
 
+  //TODO: 이거 연결해서 이미지 바꾸는거 구현 하려는 거죠?
   const openImageSelector = async () => {
     setImages([]);
     setImageLoadError(false);
@@ -108,13 +111,13 @@ const ReviewDetail: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    const url = `${DATA_URL.replace(/\/$/, '')}/api/fit_comment/delete_comment`;
-  
+    const url = path.join(DATA_URL, 'api', 'fit_comment', 'delete_comment');
+
     const body = {
       userEmail: review.userEmail,
       fitStorageImg: review.fitStorageImg,
     };
-  
+
     try {
       const response = await fetch(url, {
         method: 'DELETE',
@@ -123,15 +126,14 @@ const ReviewDetail: React.FC = () => {
         },
         body: JSON.stringify(body),
       });
-  
+
       if (response.ok) {
         Alert.alert('리뷰가 삭제되었습니다.');
-  
+
         // 리뷰 목록 화면으로 이동 + 리뷰 전달
-        navigation.navigate('WriteComment', { 
-          review: review, 
+        navigation.navigate('WriteComment', {
+          review: review,
         });
-  
       } else if (response.status === 404) {
         Alert.alert('이미지를 찾을 수 없습니다.');
       } else {
@@ -144,8 +146,8 @@ const ReviewDetail: React.FC = () => {
   };
 
   const handleSave = async () => {
-    const url = `${DATA_URL.replace(/\/$/, '')}/api/fit_comment/update_comment`;
-  
+    const url = path.join(DATA_URL, 'api', 'fit_comment', 'update_comment');
+
     const updatedReview = {
       userEmail: review.userEmail,
       fitStorageImg: review.fitStorageImg,
@@ -156,53 +158,35 @@ const ReviewDetail: React.FC = () => {
       itemSize: review.itemSize || '',
       option: review.option || '',
     };
-  
+
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedReview),
-      });
-  
-      if (response.ok) {
-        Alert.alert('리뷰가 수정되었습니다.');
-        await fetchReview(); // 최신 리뷰 데이터 가져오기
-        setEditMode(false); // 수정 모드 해제
-        setImageLoadError(false); // 이미지 오류 초기화
-      } else if (response.status === 404) {
-        Alert.alert('이미지를 찾을 수 없습니다.');
-      } else {
-        Alert.alert('수정 중 오류가 발생했습니다.');
-      }
+      const response = await reqPost(url, updatedReview);
+      console.log(response);
+
+      Alert.alert('리뷰가 수정되었습니다.');
+      await fetchReview(); // 최신 리뷰 데이터 가져오기
+      setEditMode(false); // 수정 모드 해제
+      setImageLoadError(false); // 이미지 오류 초기화
     } catch (error) {
-      Alert.alert('네트워크 오류가 발생했습니다.');
+      Alert.alert('오류', '리뷰를 수정하지 못했습니다');
       console.error('Network Error:', error);
     }
   };
 
   const fetchReview = async () => {
     try {
-      const response = await fetch(
-        `${DATA_URL.replace(/\/$/, '')}/api/fitStorageImages/user/${userEmail}`
+      const data: Review[] = await reqGet(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
       );
-  
-      if (!response.ok) {
-        throw new Error(`Failed to fetch reviews. Status: ${response.status}`);
-      }
-  
-      const data: Review[] = await response.json();
-      console.log('Fetched Data:', data);
-  
+
+      console.log('리뷰 목록:', data);
       const latestReview = data.find(
-        (item: Review) => item.fitStorageImg === review.fitStorageImg
+        (item: Review) => item.fitStorageImg === review.fitStorageImg,
       );
-  
+
       if (latestReview) {
         console.log('Latest Review Found:', latestReview);
         setReview(latestReview); // 최신 리뷰로 상태 업데이트
-        setForceUpdateKey(prevKey => prevKey + 1); // 강제 렌더링
       } else {
         console.warn('Latest review not found.');
       }
@@ -221,14 +205,16 @@ const ReviewDetail: React.FC = () => {
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
         {editMode ? (
-          <TouchableOpacity onPress={fetchImagesFromBackend}>
+          <TouchableOpacity
+            onPress={fetchImagesFromBackend}
+            style={styles.editTouchable}>
             {review.fitStorageImg && !imageLoadError ? (
               <Image
-                source={{ uri: formattedImageUri }}
+                source={{uri: formattedImageUri}}
                 style={styles.selectedImage}
-                key={`image-${forceUpdateKey}`} // 강제 렌더링 키
+                key={`${editMode}`}
                 resizeMode="cover"
-                onError={(error) => {
+                onError={error => {
                   console.error('Image Load Error:', error.nativeEvent.error);
                   setImageLoadError(true);
                 }}
@@ -237,16 +223,18 @@ const ReviewDetail: React.FC = () => {
               <Text style={styles.placeholderText}>이미지를 선택하세요</Text>
             )}
             {imageLoadError && (
-              <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>
+              <Text style={styles.errorText}>
+                이미지를 불러오지 못했습니다.
+              </Text>
             )}
           </TouchableOpacity>
         ) : (
           <Image
-            source={{ uri: formattedImageUri }}
+            source={{uri: formattedImageUri}}
             style={styles.selectedImage}
-            key={`image-${forceUpdateKey}`} // 강제 렌더링 키
+            key={`${editMode}`}
             resizeMode="cover"
-            onError={(error) => {
+            onError={error => {
               console.error('Image Load Error:', error.nativeEvent.error);
               setImageLoadError(true);
             }}
@@ -383,7 +371,10 @@ const ReviewDetail: React.FC = () => {
       )}
 
       {/* 이미지 선택 모달 */}
-      <Modal visible={isModalVisible} transparent onRequestClose={() => setIsModalVisible(false)}>
+      <Modal
+        visible={isModalVisible}
+        transparent
+        onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {isLoading ? (
@@ -392,9 +383,11 @@ const ReviewDetail: React.FC = () => {
               <FlatList
                 data={images}
                 keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => selectImage(item)} style={styles.modalImageContainer}>
-                    <Image source={{ uri: item }} style={styles.modalImage} />
+                renderItem={({item}) => (
+                  <TouchableOpacity
+                    onPress={() => selectImage(item)}
+                    style={styles.modalImageContainer}>
+                    <Image source={{uri: item}} style={styles.modalImage} />
                   </TouchableOpacity>
                 )}
                 numColumns={2}
@@ -435,6 +428,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
+  },
+  editTouchable: {
+    width: '100%',
+    height: '100%',
   },
   placeholderText: {
     fontSize: 16,
