@@ -6,19 +6,26 @@
     "configurations": [
         {
             "name": "안드로이드 디버깅",
-            "cwd": "${workspaceFolder}",
-            "type": "reactnative",
             "request": "launch",
-            "platform": "android"
+            "runtimeArgs": [
+                "run",
+                "android"
+            ],
+            "runtimeExecutable": "npm",
+            "console": "integratedTerminal",
+            "type": "node"
         },
         {
             "name": "안드로이드 릴리스 모드 실행",
-            "cwd": "${workspaceFolder}",
-            "type": "reactnative",
             "request": "launch",
-            "platform": "android",
-            "enableDebug": false,
-            "runArguments": ["--mode", "release"]
+            "preLaunchTask": "clean",
+            "runtimeArgs": [
+                "run",
+                "android-release"
+            ],
+            "console": "integratedTerminal",
+            "runtimeExecutable": "npm",
+            "type": "node"
         }
     ]
 }
