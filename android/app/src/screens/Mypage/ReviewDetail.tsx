@@ -206,7 +206,7 @@ const ReviewDetail: React.FC = () => {
       <View style={styles.imageContainer}>
         {editMode ? (
           <TouchableOpacity
-            onPress={fetchImagesFromBackend}
+            onPress={openImageSelector}
             style={styles.editTouchable}>
             {review.fitStorageImg && !imageLoadError ? (
               <Image
