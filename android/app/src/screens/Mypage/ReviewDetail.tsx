@@ -380,19 +380,25 @@ const ReviewDetail: React.FC = () => {
             {isLoading ? (
               <ActivityIndicator size="large" color="#000" />
             ) : (
-              <FlatList
-                data={images}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({item}) => (
-                  <TouchableOpacity
-                    onPress={() => selectImage(item)}
-                    style={styles.modalImageContainer}>
-                    <Image source={{uri: item}} style={styles.modalImage} />
-                  </TouchableOpacity>
-                )}
-                numColumns={2}
-                columnWrapperStyle={styles.row}
-              />
+<FlatList
+  data={
+    images.length % 2 !== 0 ? [...images, 'placeholder'] : images // 홀수일 때 placeholder 추가
+  }
+  keyExtractor={(item, index) => index.toString()}
+  renderItem={({item}) =>
+    item !== 'placeholder' ? (
+      <TouchableOpacity
+        onPress={() => selectImage(item)}
+        style={styles.modalImageContainer}>
+        <Image source={{uri: item}} style={styles.modalImage} />
+      </TouchableOpacity>
+    ) : (
+      <View style={styles.placeholderContainer} /> // placeholder일 경우 빈 뷰
+    )
+  }
+  numColumns={2}
+  columnWrapperStyle={styles.row}
+/>
             )}
             <TouchableOpacity
               style={styles.closeButton}
@@ -581,11 +587,13 @@ const styles = StyleSheet.create({
   modalImageContainer: {
     flex: 1,
     margin: 5,
+    aspectRatio: 1, // 정사각형 비율 유지
   },
   modalImage: {
     width: '100%',
-    height: 150,
-    borderRadius: 10,
+    height: '100%',
+    borderRadius: 10, // 모서리를 둥글게
+    resizeMode: 'cover', // 이미지를 꽉 채우되 잘 맞도록 조정
   },
   closeButton: {
     backgroundColor: '#000',
@@ -600,6 +608,11 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: 'space-between',
+  },
+  placeholderContainer: {
+    flex: 1,
+    margin: 5,
+    aspectRatio: 1, // 비어있는 공간도 정사각형 유지
   },
 });
 
