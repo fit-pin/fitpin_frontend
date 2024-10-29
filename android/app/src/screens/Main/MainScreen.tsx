@@ -28,6 +28,7 @@ interface Product {
   itemBrand: string;
   itemPrice: number;
   itemImgNames: string[];
+  itemStyle: string;
 }
 
 const CameraBubble = () => {
@@ -200,6 +201,7 @@ const Main: React.FC = () => {
   const {userEmail, userName} = useUser();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedSection, setSelectedSection] = useState('상의');
+  const selectedSectionRef = useRef('');
 
   const koreanTexts = boxes.map(box => {
     return box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
@@ -258,20 +260,30 @@ const Main: React.FC = () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
   }, [navigation]);
 
+  //화면 처음 렌더링?시 상의 상품 띄어주는것
   useEffect(() => {
+    selectedSectionRef.current = '상의';
+    // 상품 아이템들 띄우는 함수
     const fetchProducts = async () => {
       try {
         const response: Product[] = await reqGet(
-          path.join(DATA_URL, 'api', 'items', 'list', selectedSection),
+          path.join(
+            DATA_URL,
+            'api',
+            'items',
+            'list',
+            selectedSectionRef.current,
+          ),
         );
         setProducts(response);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
-
     fetchProducts();
-  }, [selectedSection]);
+    setSelectedSection('상의');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const renderProductGrid = () => {
     if (products.length > 0) {
@@ -301,6 +313,30 @@ const Main: React.FC = () => {
     } else {
       return <Text style={styles.noProductsText}>제품이 없습니다.</Text>;
     }
+  };
+
+  const onSelectItemStyle = async (itemStyle: string) => {
+    await onSelectSelect(selectedSectionRef.current);
+    const itemStyleSelected = itemStyle.split('\n')[0].trim();
+    setProducts(prevProducts =>
+      prevProducts.filter(item => item.itemStyle === itemStyleSelected),
+    );
+  };
+
+  const onSelectSelect = async (selectSection: string) => {
+    const fetchProducts = async () => {
+      try {
+        const response: Product[] = await reqGet(
+          path.join(DATA_URL, 'api', 'items', 'list', selectSection),
+        );
+        setProducts(response); // 전체 목록으로 상태 설정
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    await fetchProducts(); // 데이터가 설정될 때까지 기다림
+    selectedSectionRef.current = selectSection; // ref에 섹션 값 저장
+    setSelectedSection(selectSection);
   };
 
   return (
@@ -339,13 +375,16 @@ const Main: React.FC = () => {
         </Text>
         <View style={styles.sections}>
           {reboxes.slice(0, 4).map((box, index) => (
-            <View key={index} style={styles.roundedBox}>
+            <TouchableOpacity
+              key={index}
+              style={styles.roundedBox}
+              onPress={() => onSelectItemStyle(box.text)}>
               {box.recommended && <BlinkingText>추천</BlinkingText>}
               <View style={styles.boxContent}>
                 <Text style={styles.boxText}>{box.text}</Text>
                 <Image source={box.image} style={styles.boxImage} />
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
         <View style={styles.sections}>
@@ -353,9 +392,7 @@ const Main: React.FC = () => {
             <TouchableOpacity
               key={section}
               style={styles.sectionButton}
-              onPress={() => {
-                setSelectedSection(section);
-              }}>
+              onPress={() => onSelectSelect(section)}>
               <Text
                 style={[
                   styles.sectionText,
