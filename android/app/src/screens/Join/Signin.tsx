@@ -70,7 +70,7 @@ const Signin = () => {
       const tempUser = await createUserWithEmailAndPassword(
         auth,
         userEmail,
-        userPwd,
+        'sasdjoa1221',
       );
       await sendEmailVerification(tempUser.user);
       setIsEmailVerified(true);
@@ -126,7 +126,7 @@ const Signin = () => {
           const userCredential = await signInWithEmailAndPassword(
             auth,
             userEmail,
-            userPwd,
+            'sasdjoa1221',
           );
           if (userCredential.user.emailVerified) {
             Alert.alert('확인', '회원가입이 완료되었습니다.');

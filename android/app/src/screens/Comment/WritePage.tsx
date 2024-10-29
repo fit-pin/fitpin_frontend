@@ -16,7 +16,6 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
 import {reqGet} from '../../utills/Request';
@@ -34,27 +33,27 @@ const WritePage: React.FC = () => {
   const route = useRoute<WritePageRouteProp>();
   const {userEmail} = useUser();
 
+  // 라우트에서 넘어온 이미지 URI를 가져옴
+  const passedImageUri = route.params?.selectedImageUri || null;
+
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
-  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(
+    passedImageUri,
+  ); // 라우트에서 넘어온 이미지 자동 설정
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
   const [images, setImages] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   // 핏 보관함에서 이미지 가져오기
   const fetchImagesFromBackend = async () => {
-    setIsLoading(true);
     try {
-      // 이미지 목록 불러오기
-      const response = reqGet(
+      const data = await reqGet(
         path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
       );
-
-      const data = await response;
 
       if (Array.isArray(data)) {
         const imageUrls = data.map(item =>
@@ -67,49 +66,112 @@ const WritePage: React.FC = () => {
             item.fitStorageImg,
           ),
         );
-        // 이미지 목록을 최신순으로 정렬
         setImages(imageUrls.reverse());
       }
     } catch (error) {
       console.error('Error fetching images:', error);
       Alert.alert('Error', 'Failed to fetch images.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchImagesFromBackend(); // 컴포넌트 마운트 시 이미지 목록 불러오기
-  }, [userEmail]);
+    fetchImagesFromBackend();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // 이미지 업로드 및 코멘트 저장
+  // 이미지 업로드 및 코멘트 저장
   const handleSubmit = async () => {
     if (!selectedImageUri) {
       Alert.alert('이미지를 선택해주세요.');
       return;
     }
 
-    const review = {
-      imageUrl: selectedImageUri,
-      brandName,
-      productName,
-      size: selectedSize,
-      fit: selectedFit,
-      reviewText,
-      category: selectedCategory,
-      date: new Date().toISOString(),
-    };
+    if (!productName) {
+      Alert.alert('제품명을 입력해주세요.');
+      return;
+    }
+
+    if (!reviewText) {
+      Alert.alert('코멘트를 작성해주세요.');
+      return;
+    }
+
+    let imageName = selectedImageUri.split('/').pop(); // 기본적으로 선택한 이미지 이름 사용
 
     try {
-      const storedReviews = await AsyncStorage.getItem('reviews');
-      const reviews = storedReviews ? JSON.parse(storedReviews) : [];
-      reviews.push(review);
-      await AsyncStorage.setItem('reviews', JSON.stringify(reviews));
+      // 1. 이미지가 이미 서버에 있는지 확인
+      const checkResponse = await fetch(
+        `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${imageName}`,
+      );
 
-      // 핏 코멘트 페이지로 이동
-      navigation.navigate('Comment');
+      if (checkResponse.status === 404) {
+        // 서버에 이미지가 없으면 업로드 진행
+        const formData = new FormData();
+        formData.append('userEmail', userEmail);
+        formData.append('image', {
+          uri: selectedImageUri,
+          type: 'image/jpeg',
+          name: imageName,
+        });
+
+        const uploadResponse = await fetch(
+          'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
+          {
+            method: 'POST',
+            body: formData,
+          },
+        );
+
+        const uploadResult = await uploadResponse.json();
+
+        if (uploadResponse.ok) {
+          imageName = uploadResult.message.split(': ')[1]; // 업로드 성공 시 반환된 이미지 이름 사용
+        } else {
+          Alert.alert('이미지 업로드 실패', uploadResult.message);
+          return;
+        }
+      } else if (checkResponse.ok) {
+        console.log('이미지가 이미 존재합니다. 중복 업로드를 방지합니다.');
+      }
+
+      // 2. 코멘트 저장
+      const commentData = {
+        userEmail: userEmail,
+        fitStorageImg: imageName, // 서버에서 반환된 이미지 이름 사용
+        fitComment: reviewText,
+        itemType: selectedCategory,
+        itemBrand: brandName,
+        itemSize: selectedSize,
+        option: selectedFit,
+        itemName: productName, // **제품명 추가**
+      };
+
+      const commentResponse = await fetch(
+        'http://fitpitback.kro.kr:8080/api/fit_comment/save_comment',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(commentData),
+        },
+      );
+
+      const commentResult = await commentResponse.json();
+
+      if (commentResponse.ok) {
+        Alert.alert(
+          '코멘트가 성공적으로 저장되었습니다.',
+          `제품명: ${productName}`,
+        );
+        navigation.navigate('Comment');
+      } else {
+        Alert.alert('코멘트 저장 실패', commentResult.message);
+      }
     } catch (error) {
       if (error instanceof Error) {
-        Alert.alert('리뷰 작성 중 오류가 발생했습니다.', error.message);
+        Alert.alert('처리 중 오류가 발생했습니다.', error.message);
       }
     }
   };
@@ -132,6 +194,7 @@ const WritePage: React.FC = () => {
           {selectedImageUri ? (
             <Image
               source={{uri: selectedImageUri}}
+              key={selectedImageUri}
               style={styles.selectedImage}
             />
           ) : (
@@ -149,7 +212,6 @@ const WritePage: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* 카테고리 선택 */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>카테고리</Text>
         <RNPickerSelect
@@ -205,7 +267,6 @@ const WritePage: React.FC = () => {
 
       <View style={styles.line} />
 
-      {/* 사이즈 선택 */}
       <View style={styles.sizeContainer}>
         <Text style={styles.sizeTitle}>사이즈 선택</Text>
         <View style={styles.sizeButtons}>
@@ -275,7 +336,7 @@ const WritePage: React.FC = () => {
         onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {isLoading ? (
+            {!images.length ? (
               <ActivityIndicator size="large" color="#000" />
             ) : (
               <FlatList
@@ -484,7 +545,7 @@ const styles = StyleSheet.create({
   modalImageContainer: {
     flex: 1,
     margin: 5,
-    maxWidth: '48%', // 각 이미지가 동일한 넓이를 유지하도록 설정
+    maxWidth: '48%',
   },
   modalImage: {
     width: '100%',

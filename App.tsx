@@ -32,6 +32,7 @@ import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 import {UserProvider} from './android/app/src/screens/UserContext';
 import Loading from './android/app/src/screens/Join/Loading';
 import ReviewDetail from './android/app/src/screens/Mypage/ReviewDetail';
+import SizeInfoScreen from './android/app/src/screens/Main/SizeInfoScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -70,11 +71,12 @@ export type RootStackParamList = {
   Purchase: undefined;
   My_Fit: undefined;
   Remeasure: undefined;
-  Fit_box: undefined;
+  Fit_box: {refresh?: boolean; fromUpload?: boolean};
   WriteComment: {review: any; fromWritePage?: boolean};
   ReviewDetail: {review: any};
   BottomTabNavigator: undefined;
   Loading: {uri: string};
+  SizeInfoScreen: {photoUri: string};
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -177,6 +179,11 @@ const App = () => {
             name="Camera"
             component={Camera}
             options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="SizeInfoScreen"
+            component={SizeInfoScreen}
+            options={{headerTitle: ''}}
           />
           <Stack.Screen
             name="CameraBodyPhoto"

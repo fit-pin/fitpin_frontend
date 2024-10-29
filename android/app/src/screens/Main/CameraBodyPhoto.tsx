@@ -18,10 +18,6 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
-import {reqFileUpload} from '../../utills/Request'; // API 요청 함수
-import {useUser} from '../UserContext'; // 유저 정보를 가져오는 컨텍스트
-import {DATA_URL} from '../../Constant';
-import path from 'path';
 
 type CameraBodyPhotoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -29,7 +25,6 @@ type CameraBodyPhotoNavigationProp = StackNavigationProp<
 >;
 
 const CameraBodyPhoto = () => {
-  const {userEmail} = useUser(); // 유저 이메일 가져오기
   const [hasPermission, setHasPermission] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -62,13 +57,13 @@ const CameraBodyPhoto = () => {
   if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Text>No access to camera</Text>
+        <Text>카메라 접근 권한이 없습니다.</Text>
         <TouchableOpacity
           onPress={() =>
-            openSettings().catch(() => console.warn('Cannot open settings'))
+            openSettings().catch(() => console.warn('설정을 열 수 없습니다.'))
           }
           style={styles.settingsButton}>
-          <Text style={styles.buttonText}>Open Settings</Text>
+          <Text style={styles.buttonText}>설정 열기</Text>
         </TouchableOpacity>
       </View>
     );
@@ -82,60 +77,24 @@ const CameraBodyPhoto = () => {
           quality: 0.5,
           base64: false,
         });
-        setPhotoUri(data.uri);
+        setPhotoUri(data.uri); // 사진 URI 저장
       } catch (error) {
-        console.error('Failed to take picture', error);
+        console.error('사진 촬영 실패:', error);
       } finally {
         setIsCapturing(false);
       }
     }
   };
 
-  const uploadToBackend = async (localUri: string) => {
-    const formData = new FormData();
-    const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
-
-    formData.append('image', {
-      uri: localUri,
-      name: `photo_${timestamp}.jpg`,
-      type: 'image/jpeg',
-    });
-    formData.append('userEmail', userEmail);
-
-    try {
-      // 이미지 업로드
-      const response = await reqFileUpload(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'upload'),
-        formData,
-      );
-
-      if (response.ok) {
-        console.log('업로드 성공:', response.data);
-        return response.data; // 업로드 성공 시 서버 응답 반환
-      } else {
-        throw new Error(response.data);
-      }
-    } catch (error) {
-      console.error('이미지 업로드 실패:', error);
-      Alert.alert('Error', 'Failed to upload image.');
-    }
-  };
-
-  const confirmPicture = async () => {
+  const confirmPicture = () => {
     if (photoUri) {
-      const uploadResponse = await uploadToBackend(photoUri);
-      if (uploadResponse) {
-        Alert.alert('Success', 'Image uploaded successfully.' + uploadResponse);
-        navigation.replace('Fit_box');
-      } else {
-        Alert.alert('Error', 'Failed to upload image.');
-      }
-      setPhotoUri(null);
+      navigation.navigate('SizeInfoScreen', {photoUri}); // SizeInfoScreen으로 이동
+      setPhotoUri(null); // 초기화
     }
   };
 
   const retakePicture = () => {
-    setPhotoUri(null);
+    setPhotoUri(null); // 사진 다시 촬영
   };
 
   if (photoUri) {
