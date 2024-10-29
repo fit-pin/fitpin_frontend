@@ -204,6 +204,74 @@ const Main: React.FC = () => {
   const koreanTexts = boxes.map(box => {
     return box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
   });
+  const one: {
+    itemBrand: string;
+    itemImgNames: any;
+    itemKey: number;
+    itemName: string;
+    itemPrice: number;
+    itemStyle: string;
+  }[] = [
+    {
+      itemBrand: 'TEST',
+      itemImgNames: ['optimize.png'],
+      itemKey: 1,
+      itemName: '캐주얼',
+      itemPrice: 10000,
+      itemStyle: '캐주얼',
+    },
+  ];
+  const two: {
+    itemBrand: string;
+    itemImgNames: string[];
+    itemKey: number;
+    itemName: string;
+    itemPrice: number;
+    itemStyle: string;
+  }[] = [
+    {
+      itemBrand: 'TEST',
+      itemImgNames: ['optimize.png'],
+      itemKey: 1,
+      itemName: '레트로',
+      itemPrice: 10000,
+      itemStyle: '레트로',
+    },
+  ];
+  const three: {
+    itemBrand: string;
+    itemImgNames: string[];
+    itemKey: number;
+    itemName: string;
+    itemPrice: number;
+    itemStyle: string;
+  }[] = [
+    {
+      itemBrand: 'TEST',
+      itemImgNames: ['optimize.png'],
+      itemKey: 1,
+      itemName: '프레피',
+      itemPrice: 10000,
+      itemStyle: '프레피',
+    },
+  ];
+  const four: {
+    itemBrand: string;
+    itemImgNames: string[];
+    itemKey: number;
+    itemName: string;
+    itemPrice: number;
+    itemStyle: string;
+  }[] = [
+    {
+      itemBrand: 'TEST',
+      itemImgNames: ['optimize.png'],
+      itemKey: 1,
+      itemName: '페미닌',
+      itemPrice: 10000,
+      itemStyle: '페미닌',
+    },
+  ];
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -265,9 +333,11 @@ const Main: React.FC = () => {
           path.join(DATA_URL, 'api', 'items', 'list', selectedSection),
         );
         setProducts(response);
+        console.log(response);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
+      console.log('zmfflr');
     };
 
     fetchProducts();
@@ -300,6 +370,23 @@ const Main: React.FC = () => {
       );
     } else {
       return <Text style={styles.noProductsText}>제품이 없습니다.</Text>;
+    }
+  };
+
+  const onPress = (index: number) => {
+    switch (index) {
+      case 0:
+        setProducts(one);
+        break;
+      case 1:
+        setProducts(two);
+        break;
+      case 2:
+        setProducts(three);
+        break;
+      case 3:
+        setProducts(four);
+        break;
     }
   };
 
@@ -339,13 +426,19 @@ const Main: React.FC = () => {
         </Text>
         <View style={styles.sections}>
           {reboxes.slice(0, 4).map((box, index) => (
-            <View key={index} style={styles.roundedBox}>
+            <TouchableOpacity
+              key={index}
+              style={styles.roundedBox}
+              onPress={() => {
+                onPress(index);
+                console.log(box);
+              }}>
               {box.recommended && <BlinkingText>추천</BlinkingText>}
               <View style={styles.boxContent}>
                 <Text style={styles.boxText}>{box.text}</Text>
                 <Image source={box.image} style={styles.boxImage} />
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
         <View style={styles.sections}>
