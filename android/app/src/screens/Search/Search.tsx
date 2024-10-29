@@ -51,12 +51,17 @@ const fetchSearchResults = async (searchWord: string): Promise<Item[]> => {
       path.join(DATA_URL, 'api', 'item-search', 'search', searchWord),
     );
 
-    // 부분 일치 검색 구현
-    const filteredResults = response.searchResult.filter(item =>
-      item.itemName.includes(searchWord),
-    );
-
-    return filteredResults;
+    // searchResult가 존재하는지 확인
+    if (response.searchResult && Array.isArray(response.searchResult)) {
+      // 부분 일치 검색 구현
+      const filteredResults = response.searchResult.filter(item =>
+        item.itemName.includes(searchWord),
+      );
+      return filteredResults;
+    } else {
+      console.warn('searchResult가 없습니다.');
+      return [];
+    }
   } catch (error) {
     console.error(error);
     return [];

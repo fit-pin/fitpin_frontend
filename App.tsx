@@ -47,17 +47,21 @@ export type RootStackParamList = {
   Main: undefined;
   ProductPage: undefined;
   Cart: undefined;
-  Order: {
-    purchaseData: {
-      itemKey: number;
-      userEmail: string;
-      itemName: string;
-      itemSize: string;
-      itemType: string;
-      itemPrice: number;
-      pit: number;
-    };
-  };
+  Order:
+    | {
+        purchaseData: {
+          itemKey: number;
+          userEmail: string;
+          itemImgName: string;
+          itemName: string;
+          itemSize: string;
+          itemType: string;
+          itemPrice: number;
+          pit: number;
+          qty: number;
+        };
+      }
+    | undefined;
   OrderComplete: undefined;
   Camera: undefined;
   CameraBodyPhoto: undefined;

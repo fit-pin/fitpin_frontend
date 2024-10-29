@@ -35,11 +35,13 @@ const formatPrice = (price: number) => {
 interface CartItem {
   itemKey: number;
   userEmail: string;
+  itemImgName: string;
   itemName: string;
   itemSize: string;
   itemType: string;
   itemPrice: number;
   pit: number;
+  qty: number;
 }
 
 const Order = () => {
@@ -62,17 +64,12 @@ const Order = () => {
     if (!purchaseData) {
       // 바로 구매가 아닌 경우에만 장바구니 항목을 불러옵니다.
       try {
-        if (userEmail) {
-          const response: CartItem[] = await reqGet(
-            path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-          );
-          if (response) {
-            setCartItems(response);
-          } else {
-            console.error(`장바구니 항목을 가져오는데 실패했습니다`);
-            setCartItems([]);
-          }
-        }
+        // 어차피 userEmail 없으면 알아서 예외 발생되어 아래 catch 문 실행
+        const response: CartItem[] = await reqGet(
+          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
+        );
+
+        setCartItems(response);
       } catch (error) {
         console.error(
           '장바구니 항목을 가져오는 중 오류가 발생했습니다:',
@@ -82,7 +79,8 @@ const Order = () => {
       }
     } else {
       // 바로 구매인 경우 purchaseData를 cartItems 배열에 넣어줍니다.
-      setCartItems([purchaseData]);
+      const quantity = purchaseData.qty || 1;
+      setCartItems([{...route.params?.purchaseData!!, qty: quantity}]);
     }
   };
 
@@ -91,18 +89,27 @@ const Order = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchaseData]);
 
+  useEffect(() => {
+    const initialQuantities: Record<number, number> = {};
+    cartItems.forEach(item => {
+      initialQuantities[item.itemKey] = item.qty;
+    });
+    setQuantities(initialQuantities);
+  }, [cartItems]);
+
   const handleQuantityChange = (itemKey: number, delta: number) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
       [itemKey]: Math.max((prevQuantities[itemKey] || 1) + delta, 1),
     }));
   };
-  //총 가격 계산
+
+  // 총 가격 계산
   const totalPrice = cartItems.reduce((total, item) => {
     const quantity = quantities[item.itemKey] || 1;
-    return total + item.itemPrice * quantity;
+    const tailorCost = isChecked ? 20000 * quantity : 0; // 수선비 계산
+    return total + item.itemPrice * quantity + tailorCost; // 상품 가격 + 수선비
   }, 0);
-
   const formattedTotalPrice = formatPrice(totalPrice);
 
   const handleAddressSelected = (data: any) => {
@@ -111,7 +118,7 @@ const Order = () => {
     setIsPostcodeVisible(false);
   };
   const handlePayment = async (item: CartItem) => {
-    const quantity = quantities[item.itemKey] || 1;
+    const quantity = quantities[item.itemKey] || item.qty;
     const totalAmount = totalPrice + (isChecked ? 20000 : 0) + 2000; // 수선 비용
 
     const data = {
@@ -299,7 +306,16 @@ const Order = () => {
           <View key={item.itemKey} style={styles.item}>
             <View style={styles.imageContainer}>
               <Image
-                source={require('../../assets/img/main/top/top1.png')}
+                source={{
+                  uri: path.join(
+                    DATA_URL,
+                    'api',
+                    'img',
+                    'imgserve',
+                    'itemimg',
+                    item.itemImgName,
+                  ),
+                }}
                 style={styles.itemImage}
               />
             </View>
@@ -309,7 +325,7 @@ const Order = () => {
               <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
               <Text style={styles.itemQuantity}>
                 {' '}
-                수량 : {quantities[item.itemKey] || 1}
+                수량 : {quantities[item.itemKey] || item.qty}
               </Text>
               <View style={styles.quantityAndPrice}>
                 <View style={styles.quantityControl}>
@@ -320,7 +336,7 @@ const Order = () => {
                   </TouchableOpacity>
                   <Text style={styles.itemQuantityText}>
                     {' '}
-                    {quantities[item.itemKey] || 1}
+                    {quantities[item.itemKey] || item.qty}
                   </Text>
                   <TouchableOpacity
                     style={styles.quantityButton}
@@ -330,7 +346,7 @@ const Order = () => {
                 </View>
                 <Text style={styles.itemPrice}>
                   {(
-                    item.itemPrice * (quantities[item.itemKey] || 1)
+                    item.itemPrice * (quantities[item.itemKey] || item.qty)
                   ).toLocaleString()}
                   원
                 </Text>
@@ -350,7 +366,15 @@ const Order = () => {
             <CheckBox value={isChecked} onValueChange={setIsChecked} />
           </View>
           {isChecked && (
-            <Text style={styles.tailorCost}>수선 비용 : 20,000원</Text>
+            <Text style={styles.tailorCost}>
+              수선 비용 :{' '}
+              {formatPrice(
+                cartItems.reduce((totalTailorCost, item) => {
+                  const quantity = quantities[item.itemKey] || 1;
+                  return totalTailorCost + 20000 * quantity;
+                }, 0),
+              )}
+            </Text>
           )}
         </View>
       </View>
@@ -367,7 +391,14 @@ const Order = () => {
         {isChecked && (
           <View style={styles.totalContainer}>
             <Text style={styles.totalLabel}>총 예상 수선 금액</Text>
-            <Text style={styles.totalValue}>20,000원</Text>
+            <Text style={styles.totalValue}>
+              {formatPrice(
+                cartItems.reduce((totalTailorCost, item) => {
+                  const quantity = quantities[item.itemKey] || 1;
+                  return totalTailorCost + 20000 * quantity;
+                }, 0),
+              )}
+            </Text>
           </View>
         )}
         <View style={styles.totalContainer}>
