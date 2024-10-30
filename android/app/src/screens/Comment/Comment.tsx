@@ -14,7 +14,9 @@ import {
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../../App';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import { useUser } from '../UserContext'; // UserContext 불러오기
+import { useUser } from '../UserContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 interface FitComment {
   fitStorageKey: number;
@@ -38,23 +40,18 @@ const Comment: React.FC = () => {
 
   const sections: string[] = ['상의', '하의', '아우터', '정장'];
   const baseImageUrl = 'http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/';
-  const screenWidth = Dimensions.get('window').width; // 화면 너비 가져오기
-  const cardWidth = (screenWidth - 60) / 2; // 카드 하나의 너비 계산
 
-  useEffect(() => {
-    fetchComments();
-  }, []);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
+      setLoading(true); // 새로고침 시 로딩 상태 설정
       const response = await fetch('http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment');
       if (response.ok) {
         const data = await response.json();
         const userComments = data.filter(
-          (comment: any) =>
+          (comment: FitComment) =>
             comment.userEmail === userEmail && comment.fitComment && comment.fitComment.trim() !== ''
         );
-
+  
         console.log('Filtered User Comments:', userComments);
         setComments(adjustForOddItems(userComments));
       } else {
@@ -65,7 +62,13 @@ const Comment: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userEmail]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchComments(); // 화면에 포커스될 때마다 리뷰 목록 새로고침
+    }, [fetchComments])
+  );
 
   const adjustForOddItems = (items: FitComment[]) => {
     if (items.length % 2 !== 0) {
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 10, // 좌우 여백 조정
-    paddingBottom: 80, // 플로팅 버튼과의 간격
+    paddingBottom: 120, // 탭바와 간격 유지
   },
   columnWrapper: {
     justifyContent: 'space-between', // 컬럼 간격 균등하게 분배
@@ -270,8 +273,14 @@ const styles = StyleSheet.create({
   },
   writeButton: {
     position: 'absolute',
-    bottom: '12%',
-    right: '0.5%',
+    bottom: '10%', // 더 위로 이동해 탭바와 간격 확보
+    right: '4%', // 약간 왼쪽으로 이동
+    width: 50, // 크기 축소
+    height: 50, // 크기 축소
+    borderRadius: 25, // 둥근 모서리 유지
+    backgroundColor: '#000', // 배경색
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   writeIcon: {
     width: 60,
