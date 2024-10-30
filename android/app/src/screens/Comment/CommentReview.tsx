@@ -217,12 +217,12 @@ const styles = StyleSheet.create({
     marginVertical: '3%',
   },
   optionBox: {
-    backgroundColor: '#F4F4F4', // 밝은 회색 배경
+    backgroundColor: '#F4F4F4',
     borderRadius: 20,
-    paddingHorizontal: 16, // 수평 여백을 늘림
-    paddingVertical: 10, // 수직 여백
-    minWidth: '30%', // 최소 너비 설정
-    alignSelf: 'flex-start', // 내용에 맞게 조정
+    paddingHorizontal: 16,
+    paddingVertical: 10, 
+    minWidth: '30%',
+    alignSelf: 'flex-start',
     marginTop: 10,
   },
   optionLabel: {
