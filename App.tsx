@@ -77,7 +77,7 @@ export type RootStackParamList = {
   Remeasure: undefined;
   Fit_box: {refresh?: boolean; fromUpload?: boolean};
   WriteComment: {review: any; fromWritePage?: boolean};
-  ReviewDetail: {fitStorageKey: number};
+  ReviewDetail: {review: any};
   BottomTabNavigator: undefined;
   Loading: {uri: string};
   SizeInfoScreen: {photoUri: string};
