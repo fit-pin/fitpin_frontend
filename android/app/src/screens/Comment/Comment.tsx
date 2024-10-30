@@ -31,7 +31,7 @@ interface FitComment {
 }
 
 const Comment: React.FC = () => {
-  const { userEmail } = useUser(); // UserContext에서 이메일 가져오기
+  const { userEmail } = useUser();
   const navigation = useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
 
   const [selectedSection, setSelectedSection] = useState<string>('상의');
@@ -284,12 +284,12 @@ const styles = StyleSheet.create({
   },
   writeButton: {
     position: 'absolute',
-    bottom: '10%', // 더 위로 이동해 탭바와 간격 확보
-    right: '4%', // 약간 왼쪽으로 이동
-    width: 50, // 크기 축소
-    height: 50, // 크기 축소
-    borderRadius: 25, // 둥근 모서리 유지
-    backgroundColor: '#000', // 배경색
+    bottom: '10%',
+    right: '4%',
+    width: 50, 
+    height: 50, 
+    borderRadius: 25, 
+    backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
   },
