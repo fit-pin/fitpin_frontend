@@ -104,9 +104,19 @@ const CommentReview: React.FC = () => {
 
       <View style={styles.line} />
 
+      <View style={styles.optionSection}>
+        <Text style={styles.title}>선택 옵션</Text>
+        <View style={styles.optionBox}>
+          <Text style={styles.optionLabel}>사이즈</Text>
+          <Text style={styles.optionText}>{comment.option}</Text>
+        </View>
+      </View>
+
+      <View style={styles.line} />
+
       {/* 한줄평 섹션 */}
       <View style={styles.textContainer}>
-        <Text style={styles.title}>한줄평</Text>
+        <Text style={styles.title}>{userName}님의 한줄평</Text>
         <Text style={styles.reviewText}>{comment.fitComment}</Text>
       </View>
     </ScrollView>
@@ -202,6 +212,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#929292',
     marginBottom: '3%',
+  },
+  optionSection: {
+    marginVertical: '3%',
+  },
+  optionBox: {
+    backgroundColor: '#F4F4F4', // 밝은 회색 배경
+    borderRadius: 20,
+    paddingHorizontal: 16, // 수평 여백을 늘림
+    paddingVertical: 10, // 수직 여백
+    minWidth: '30%', // 최소 너비 설정
+    alignSelf: 'flex-start', // 내용에 맞게 조정
+    marginTop: 10,
+  },
+  optionLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 5,
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#000',
   },
 });
 
