@@ -315,12 +315,24 @@ const Main: React.FC = () => {
     }
   };
 
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+
   const onSelectItemStyle = async (itemStyle: string) => {
-    await onSelectSelect(selectedSectionRef.current);
     const itemStyleSelected = itemStyle.split('\n')[0].trim();
-    setProducts(prevProducts =>
-      prevProducts.filter(item => item.itemStyle === itemStyleSelected),
-    );
+
+    if (selectedStyle === itemStyleSelected) {
+      // 스타일 선택 해제 시, 초기 '상의' 상태로
+      setSelectedStyle(null);
+      selectedSectionRef.current = '상의';
+      await onSelectSelect(selectedSectionRef.current);
+    } else {
+      // 다른 스타일 선택 시 해당 스타일 필터링
+      await onSelectSelect(selectedSectionRef.current);
+      setSelectedStyle(itemStyleSelected);
+      setProducts(prevProducts =>
+        prevProducts.filter(item => item.itemStyle === itemStyleSelected),
+      );
+    }
   };
 
   const onSelectSelect = async (selectSection: string) => {
@@ -377,7 +389,13 @@ const Main: React.FC = () => {
           {reboxes.slice(0, 4).map((box, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.roundedBox}
+              style={[
+                styles.roundedBox,
+                selectedStyle === box.text.split('\n')[0].trim() && {
+                  borderColor: '#444',
+                  borderWidth: 1.5,
+                },
+              ]}
               onPress={() => onSelectItemStyle(box.text)}>
               {box.recommended && <BlinkingText>추천</BlinkingText>}
               <View style={styles.boxContent}>
