@@ -23,7 +23,6 @@ type WriteCommentNavigationProp = StackNavigationProp<
 >;
 
 interface Review {
-  fitStorageKey: number;
   userEmail: string;
   fitStorageImg: string;
   fitComment: string;
@@ -42,21 +41,18 @@ const WriteComment: React.FC = () => {
   const fetchReviews = async () => {
     try {
       const response = await fetch(
-        'http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment'
+        `http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`,
       );
-  
-      if (!response.ok) {
-        throw new Error('데이터를 불러오는 데 실패했습니다.');
-      }
-  
       const data = await response.json();
+
       console.log('Fetched Data:', data); // 응답 데이터 확인
-  
+
       if (Array.isArray(data)) {
+        // fitComment가 있는 데이터만 필터링
         const filteredReviews = data.filter(
-          review => review.fitComment && review.fitComment.trim() !== ''
+          review => review.fitComment && review.fitComment.trim() !== '',
         );
-        setReviews(filteredReviews); // 상태 업데이트
+        setReviews(filteredReviews);
       } else {
         Alert.alert('오류', '리뷰 데이터를 불러오지 못했습니다.');
       }
@@ -76,7 +72,7 @@ const WriteComment: React.FC = () => {
 
   // 리뷰 클릭 시 상세 페이지로 이동하는 함수
   const handleReviewPress = (review: Review) => {
-    navigation.navigate('ReviewDetail', { fitStorageKey: review.fitStorageKey });
+    navigation.navigate('ReviewDetail', {review});
   };
 
   return (
