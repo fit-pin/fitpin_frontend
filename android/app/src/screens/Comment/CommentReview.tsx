@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext'; // UserContext 가져오기
+import { useUser } from '../UserContext';
 
 interface FitComment {
   fitStorageKey: number;
@@ -20,7 +20,7 @@ const CommentReview: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'CommentReview'>>();
   const { fitStorageKey } = route.params;
 
-  const { userName, userHeight, userWeight } = useUser(); // 유저 정보 가져오기
+  const { userName, userHeight, userWeight } = useUser();
 
   const [comment, setComment] = useState<FitComment | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

@@ -80,7 +80,6 @@ const WritePage: React.FC = () => {
   }, []);
 
   // 이미지 업로드 및 코멘트 저장
-  // 이미지 업로드 및 코멘트 저장
   const handleSubmit = async () => {
     if (!selectedImageUri) {
       Alert.alert('이미지를 선택해주세요.');

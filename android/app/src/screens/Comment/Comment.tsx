@@ -81,9 +81,14 @@ const Comment: React.FC = () => {
     <>
       <View style={styles.header}>
         <Text style={styles.platformName}>옷에 대한 정보를 공유해요</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
-          <Image source={require('../../assets/img/main/shop.png')} style={styles.cartImage} />
-        </TouchableOpacity>
+        <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('Cart')}>
+              <Image
+                source={require('../../assets/img/main/shop.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
       </View>
 
       <View style={styles.searchBar}>
@@ -192,7 +197,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
-  cartImage: {
+  iconButton: {
+    marginLeft: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
+  },
+  icon: {
     width: 24,
     height: 24,
   },
