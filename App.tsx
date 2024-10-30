@@ -69,7 +69,7 @@ export type RootStackParamList = {
   Size: undefined;
   Search: undefined;
   Comment: undefined;
-  CommentReview: undefined;
+  CommentReview: { fitStorageKey: number };
   WritePage: {selectedImageUri?: string};
   Mypage: undefined;
   Purchase: undefined;
