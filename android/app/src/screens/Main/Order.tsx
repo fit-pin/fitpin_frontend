@@ -202,7 +202,8 @@ const Order = () => {
                 routes: [{name: 'Main'}, {name: 'OrderComplete'}],
               });
             })
-            .catch(_ => {
+            .catch(e => {
+              console.error('결제 요청 중 오류 발생:', e);
               Alert.alert('결제 실패', '주문 등록에 실패했습니다.');
             });
         } else if (param.state === 'cancel') {
@@ -232,7 +233,7 @@ const Order = () => {
     if (userEmail) {
       const data = {
         itemKey: cartItems[0].itemKey, // 상품 키
-        userKey: '186', // 회원 고유번호 (예: 회원 정보에서 가져옴)
+        userEmail: userEmail,
         userName: buyerName, // 구매자 이름
         userAddr: address, // 배송지 주소
         userNumber: buyerTel, // 구매자 전화번호
@@ -241,7 +242,7 @@ const Order = () => {
         itemPrice: cartItems[0].itemPrice, // 상품 가격
         itemTotal: totalPrice, // 총 결제 금액
         pitPrice: isChecked ? 20000 : 0, // 맞춤비용 (선택 사항)
-        pcs: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
+        qty: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
       };
 
       // API 호출: 주문 정보 전송
@@ -250,12 +251,10 @@ const Order = () => {
         data, // 전송할 데이터
       );
 
-      if (response) {
-        // 주문 완료 알림
+      if (response.message === '주문 등록 완료.') {
         console.log('주문이 성공적으로 등록되었습니다.');
       } else {
-        // 주문 실패 시 오류 출력
-        console.error('주문 등록에 실패했습니다.');
+        throw new Error(response.message);
       }
     }
   };
