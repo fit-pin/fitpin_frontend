@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,113 +8,104 @@ import {
   StyleSheet,
   SafeAreaView,
   FlatList,
-  ListRenderItem,
+  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../../../../App';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import {RootStackParamList} from '../../../../../App';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { useUser } from '../UserContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
-type CommentNavigationProp = StackNavigationProp<RootStackParamList, 'Comment'>;
-
-interface Product {
-  brand: string;
-  name: string;
-  price: string;
-  image: any;
+interface FitComment {
+  fitStorageKey: number;
+  itemBrand: string | null;
+  itemName: string | null;
+  fitComment: string | null;
+  itemSize: string | null;
+  imageUrl?: string; // 이미지 경로를 위한 선택적 필드
+  fitStorageImg: string; // 서버 응답에 포함된 이미지 파일명
+  userEmail: string;
+  userName: string | null;
 }
 
 const Comment: React.FC = () => {
+  const { userEmail } = useUser();
+  const navigation = useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
+
   const [selectedSection, setSelectedSection] = useState<string>('상의');
-  const navigation = useNavigation<CommentNavigationProp>();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [comments, setComments] = useState<FitComment[]>([]);
 
   const sections: string[] = ['상의', '하의', '아우터', '정장'];
+  const baseImageUrl = 'http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/';
 
-  const products: Product[] = [
-    {
-      brand: '폴로 랄프',
-      name: '데님 셔츠',
-      price: '219,000₩',
-      image: require('../../assets/img/main/top/top1.png'),
-    },
-    {
-      brand: '에스이오',
-      name: '럭비 저지 탑',
-      price: '168,000₩',
-      image: require('../../assets/img/main/top/top2.png'),
-    },
-    {
-      brand: '위캔더스',
-      name: '데님 팬츠',
-      price: '198,000₩',
-      image: require('../../assets/img/main/bottom/bottom1.png'),
-    },
-    {
-      brand: '위캔더스',
-      name: '카모 팬츠',
-      price: '129,000₩',
-      image: require('../../assets/img/main/bottom/bottom2.png'),
-    },
-    {
-      brand: '아노트',
-      name: '윈드브레이커',
-      price: '98,000₩',
-      image: require('../../assets/img/main/outer/outer1.png'),
-    },
-    {
-      brand: '코드그라피',
-      name: '후드집업',
-      price: '69,900₩',
-      image: require('../../assets/img/main/outer/outer2.png'),
-    },
-  ];
+  const fetchComments = useCallback(async () => {
+    try {
+      setLoading(true); // 새로고침 시 로딩 상태 설정
+      const response = await fetch('http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment');
+      if (response.ok) {
+        const data = await response.json();
+        const userComments = data.filter(
+          (comment: FitComment) =>
+            comment.userEmail === userEmail && comment.fitComment && comment.fitComment.trim() !== ''
+        );
+  
+        console.log('Filtered User Comments:', userComments);
+        setComments(adjustForOddItems(userComments));
+      } else {
+        console.error('Failed to fetch comments');
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [userEmail]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchComments(); // 화면에 포커스될 때마다 리뷰 목록 새로고침
+    }, [fetchComments])
+  );
+
+  const adjustForOddItems = (items: FitComment[]) => {
+    if (items.length % 2 !== 0) {
+      return [...items, { fitStorageKey: -1, itemBrand: '', itemName: '', fitComment: '', itemSize: '', fitStorageImg: '', userEmail: '', userName: null }];
+    }
+    return items;
+  };
 
   const renderHeader = () => (
     <>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.platformName}>옷에 대한 정보를 공유해요</Text>
-        <View style={styles.cartButtonWrapper}>
-          <TouchableOpacity
-            style={styles.cartButton}
-            onPress={() => navigation.navigate('Cart')}>
-            <Image
-              source={require('../../assets/img/main/shop.png')}
-              style={styles.cartImage}
-            />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('Cart')}>
+              <Image
+                source={require('../../assets/img/main/shop.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchBar}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="궁금한 옷 정보를 검색해보세요"
-        />
-        <TouchableOpacity style={styles.searchButton}>
-          <Image
-            source={require('../../assets/img/search/search.png')}
-            style={styles.searchIcon}
-          />
+        <TextInput style={styles.searchInput} placeholder="궁금한 옷 정보를 검색해보세요" />
+        <TouchableOpacity>
+          <Image source={require('../../assets/img/search/search.png')} style={styles.searchIcon} />
         </TouchableOpacity>
       </View>
 
-      {/* Sections */}
       <View style={styles.sections}>
-        {sections.map(section => (
+        {sections.map((section) => (
           <TouchableOpacity
             key={section}
             style={styles.sectionButton}
-            onPress={() => setSelectedSection(section)}>
-            <Text
-              style={[
-                styles.sectionText,
-                // eslint-disable-next-line react-native/no-inline-styles
-                {
-                  color: selectedSection === section ? '#000' : '#919191',
-                },
-              ]}>
+            onPress={() => setSelectedSection(section)}
+          >
+            <Text style={[styles.sectionText, { color: selectedSection === section ? '#000' : '#919191' }]}>
               {section}
             </Text>
           </TouchableOpacity>
@@ -123,49 +114,60 @@ const Comment: React.FC = () => {
     </>
   );
 
-  const renderItem: ListRenderItem<Product> = ({item}) => (
-    <View style={styles.resultContainer}>
+  const renderItem = ({ item }: { item: FitComment }) => {
+    if (item.fitStorageKey === -1) return <View style={styles.emptyCard} />;
+  
+    const imageUrl = `${baseImageUrl}${item.fitStorageImg}`;
+  
+    return (
       <TouchableOpacity
         style={styles.imgRectangle}
-        onPress={() => navigation.navigate('CommentReview')}>
-        <Image source={item.image} style={styles.productImage} />
-      </TouchableOpacity>
-      <View style={styles.bottomRectangle}>
+        onPress={() =>
+          navigation.navigate('CommentReview', { fitStorageKey: item.fitStorageKey })
+        }
+      >
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.productImage}
+          onError={() => console.warn(`Failed to load image: ${imageUrl}`)}
+        />
         <View style={styles.textContainer}>
-          <View style={styles.brandAndPrice}>
-            <Text style={[styles.text, styles.brandName]}>{item.brand}</Text>
-            <Text style={styles.price}>{item.price}</Text>
+          <Text style={styles.brandName}>{item.itemBrand || '브랜드'}</Text>
+          <View style={styles.sizeContainer}>
+            <Text style={styles.clothName}>{item.itemName || '옷 이름'}</Text>
+            <Text style={styles.Size}>{item.itemSize || 'M'}</Text>
           </View>
-          <Text style={[styles.text, styles.clothName]}>{item.name}</Text>
         </View>
-      </View>
-    </View>
-  );
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={products}
+        data={comments}
         renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={2}
-        ListHeaderComponent={renderHeader}
-        columnWrapperStyle={styles.column}
-        contentContainerStyle={styles.contentContainer}
+        keyExtractor={(item) => item.fitStorageKey.toString()}
+        numColumns={2} // 한 줄에 2개씩 배치
+        columnWrapperStyle={styles.columnWrapper} // 컬럼 여백 스타일
+        contentContainerStyle={styles.contentContainer} // 리스트 전체 여백
+        ListHeaderComponent={renderHeader} // 헤더 컴포넌트 추가
       />
       <TouchableOpacity
         style={styles.writeButton}
-        onPress={() =>
-          navigation.navigate('WritePage', {selectedImageUri: undefined})
-        }>
+        onPress={() => navigation.navigate('WritePage', { selectedImageUri: undefined })}
+      >
         <Image
           source={require('../../assets/img/main/write.png')}
           style={styles.writeIcon}
+          onError={() => console.warn('Failed to load write icon.')}
         />
       </TouchableOpacity>
-      <View>
-        <BottomTabNavigator />
-      </View>
+      <BottomTabNavigator />
     </SafeAreaView>
   );
 };
@@ -176,7 +178,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   contentContainer: {
-    paddingHorizontal: '2%',
+    paddingHorizontal: 10, // 좌우 여백 조정
+    paddingBottom: 120, // 탭바와 간격 유지
+  },
+  columnWrapper: {
+    justifyContent: 'space-between', // 컬럼 간격 균등하게 분배
+    marginBottom: 12, // 아래쪽 간격 조정
   },
   header: {
     flexDirection: 'row',
@@ -190,18 +197,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
-  cartButtonWrapper: {
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#F4F4F4',
-    padding: '1.5%',
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconButton: {
+    marginLeft: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
   },
-  cartButton: {
-    padding: 3,
-  },
-  cartImage: {
+  icon: {
     width: 24,
     height: 24,
   },
@@ -218,10 +220,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#000',
   },
-  searchButton: {
-    marginLeft: '2%',
-    padding: '2%',
-  },
   searchIcon: {
     width: 21,
     height: 21,
@@ -230,6 +228,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginVertical: '1%',
+    marginBottom: 15,
   },
   sectionButton: {
     paddingVertical: '1%',
@@ -238,74 +237,72 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  resultContainer: {
-    flex: 1,
-    margin: 10,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#DCDCDC',
-  },
-  column: {
-    justifyContent: 'space-between',
-  },
   imgRectangle: {
-    position: 'relative',
-    backgroundColor: '#EBEBEB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 170,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    width: (Dimensions.get('window').width - 40) / 2, // 카드 너비 조정
+    marginHorizontal: 5, // 카드 간 좌우 간격
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    overflow: 'hidden',
+    height: 260, // 카드 높이 조정
+    borderColor: '#E0E0E0',
+    borderWidth: 1,
   },
   productImage: {
-    width: '65%',
-    height: '90%',
-    resizeMode: 'cover',
-    top: 3,
-  },
-  bottomRectangle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-    height: 80,
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    padding: 8,
+    width: '100%',
+    height: '70%', // 이미지가 카드의 70% 차지
+    resizeMode: 'cover', // 비율 유지하며 꽉 채우기
   },
   textContainer: {
-    flex: 1,
+    height: '30%',
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
   },
-  brandAndPrice: {
+  brandName: {
+    fontSize: 13,
+    color: '#919191',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  sizeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  text: {
-    fontSize: 16,
-    color: '#000',
-  },
-  brandName: {
-    fontWeight: 'bold',
+    marginTop: 2,
   },
   clothName: {
-    marginTop: '1%',
+    fontSize: 14,
     color: '#000',
+    fontWeight: 'bold',
   },
-  price: {
-    color: '#0000ff',
+  Size: {
+    fontSize: 14,
+    color: '#000',
   },
   writeButton: {
     position: 'absolute',
-    bottom: '12%',
-    right: '0.5%',
+    bottom: '10%',
+    right: '4%',
+    width: 50, 
+    height: 50, 
+    borderRadius: 25, 
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   writeIcon: {
     width: 60,
     height: 60,
   },
+  emptyCard: {
+    flex: 1,
+    margin: 8,
+    backgroundColor: 'transparent',
+  },
 });
+
 
 export default Comment;
