@@ -144,7 +144,7 @@ const Cart = () => {
             </View>
           ))
         )}
-        <View>
+        {/*         <View>
           <View style={styles.textContainer}>
             <Text style={styles.sectionTitle}>수선 ver</Text>
           </View>
@@ -201,7 +201,7 @@ const Cart = () => {
             </View>
             <Text style={styles.subText}>수선 비용 : 20,000원</Text>
           </View>
-        </View>
+        </View> */}
       </ScrollView>
       {cartItems.length > 0 && (
         <View style={styles.footer}>
