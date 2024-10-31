@@ -70,7 +70,8 @@ const CameraBubble = () => {
     }, 3000);
 
     return () => clearTimeout(showTimer);
-  }, [fadeAnim, slideAnim]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return visible ? (
     <Animated.View
@@ -88,49 +89,58 @@ const CameraBubble = () => {
 };
 
 const sections: string[] = ['상의', '하의', '아우터', '정장'];
-const boxes: {text: string; image: any; recommended: boolean}[] = [
+const boxes: {text: string; image: any; recommended: boolean; key: string}[] = [
   {
     text: '스트릿 \nStreet',
+    key: '스트릿',
     image: require('../../assets/img/main/style/street.png'),
     recommended: false,
   },
   {
     text: '캐주얼 \nCasual',
+    key: '캐주얼',
     image: require('../../assets/img/main/style/casual.png'),
     recommended: false,
   },
   {
     text: '빈티지 \nVintage',
+    key: '빈티지',
     image: require('../../assets/img/main/style/vintage.png'),
     recommended: false,
   },
   {
     text: '레트로 \nRetro',
+    key: '레트로',
     image: require('../../assets/img/main/style/retro.png'),
     recommended: false,
   },
   {
     text: '프레피 \nPreppy',
+    key: '프레피',
     image: require('../../assets/img/main/style/preppy.png'),
     recommended: false,
   },
   {
     text: '페미닌 \nFeminine',
+    key: '페미닌',
     image: require('../../assets/img/main/style/feminine.png'),
     recommended: false,
   },
   {
     text: '에슬레저 \nAthleisure',
+    key: '에슬레저',
     image: require('../../assets/img/main/style/athleisure.png'),
     recommended: false,
   },
   {
     text: '테일러 \nTailor',
+    key: '테일러',
     image: require('../../assets/img/main/style/tailor.png'),
     recommended: false,
   },
   {
     text: '아메카지 \nAmekaji',
+    key: '아메카지',
     image: require('../../assets/img/main/style/amekaji.png'),
     recommended: false,
   },
@@ -140,16 +150,18 @@ const ProductCard: React.FC<{
   title: string;
   description: string;
   price: string;
+  itemKey: number;
   image: any;
   brand: string;
-}> = ({title, description, price, image, brand}) => {
+}> = ({title, description, price, image, brand, itemKey}) => {
   const navigation = useNavigation<MainScreenNavigationProp>();
   return (
     <View style={styles.productCardContainer}>
       <View style={styles.topRectangle}>
         <Text style={styles.brandText}>{brand}</Text>
       </View>
-      <TouchableOpacity onPress={() => navigation.navigate('ProductPage')}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ProductPage', {itemkey: itemKey})}>
         <View style={styles.middleRectangle}>
           <Image source={image} style={styles.productImage} />
         </View>
@@ -196,15 +208,14 @@ const BlinkingText: React.FC<{children: React.ReactNode}> = ({children}) => {
 };
 
 const Main: React.FC = () => {
-  const [userStyles, setUserStyles] = useState<string[]>([]); // 스타일 상태 이름을 변경
+  const [userStyles, setUserStyles] = useState<
+    Array<{text: string; image: any; recommended: boolean; key: string}>
+  >([]); // 스타일 상태 이름을 변경
   const {userEmail, userName} = useUser();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedSection, setSelectedSection] = useState('상의');
 
-  const koreanTexts = boxes.map(box => {
-    return box.text.match(/[\u3131-\uD79D]+/g)?.join(' ') || '';
-  });
-
+  //사용자 스타일 테마 가지고 오기
   useEffect(() => {
     const fetchInfo = async () => {
       try {
@@ -215,26 +226,26 @@ const Main: React.FC = () => {
         const userStyles = response.map(
           (item: {preferStyle: any}) => item.preferStyle,
         );
-        setUserStyles(userStyles); // userStyles로 상태 설정
+
+        const reboxes = boxes.filter(box => userStyles.includes(box.key));
+
+        const rn = Math.floor(Math.random() * reboxes.length); // reboxes 배열의 길이에 맞춰 랜덤 인덱스를 생성
+
+        reboxes.forEach(box => {
+          box.recommended = false;
+        });
+
+        if (reboxes.length > 0) {
+          reboxes[rn].recommended = true;
+        }
+        setUserStyles(reboxes); // userStyles로 상태 설정
       } catch (error) {
         console.error('Error fetching user body info:', error);
       }
     };
     fetchInfo();
-  }, [userEmail]);
-
-  const reboxes = boxes.filter((_box, index) =>
-    userStyles.includes(koreanTexts[index]),
-  ); // userStyles 사용
-  const rn = Math.floor(Math.random() * reboxes.length); // reboxes 배열의 길이에 맞춰 랜덤 인덱스를 생성
-
-  reboxes.forEach(box => {
-    box.recommended = false;
-  });
-
-  if (reboxes.length > 0) {
-    reboxes[rn].recommended = true;
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const navigation = useNavigation<MainScreenNavigationProp>();
 
@@ -281,6 +292,7 @@ const Main: React.FC = () => {
             <ProductCard
               key={product.itemKey}
               title={product.itemName}
+              itemKey={product.itemKey}
               description={product.itemBrand}
               price={product.itemPrice.toString()}
               image={{
@@ -299,7 +311,11 @@ const Main: React.FC = () => {
         </View>
       );
     } else {
-      return <Text style={styles.noProductsText}>제품이 없습니다.</Text>;
+      return (
+        <View style={styles.noProductsView}>
+          <Text style={styles.noProductsText}>제품이 없습니다.</Text>
+        </View>
+      );
     }
   };
 
@@ -338,15 +354,19 @@ const Main: React.FC = () => {
           회원님의 체형과 취향 모두를 만족하는 옷이에요
         </Text>
         <View style={styles.sections}>
-          {reboxes.slice(0, 4).map((box, index) => (
-            <View key={index} style={styles.roundedBox}>
-              {box.recommended && <BlinkingText>추천</BlinkingText>}
-              <View style={styles.boxContent}>
-                <Text style={styles.boxText}>{box.text}</Text>
-                <Image source={box.image} style={styles.boxImage} />
+          {userStyles.length ? (
+            userStyles.slice(0, 4).map((box, index) => (
+              <View key={index} style={styles.roundedBox}>
+                {box.recommended && <BlinkingText>추천</BlinkingText>}
+                <View style={styles.boxContent}>
+                  <Text style={styles.boxText}>{box.text}</Text>
+                  <Image source={box.image} style={styles.boxImage} />
+                </View>
               </View>
-            </View>
-          ))}
+            ))
+          ) : (
+            <></>
+          )}
         </View>
         <View style={styles.sections}>
           {sections.map(section => (
@@ -483,9 +503,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: '5%',
+    marginTop: 15,
     paddingHorizontal: '4%',
-    marginBottom: '10%',
+    marginBottom: 55,
   },
   productCardContainer: {
     width: '48%',
@@ -515,7 +535,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#DCDCDC',
     bottom: 10,
@@ -538,27 +557,29 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: '#000',
-    bottom: -20,
   },
   priceText: {
     fontSize: 13,
     color: '#0000ff',
-    bottom: -11,
-    left: 3.5,
+    flexShrink: 1,
+    bottom: 10,
   },
   productDescription: {
     fontSize: 14,
     color: '#3D3D3D',
-    bottom: -22,
   },
   productTextContainer: {
-    flexDirection: 'row',
+    height: '100%',
+    display: 'flex',
     justifyContent: 'space-between',
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    padding: 5,
   },
   leftText: {
-    flex: 1,
+    display: 'flex',
+    flexShrink: 1,
+    flexDirection: 'column',
   },
   relativePosition: {
     position: 'relative',
@@ -598,6 +619,12 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  noProductsView: {
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

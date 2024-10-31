@@ -13,7 +13,6 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
@@ -242,34 +241,6 @@ const ReviewDetail: React.FC = () => {
         )}
       </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>카테고리</Text>
-        {editMode ? (
-          <RNPickerSelect
-            onValueChange={value => setReview({...review, itemType: value})}
-            items={[
-              {label: '반팔', value: '반팔'},
-              {label: '긴팔', value: '긴팔'},
-              {label: '반팔 아우터', value: '반팔 아우터'},
-              {label: '긴팔 아우터', value: '긴팔 아우터'},
-              {label: '조끼', value: '조끼'},
-              {label: '슬링', value: '슬링'},
-              {label: '반바지', value: '반바지'},
-              {label: '긴바지', value: '긴바지'},
-              {label: '치마', value: '치마'},
-              {label: '반팔 원피스', value: '반팔 원피스'},
-              {label: '긴팔 원피스', value: '긴팔 원피스'},
-              {label: '조끼 원피스', value: '조끼 원피스'},
-              {label: '슬링 원피스', value: '슬링 원피스'},
-            ]}
-            value={review.itemType}
-          />
-        ) : (
-          <Text style={styles.categoryText}>{review.itemType}</Text>
-        )}
-      </View>
-
-      <View style={styles.line} />
       <View style={styles.inputContainer}>
         <Text style={styles.label}>브랜드명</Text>
         <TextInput

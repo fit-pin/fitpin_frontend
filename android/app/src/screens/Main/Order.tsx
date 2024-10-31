@@ -17,7 +17,7 @@ import {RootStackParamList} from '../../../../../App';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import PostcodeComponent from './PostcodeComponent';
-import {DATA_URL} from '../../Constant.ts';
+import {AR_URL, DATA_URL} from '../../Constant.ts';
 import path from 'path';
 import {reqGet} from '../../utills/Request.ts';
 import {useUser} from '../UserContext.tsx';
@@ -161,9 +161,9 @@ const Order = () => {
             total_amount: data.amount,
             tax_free_amount: 0,
             // 리다이렉트 처리는 AR 백엔드에 해놓음
-            approval_url: 'http://dmumars.kro.kr/payment/approval',
-            cancel_url: 'http://dmumars.kro.kr/payment/cancel',
-            fail_url: 'http://dmumars.kro.kr/payment/fail',
+            approval_url: `${AR_URL}payment/approval`,
+            cancel_url: `${AR_URL}payment/cancel`,
+            fail_url: `${AR_URL}payment/fail`,
           }),
         },
       );

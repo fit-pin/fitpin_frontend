@@ -14,7 +14,7 @@ import {
 import CheckBox from '@react-native-community/checkbox';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {AR_URL, DATA_URL} from '../../Constant.ts';
 import path from 'path';
 import {ArRequest, reqGet, reqPost} from '../../utills/Request.ts';
@@ -25,8 +25,11 @@ type ProductPageoNavigationProp = StackNavigationProp<
   'ProductPage'
 >;
 
+type ProductPageRouteProp = RouteProp<RootStackParamList, 'ProductPage'>;
+
 const ProductPage = () => {
   const navigation = useNavigation<ProductPageoNavigationProp>();
+  const route = useRoute<ProductPageRouteProp>(); // route의 타입을 지정
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
@@ -73,8 +76,8 @@ const ProductPage = () => {
     itemBottomInfo: null,
     itemImgNames: '',
   });
-
   const {userHeight, userEmail} = useUser();
+  const itemid = route.params.itemkey;
 
   const handleIncrementLength = () => setLength(length + 1);
   const handleDecrementLength = () => length > 0 && setLength(length - 1);
@@ -161,7 +164,7 @@ const ProductPage = () => {
   const fetchProductData = async () => {
     // 제품 상세 정보 요청
     const productRes = await reqGet(
-      path.join(DATA_URL, 'api', 'item-info', '1'),
+      path.join(DATA_URL, 'api', 'item-info', `${itemid}`),
     );
 
     // 오류 체크 콘솔 로그
@@ -241,6 +244,7 @@ const ProductPage = () => {
     fetchProductData().catch(e => {
       console.error(`제품 이미지 로드 오류: ${e}`);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -846,6 +850,7 @@ const styles = StyleSheet.create({
   },
   sizeChartHeaderText: {
     flex: 1,
+    fontSize: 13,
     textAlign: 'center',
     fontWeight: 'bold',
   },
