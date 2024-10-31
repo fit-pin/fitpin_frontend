@@ -1,8 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import {RouteProp, useRoute} from '@react-navigation/native';
+import {RootStackParamList} from '../../../../../App';
+import {useUser} from '../UserContext';
 
 interface FitComment {
   fitStorageKey: number;
@@ -18,9 +25,9 @@ interface FitComment {
 
 const CommentReview: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'CommentReview'>>();
-  const { fitStorageKey } = route.params;
+  const {fitStorageKey} = route.params;
 
-  const { userName, userHeight, userWeight } = useUser();
+  const {userName, userHeight, userWeight} = useUser();
 
   const [comment, setComment] = useState<FitComment | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -29,7 +36,7 @@ const CommentReview: React.FC = () => {
   const fetchComment = async () => {
     try {
       const response = await fetch(
-        `http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment/${fitStorageKey}`
+        `http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment/${fitStorageKey}`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -46,6 +53,7 @@ const CommentReview: React.FC = () => {
 
   useEffect(() => {
     fetchComment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
@@ -63,7 +71,9 @@ const CommentReview: React.FC = () => {
 
       {/* 이미지 */}
       <Image
-        source={{ uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${comment.fitStorageImg}` }}
+        source={{
+          uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${comment.fitStorageImg}`,
+        }}
         style={styles.galleryImage}
       />
 
@@ -220,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F4F4',
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10, 
+    paddingVertical: 10,
     minWidth: '30%',
     alignSelf: 'flex-start',
     marginTop: 10,

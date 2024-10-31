@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,12 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../../App';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {RootStackParamList} from '../../../../../App';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import { useUser } from '../UserContext';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import {useUser} from '../UserContext';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback} from 'react';
 
 interface FitComment {
   fitStorageKey: number;
@@ -31,27 +31,33 @@ interface FitComment {
 }
 
 const Comment: React.FC = () => {
-  const { userEmail } = useUser();
-  const navigation = useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
+  const {userEmail} = useUser();
+  const navigation =
+    useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
 
   const [selectedSection, setSelectedSection] = useState<string>('상의');
   const [loading, setLoading] = useState<boolean>(true);
   const [comments, setComments] = useState<FitComment[]>([]);
 
   const sections: string[] = ['상의', '하의', '아우터', '정장'];
-  const baseImageUrl = 'http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/';
+  const baseImageUrl =
+    'http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/';
 
   const fetchComments = useCallback(async () => {
     try {
       setLoading(true); // 새로고침 시 로딩 상태 설정
-      const response = await fetch('http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment');
+      const response = await fetch(
+        'http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment',
+      );
       if (response.ok) {
         const data = await response.json();
         const userComments = data.filter(
           (comment: FitComment) =>
-            comment.userEmail === userEmail && comment.fitComment && comment.fitComment.trim() !== ''
+            comment.userEmail === userEmail &&
+            comment.fitComment &&
+            comment.fitComment.trim() !== '',
         );
-  
+
         console.log('Filtered User Comments:', userComments);
         setComments(adjustForOddItems(userComments));
       } else {
@@ -67,12 +73,24 @@ const Comment: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       fetchComments(); // 화면에 포커스될 때마다 리뷰 목록 새로고침
-    }, [fetchComments])
+    }, [fetchComments]),
   );
 
   const adjustForOddItems = (items: FitComment[]) => {
     if (items.length % 2 !== 0) {
-      return [...items, { fitStorageKey: -1, itemBrand: '', itemName: '', fitComment: '', itemSize: '', fitStorageImg: '', userEmail: '', userName: null }];
+      return [
+        ...items,
+        {
+          fitStorageKey: -1,
+          itemBrand: '',
+          itemName: '',
+          fitComment: '',
+          itemSize: '',
+          fitStorageImg: '',
+          userEmail: '',
+          userName: null,
+        },
+      ];
     }
     return items;
   };
@@ -82,30 +100,39 @@ const Comment: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.platformName}>옷에 대한 정보를 공유해요</Text>
         <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('Cart')}>
-              <Image
-                source={require('../../assets/img/main/shop.png')}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
+          style={styles.iconButton}
+          onPress={() => navigation.navigate('Cart')}>
+          <Image
+            source={require('../../assets/img/main/shop.png')}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchBar}>
-        <TextInput style={styles.searchInput} placeholder="궁금한 옷 정보를 검색해보세요" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="궁금한 옷 정보를 검색해보세요"
+        />
         <TouchableOpacity>
-          <Image source={require('../../assets/img/search/search.png')} style={styles.searchIcon} />
+          <Image
+            source={require('../../assets/img/search/search.png')}
+            style={styles.searchIcon}
+          />
         </TouchableOpacity>
       </View>
 
       <View style={styles.sections}>
-        {sections.map((section) => (
+        {sections.map(section => (
           <TouchableOpacity
             key={section}
             style={styles.sectionButton}
-            onPress={() => setSelectedSection(section)}
-          >
-            <Text style={[styles.sectionText, { color: selectedSection === section ? '#000' : '#919191' }]}>
+            onPress={() => setSelectedSection(section)}>
+            <Text
+              style={[
+                styles.sectionText,
+                {color: selectedSection === section ? '#000' : '#919191'},
+              ]}>
               {section}
             </Text>
           </TouchableOpacity>
@@ -114,20 +141,21 @@ const Comment: React.FC = () => {
     </>
   );
 
-  const renderItem = ({ item }: { item: FitComment }) => {
+  const renderItem = ({item}: {item: FitComment}) => {
     if (item.fitStorageKey === -1) return <View style={styles.emptyCard} />;
-  
+
     const imageUrl = `${baseImageUrl}${item.fitStorageImg}`;
-  
+
     return (
       <TouchableOpacity
         style={styles.imgRectangle}
         onPress={() =>
-          navigation.navigate('CommentReview', { fitStorageKey: item.fitStorageKey })
-        }
-      >
+          navigation.navigate('CommentReview', {
+            fitStorageKey: item.fitStorageKey,
+          })
+        }>
         <Image
-          source={{ uri: imageUrl }}
+          source={{uri: imageUrl}}
           style={styles.productImage}
           onError={() => console.warn(`Failed to load image: ${imageUrl}`)}
         />
@@ -151,7 +179,7 @@ const Comment: React.FC = () => {
       <FlatList
         data={comments}
         renderItem={renderItem}
-        keyExtractor={(item) => item.fitStorageKey.toString()}
+        keyExtractor={item => item.fitStorageKey.toString()}
         numColumns={2} // 한 줄에 2개씩 배치
         columnWrapperStyle={styles.columnWrapper} // 컬럼 여백 스타일
         contentContainerStyle={styles.contentContainer} // 리스트 전체 여백
@@ -159,8 +187,9 @@ const Comment: React.FC = () => {
       />
       <TouchableOpacity
         style={styles.writeButton}
-        onPress={() => navigation.navigate('WritePage', { selectedImageUri: undefined })}
-      >
+        onPress={() =>
+          navigation.navigate('WritePage', {selectedImageUri: undefined})
+        }>
         <Image
           source={require('../../assets/img/main/write.png')}
           style={styles.writeIcon}
@@ -286,9 +315,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: '10%',
     right: '4%',
-    width: 50, 
-    height: 50, 
-    borderRadius: 25, 
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
@@ -303,6 +332,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 });
-
 
 export default Comment;
