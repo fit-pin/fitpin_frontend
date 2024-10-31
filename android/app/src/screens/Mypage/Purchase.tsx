@@ -1,96 +1,119 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   Image,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import {DATA_URL} from '../../Constant.ts';
+import path from 'path';
+import {reqGet} from '../../utills/Request.ts';
+import {useUser} from '../UserContext.tsx';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
+type Order = {
+  itemKey: number;
+  userEmail: string;
+  optional: string;
+  itemImg: string;
+  itemSize: string;
+  itemPrice: number;
+  itemTotal: number;
+  qty: number;
+  pitStatus: string;
+  displayPitPrice: string;
+  displayOrderStatus: string;
+};
+
 const Purchase = () => {
+  const {userEmail} = useUser();
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response: Order[] = await reqGet(
+          path.join(DATA_URL, 'api', 'order', 'get_order', userEmail),
+        );
+        setOrders(response);
+      } catch (error) {
+        console.error('주문 목록을 불러오는 중 오류 발생:', error);
+      }
+    };
+
+    if (userEmail) {
+      fetchOrders();
+    }
+  }, [userEmail]);
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
-        <Text style={styles.date}>2024.04.10</Text>
-        <Text style={styles.completed}>구매완료</Text>
-        <View style={[styles.item, {borderBottomWidth: 0}]}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/img/main/top/top1.png')}
-              style={styles.itemImage}
-            />
-          </View>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
-            <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
-            <Text style={styles.itemSize}>Size : M</Text>
-            <Text style={styles.itemQuantity}>수량 : 1</Text>
-            <View style={styles.quantityAndPrice}>
-              <View style={styles.quantityControl}>
-                <TouchableOpacity style={styles.quantityButton}>
-                  <Text style={styles.quantityButtonText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.itemQuantityText}>1</Text>
-                <TouchableOpacity style={styles.quantityButton}>
-                  <Text style={styles.quantityButtonText}>+</Text>
-                </TouchableOpacity>
+        {orders.map((order, index) => (
+          <View key={index}>
+            <Text style={styles.completed}>
+              {order.displayOrderStatus === '결제 완료'
+                ? '[ 구매 완료 ]'
+                : order.displayOrderStatus}
+            </Text>
+
+            <View style={[styles.item, {borderBottomWidth: 0}]}>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{
+                    uri: path.join(
+                      DATA_URL,
+                      'api',
+                      'img',
+                      'imgserve',
+                      'itemimg',
+                      `${order.itemImg}`,
+                    ),
+                  }}
+                  style={styles.itemImage}
+                />
               </View>
-              <Text style={styles.itemPrice}>219,000원</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View>
-          <Text style={styles.date}>2024.04.10</Text>
-          <Text style={styles.completed}>구매 / 수선 완료</Text>
-          <View style={[styles.item, {borderBottomWidth: 0}]}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={require('../../assets/img/main/top/top1.png')}
-                style={styles.itemImage}
-              />
-            </View>
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
-              <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
-              <Text style={styles.itemSize}>Size : M</Text>
-              <Text style={styles.itemQuantity}>수량 : 1</Text>
-              <View style={styles.quantityAndPrice}>
-                <View style={styles.quantityControl}>
-                  <TouchableOpacity style={styles.quantityButton}>
-                    <Text style={styles.quantityButtonText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.itemQuantityText}>1</Text>
-                  <TouchableOpacity style={styles.quantityButton}>
-                    <Text style={styles.quantityButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.itemPrice}>219,000원</Text>
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemTitle}>{order.optional}</Text>
+                <Text style={styles.itemSize}>Size : {order.itemSize}</Text>
+                <Text style={styles.itemQuantity}>수량 : {order.qty}</Text>
+                <Text style={styles.itemPrice}>가격 : {order.itemPrice}원</Text>
               </View>
             </View>
-          </View>
-          <View style={styles.subTextContainer}>
-            <View style={styles.tailorCheckBoxContainer}>
-              <Text style={styles.tailorText}>수선해서 구매</Text>
+
+            {/* 수선 정보 표시 */}
+            <View style={styles.subTextContainer}>
+              {order.pitStatus === '수선 있음' ? (
+                <>
+                  <Text style={styles.tailorText}>수선 ver.</Text>
+                  <Text style={styles.tailorSize}>수선한 사이즈</Text>
+                  <View style={styles.sizeChartRow2}>
+                    {/* 예시 데이터 */}
+                    <Text style={styles.sizeChartCell}>90</Text>
+                    <Text style={styles.sizeChartCell}>71</Text>
+                    <Text style={styles.sizeChartCell}>90</Text>
+                    <Text style={styles.sizeChartCell}>43</Text>
+                    <Text style={styles.sizeChartCell}>50</Text>
+                    <Text style={styles.sizeChartCell}>64</Text>
+                  </View>
+                  <Text style={styles.tailorCost}>
+                    수선 비용 : {order.displayPitPrice}원
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.tailorText}>수선 선택 X</Text>
+              )}
             </View>
-            <Text style={styles.tailorSize}>수선한 사이즈</Text>
-            <Image
-              source={require('../../assets/img/main/product/size.png')}
-              style={styles.sizeChart}
-            />
-            <View style={styles.tailorCostContainer}>
-              <Text style={styles.tailorCost}>수선 비용 : 20,000원</Text>
-            </View>
+
+            {/* 수선 정보 아래에 라인 추가 */}
+            <View style={styles.separator} />
           </View>
-        </View>
+        ))}
       </ScrollView>
     </View>
   );
@@ -104,22 +127,17 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
-  date: {
-    fontSize: screenWidth * 0.04,
-    color: '#000',
-    marginTop: screenHeight * 0.02,
-    marginLeft: screenWidth * 0.05,
-  },
   completed: {
     fontSize: screenWidth * 0.04,
-    color: '#929292',
+    color: '#444',
     marginLeft: screenWidth * 0.05,
     fontWeight: 'bold',
+    marginBottom: -5,
+    marginTop: 15,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: screenHeight * 0.02,
     paddingHorizontal: screenWidth * 0.02,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
@@ -155,7 +173,7 @@ const styles = StyleSheet.create({
     borderRadius: 27,
   },
   itemImage: {
-    width: '100%',
+    width: '90%',
     height: '100%',
     resizeMode: 'contain',
   },
@@ -218,7 +236,6 @@ const styles = StyleSheet.create({
     fontSize: screenWidth * 0.05,
     color: '#000',
     fontWeight: 'bold',
-    marginLeft: screenWidth * 0.04,
   },
   subTextContainer: {
     marginLeft: screenWidth * 0.04,
@@ -241,6 +258,13 @@ const styles = StyleSheet.create({
     marginLeft: screenWidth * 0.01,
     marginBottom: screenHeight * 0.01,
   },
+  tailorText2: {
+    fontSize: screenWidth * 0.04,
+    color: '#2D3FE3',
+    fontWeight: 'bold',
+    marginLeft: screenWidth * 0.05,
+    marginBottom: screenHeight * 0.01,
+  },
   tailorSize: {
     fontSize: screenWidth * 0.04,
     color: '#787878',
@@ -253,7 +277,7 @@ const styles = StyleSheet.create({
   },
   tailorCost: {
     fontSize: screenWidth * 0.04,
-    color: '#787878',
+    color: '#444',
     marginTop: screenHeight * 0.01,
     marginRight: screenWidth * 0.02,
   },
@@ -262,6 +286,27 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.02,
     marginVertical: '2%',
     marginLeft: screenWidth * 0.02,
+  },
+  sizeChartRow2: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '90%',
+    marginTop: 10,
+    marginLeft: 10,
+    paddingVertical: 5,
+  },
+  sizeChartCell: {
+    flex: 1,
+    textAlign: 'center',
+    borderWidth: 0.3,
+    borderColor: '#444',
+    paddingVertical: 5,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginBottom: 10,
+    marginVertical: -5,
   },
 });
 
