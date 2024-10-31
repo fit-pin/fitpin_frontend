@@ -40,9 +40,21 @@ const Purchase = () => {
         const response: Order[] = await reqGet(
           path.join(DATA_URL, 'api', 'order', 'get_order', userEmail),
         );
-        setOrders(response);
+
+        if (Array.isArray(response)) {
+          if (response.length === 0) {
+            console.warn('주문 내역이 없습니다.'); // 주문이 없을 때
+          } else {
+            console.log('Fetched orders:', response); // 주문을 성공적으로 가져온 경우
+          }
+          setOrders(response);
+        } else {
+          console.error('잘못된 형식의 응답', response);
+          setOrders([]);
+        }
       } catch (error) {
         console.error('주문 목록을 불러오는 중 오류 발생:', error);
+        setOrders([]); // 빈 배열로 초기화
       }
     };
 
@@ -54,66 +66,70 @@ const Purchase = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
-        {orders.map((order, index) => (
-          <View key={index}>
-            <Text style={styles.completed}>
-              {order.displayOrderStatus === '결제 완료'
-                ? '[ 구매 완료 ]'
-                : order.displayOrderStatus}
-            </Text>
-
-            <View style={[styles.item, {borderBottomWidth: 0}]}>
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{
-                    uri: path.join(
-                      DATA_URL,
-                      'api',
-                      'img',
-                      'imgserve',
-                      'itemimg',
-                      `${order.itemImg}`,
-                    ),
-                  }}
-                  style={styles.itemImage}
-                />
-              </View>
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemTitle}>{order.optional}</Text>
-                <Text style={styles.itemSize}>Size : {order.itemSize}</Text>
-                <Text style={styles.itemQuantity}>수량 : {order.qty}</Text>
-                <Text style={styles.itemPrice}>가격 : {order.itemPrice}원</Text>
-              </View>
-            </View>
-
-            {/* 수선 정보 표시 */}
-            <View style={styles.subTextContainer}>
-              {order.pitStatus === '수선 있음' ? (
-                <>
-                  <Text style={styles.tailorText}>수선 ver.</Text>
-                  <Text style={styles.tailorSize}>수선한 사이즈</Text>
-                  <View style={styles.sizeChartRow2}>
-                    {/* 예시 데이터 */}
-                    <Text style={styles.sizeChartCell}>90</Text>
-                    <Text style={styles.sizeChartCell}>71</Text>
-                    <Text style={styles.sizeChartCell}>90</Text>
-                    <Text style={styles.sizeChartCell}>43</Text>
-                    <Text style={styles.sizeChartCell}>50</Text>
-                    <Text style={styles.sizeChartCell}>64</Text>
-                  </View>
-                  <Text style={styles.tailorCost}>
-                    수선 비용 : {order.displayPitPrice}원
-                  </Text>
-                </>
-              ) : (
-                <Text style={styles.tailorText}>수선 선택 X</Text>
-              )}
-            </View>
-
-            {/* 수선 정보 아래에 라인 추가 */}
-            <View style={styles.separator} />
+        {orders.length === 0 ? (
+          <View style={styles.noOrdersContainer}>
+            <Text style={styles.noOrdersText}>구매한 제품이 없습니다.</Text>
           </View>
-        ))}
+        ) : (
+          orders.map((order, index) => (
+            <View key={index}>
+              <Text style={styles.completed}>
+                {order.displayOrderStatus === '결제 완료'
+                  ? '[ 구매 완료 ]'
+                  : order.displayOrderStatus}
+              </Text>
+
+              <View style={[styles.item, {borderBottomWidth: 0}]}>
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{
+                      uri: path.join(
+                        DATA_URL,
+                        'api',
+                        'img',
+                        'imgserve',
+                        'itemimg',
+                        `${order.itemImg}`,
+                      ),
+                    }}
+                    style={styles.itemImage}
+                  />
+                </View>
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemTitle}>{order.optional}</Text>
+                  <Text style={styles.itemSize}>Size : {order.itemSize}</Text>
+                  <Text style={styles.itemQuantity}>수량 : {order.qty}</Text>
+                  <Text style={styles.itemPrice}>
+                    가격 : {order.itemPrice}원
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.subTextContainer}>
+                {order.pitStatus === '수선 있음' ? (
+                  <>
+                    <Text style={styles.tailorText}>수선 ver.</Text>
+                    <Text style={styles.tailorSize}>수선한 사이즈</Text>
+                    <View style={styles.sizeChartRow2}>
+                      <Text style={styles.sizeChartCell}>90</Text>
+                      <Text style={styles.sizeChartCell}>71</Text>
+                      <Text style={styles.sizeChartCell}>90</Text>
+                      <Text style={styles.sizeChartCell}>43</Text>
+                      <Text style={styles.sizeChartCell}>50</Text>
+                      <Text style={styles.sizeChartCell}>64</Text>
+                    </View>
+                    <Text style={styles.tailorCost}>
+                      수선 비용 : {order.displayPitPrice}원
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={styles.tailorText}>수선 선택 X</Text>
+                )}
+              </View>
+              <View style={styles.separator} />
+            </View>
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -307,6 +323,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
     marginBottom: 10,
     marginVertical: -5,
+  },
+  noOrdersContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: screenHeight,
+  },
+  noOrdersText: {
+    fontSize: screenWidth * 0.05,
+    color: '#888',
+    fontWeight: 'bold',
   },
 });
 
