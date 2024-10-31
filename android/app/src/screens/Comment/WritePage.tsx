@@ -160,7 +160,12 @@ const WritePage: React.FC = () => {
           '코멘트가 성공적으로 저장되었습니다.',
           `제품명: ${productName}`,
         );
-        navigation.navigate('Comment');
+
+        // 핏코멘트 페이지로 가지고 이전 버튼 누르면 main으로 와지게
+        navigation.reset({
+          index: 1,
+          routes: [{name: 'Main'}, {name: 'Comment'}],
+        });
       } else {
         Alert.alert('코멘트 저장 실패', commentResult.message);
       }
