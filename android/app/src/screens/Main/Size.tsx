@@ -34,7 +34,7 @@ const Size = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('WritePage')}>
+        onPress={() => navigation.navigate('WritePage', {})}>
         <Text style={styles.buttonText}>다른 사람들과 사진 공유하기</Text>
       </TouchableOpacity>
     </ScrollView>

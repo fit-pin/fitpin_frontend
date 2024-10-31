@@ -150,7 +150,7 @@ const Mypage: React.FC = () => {
           />
           <Text
             style={styles.text}
-            onPress={() => navigation.navigate('Fit_box')}>
+            onPress={() => navigation.navigate('Fit_box', {})}>
             핏 보관함
           </Text>
         </View>
