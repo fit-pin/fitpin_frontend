@@ -293,7 +293,6 @@ const Main: React.FC = () => {
     };
     fetchProducts();
     setSelectedSection('상의');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const renderProductGrid = () => {
@@ -408,7 +407,7 @@ const Main: React.FC = () => {
                 key={index}
                 style={[
                   styles.roundedBox,
-                  selectedStyle === box.text.split('\n')[0].trim() && {
+                  selectedStyle === box.key && {
                     borderColor: '#444',
                     borderWidth: 1.5,
                   },
@@ -519,6 +518,7 @@ const styles = StyleSheet.create({
   },
   roundedBox: {
     width: '49%',
+    height: 92,
     backgroundColor: '#f0f0f0',
     borderRadius: 20,
     padding: '7.5%',
@@ -535,13 +535,14 @@ const styles = StyleSheet.create({
   boxText: {
     fontSize: 14,
     color: '#000',
-    flex: 1,
+    flexShrink: 0,
     fontWeight: 'bold',
     left: '5%',
   },
   boxImage: {
     width: '55%',
     height: '235%',
+    flexShrink: 0,
     resizeMode: 'contain',
     left: '25%',
   },
