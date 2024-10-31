@@ -28,6 +28,7 @@ interface Product {
   itemBrand: string;
   itemPrice: number;
   itemImgNames: string[];
+  itemStyle: string;
 }
 
 const CameraBubble = () => {
@@ -214,6 +215,7 @@ const Main: React.FC = () => {
   const {userEmail, userName} = useUser();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedSection, setSelectedSection] = useState('상의');
+  const selectedSectionRef = useRef('');
 
   //사용자 스타일 테마 가지고 오기
   useEffect(() => {
@@ -269,20 +271,30 @@ const Main: React.FC = () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
   }, [navigation]);
 
+  //화면 처음 렌더링?시 상의 상품 띄어주는것
   useEffect(() => {
+    selectedSectionRef.current = '상의';
+    // 상품 아이템들 띄우는 함수
     const fetchProducts = async () => {
       try {
         const response: Product[] = await reqGet(
-          path.join(DATA_URL, 'api', 'items', 'list', selectedSection),
+          path.join(
+            DATA_URL,
+            'api',
+            'items',
+            'list',
+            selectedSectionRef.current,
+          ),
         );
         setProducts(response);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
-
     fetchProducts();
-  }, [selectedSection]);
+    setSelectedSection('상의');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const renderProductGrid = () => {
     if (products.length > 0) {
@@ -317,6 +329,42 @@ const Main: React.FC = () => {
         </View>
       );
     }
+  };
+
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+
+  const onSelectItemStyle = async (itemStyle: string) => {
+    const itemStyleSelected = itemStyle.split('\n')[0].trim();
+
+    if (selectedStyle === itemStyleSelected) {
+      // 스타일 선택 해제 시, 초기 '상의' 상태로
+      setSelectedStyle(null);
+      selectedSectionRef.current = '상의';
+      await onSelectSelect(selectedSectionRef.current);
+    } else {
+      // 다른 스타일 선택 시 해당 스타일 필터링
+      await onSelectSelect(selectedSectionRef.current);
+      setSelectedStyle(itemStyleSelected);
+      setProducts(prevProducts =>
+        prevProducts.filter(item => item.itemStyle === itemStyleSelected),
+      );
+    }
+  };
+
+  const onSelectSelect = async (selectSection: string) => {
+    const fetchProducts = async () => {
+      try {
+        const response: Product[] = await reqGet(
+          path.join(DATA_URL, 'api', 'items', 'list', selectSection),
+        );
+        setProducts(response); // 전체 목록으로 상태 설정
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    await fetchProducts(); // 데이터가 설정될 때까지 기다림
+    selectedSectionRef.current = selectSection; // ref에 섹션 값 저장
+    setSelectedSection(selectSection);
   };
 
   return (
@@ -356,13 +404,22 @@ const Main: React.FC = () => {
         <View style={styles.sections}>
           {userStyles.length ? (
             userStyles.slice(0, 4).map((box, index) => (
-              <View key={index} style={styles.roundedBox}>
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.roundedBox,
+                  selectedStyle === box.text.split('\n')[0].trim() && {
+                    borderColor: '#444',
+                    borderWidth: 1.5,
+                  },
+                ]}
+                onPress={() => onSelectItemStyle(box.text)}>
                 {box.recommended && <BlinkingText>추천</BlinkingText>}
                 <View style={styles.boxContent}>
                   <Text style={styles.boxText}>{box.text}</Text>
                   <Image source={box.image} style={styles.boxImage} />
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           ) : (
             <></>
@@ -373,9 +430,7 @@ const Main: React.FC = () => {
             <TouchableOpacity
               key={section}
               style={styles.sectionButton}
-              onPress={() => {
-                setSelectedSection(section);
-              }}>
+              onPress={() => onSelectSelect(section)}>
               <Text
                 style={[
                   styles.sectionText,
