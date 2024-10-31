@@ -47,14 +47,16 @@ const ProductPage = () => {
     itemStyle: string;
     itemPrice: number;
     itemContent: string;
-    itemTopInfo: {
-      itemSize: string;
-      itemHeight: number;
-      itemShoulder: number;
-      itemArm: number;
-      itemChest: number;
-      itemSleeve: number;
-    };
+    itemTopInfo: [
+      {
+        itemSize: string;
+        itemHeight: number;
+        itemShoulder: number;
+        itemArm: number;
+        itemChest: number;
+        itemSleeve: number;
+      },
+    ];
     itemBottomInfo: any;
     itemImgNames: string;
   }>({
@@ -65,14 +67,16 @@ const ProductPage = () => {
     itemStyle: '',
     itemPrice: 0,
     itemContent: '',
-    itemTopInfo: {
-      itemSize: '',
-      itemHeight: 0,
-      itemShoulder: 0,
-      itemArm: 0,
-      itemChest: 0,
-      itemSleeve: 0,
-    },
+    itemTopInfo: [
+      {
+        itemSize: '',
+        itemHeight: 0,
+        itemShoulder: 0,
+        itemArm: 0,
+        itemChest: 0,
+        itemSleeve: 0,
+      },
+    ],
     itemBottomInfo: null,
     itemImgNames: '',
   });
@@ -179,14 +183,7 @@ const ProductPage = () => {
       itemStyle: productRes.itemStyle,
       itemPrice: productRes.itemPrice,
       itemContent: productRes.itemContent,
-      itemTopInfo: {
-        itemSize: productRes.itemTopInfo.itemSize,
-        itemHeight: productRes.itemTopInfo.itemHeight,
-        itemShoulder: productRes.itemTopInfo.itemShoulder,
-        itemArm: productRes.itemTopInfo.itemArm,
-        itemChest: productRes.itemTopInfo.itemChest,
-        itemSleeve: productRes.itemTopInfo.itemSleeve,
-      },
+      itemTopInfo: productRes.itemTopInfo,
       itemBottomInfo: productRes.itemBottomInfo,
       itemImgNames: productRes.itemImgName[0],
     });
@@ -327,22 +324,22 @@ const ProductPage = () => {
         </View>
         <View style={styles.sizeChartRow}>
           <Text style={styles.sizeChartRowTitle}>
-            {productInfo.itemTopInfo.itemSize}
+            {productInfo.itemTopInfo[0].itemSize}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemHeight}
+            {productInfo.itemTopInfo[0].itemHeight}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemShoulder}
+            {productInfo.itemTopInfo[0].itemShoulder}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemArm}
+            {productInfo.itemTopInfo[0].itemArm}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemChest}
+            {productInfo.itemTopInfo[0].itemChest}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemSleeve}
+            {productInfo.itemTopInfo[0].itemSleeve}
           </Text>
         </View>
       </View>
@@ -356,22 +353,22 @@ const ProductPage = () => {
         <Text style={styles.originalSize}>원래 사이즈</Text>
         <View style={styles.sizeChartRow2}>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemSize}
+            {productInfo.itemTopInfo[0].itemSize}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemHeight}
+            {productInfo.itemTopInfo[0].itemHeight}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemShoulder}
+            {productInfo.itemTopInfo[0].itemShoulder}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemArm}
+            {productInfo.itemTopInfo[0].itemArm}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemChest}
+            {productInfo.itemTopInfo[0].itemChest}
           </Text>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo.itemSleeve}
+            {productInfo.itemTopInfo[0].itemSleeve}
           </Text>
         </View>
         <Text style={styles.originalSize}>추천 사이즈</Text>

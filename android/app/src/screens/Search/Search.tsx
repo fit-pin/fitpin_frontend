@@ -33,7 +33,7 @@ interface Item {
   itemContent: string;
   itemPrice: number;
   itemDate: string;
-  itemImgURL?: string;
+  itemImgName: string;
 }
 
 interface SearchResponse {
@@ -142,7 +142,7 @@ const Search = () => {
           itemContent: '',
           itemPrice: 0,
           itemDate: '',
-          itemImgURL: '',
+          itemImgName: '',
         },
       ]);
     }
@@ -271,12 +271,21 @@ const Search = () => {
             <View style={styles.resultContainer}>
               <View style={styles.imgRectangle}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('ProductPage')}>
+                  onPress={() =>
+                    navigation.navigate('ProductPage', {
+                      itemkey: item.itemKey,
+                    })
+                  }>
                   <Image
                     source={{
-                      uri:
-                        item.itemImgURL ||
-                        'http://fitpitback.kro.kr:8080/api/img/imgserve/itemimg/optimize.png',
+                      uri: path.join(
+                        DATA_URL,
+                        'api',
+                        'img',
+                        'imgserve',
+                        'itemimg',
+                        item.itemImgName,
+                      ),
                     }}
                     style={styles.productImage}
                   />

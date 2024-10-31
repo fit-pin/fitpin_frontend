@@ -35,6 +35,8 @@ const SizeInfoScreen: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [imageWidth, setImageWidth] = useState(300); // 초기 값 설정
   const [isModalVisible, setIsModalVisible] = useState(false); // 모달 상태 관리
+
+  //TODO: 테스트 시 useState 값을 photoUri 로 해놓으셈
   const [meaPhotoUri, setMeaPhotoUri] = useState<string | undefined>(undefined); //의류측정 uri
 
   const generateTimestampedName = (): string => {
