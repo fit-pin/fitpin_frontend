@@ -30,7 +30,7 @@ type MEAType = {
   };
 };
 
-const workMEA = async (uri: string) => {
+const workMEA = async (uri: string, userHeight: number) => {
   // 요청 FormData 만들기
   const formData = new FormData();
   const name = uri.split('/').pop();
@@ -40,7 +40,7 @@ const workMEA = async (uri: string) => {
     name: name,
     type: 'image/jpeg',
   } as FormDataValue);
-  formData.append('personKey', '174');
+  formData.append('personKey', userHeight);
 
   const res = await ArRequest(path.join(AR_URL, 'bodymea'), formData);
 
@@ -70,7 +70,7 @@ export default function Loading() {
       return true;
     });
 
-    workMEA(route.params.uri)
+    workMEA(route.params.uri, context.userHeight)
       .then(res => {
         const message = res.data as MEAType;
         console.log(message);
@@ -111,7 +111,8 @@ export default function Loading() {
       });
 
     return () => handler.remove();
-  }, [context.userEmail, context.userGender, navigation, route.params.uri]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View style={styles.container}>
