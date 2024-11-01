@@ -14,7 +14,6 @@ import {
 import {useNavigation, NavigationProp} from '@react-navigation/native';
 import {RootStackParamList} from '../../../../../App';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
-import {useUser} from '../UserContext';
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 
@@ -31,7 +30,6 @@ interface FitComment {
 }
 
 const Comment: React.FC = () => {
-  const {userEmail} = useUser();
   const navigation =
     useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
 
@@ -51,15 +49,8 @@ const Comment: React.FC = () => {
       );
       if (response.ok) {
         const data = await response.json();
-        const userComments = data.filter(
-          (comment: FitComment) =>
-            comment.userEmail === userEmail &&
-            comment.fitComment &&
-            comment.fitComment.trim() !== '',
-        );
-
-        console.log('Filtered User Comments:', userComments);
-        setComments(adjustForOddItems(userComments));
+        console.log('Filtered User Comments:', data);
+        setComments(adjustForOddItems(data));
       } else {
         console.error('Failed to fetch comments');
       }
@@ -68,7 +59,7 @@ const Comment: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [userEmail]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
