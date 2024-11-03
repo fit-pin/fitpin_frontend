@@ -27,7 +27,7 @@ const SizeInfoScreen: React.FC = () => {
   const {userEmail} = useUser();
   const {photoUri} = route.params;
   const [isUploading, setIsUploading] = useState(false);
-  const [imageWidth, setImageWidth] = useState(300); // 초기 값 설정
+  const [imageWidth, setImageWidth] = useState(300);
 
   const generateTimestampedName = (): string => {
     const now = new Date();
@@ -84,13 +84,48 @@ const SizeInfoScreen: React.FC = () => {
     }
   };
 
-  const goToWritePage = () => {
-    navigation.navigate('WritePage', {selectedImageUri: photoUri});
+  const goToWritePage = async () => {
+    setIsUploading(true);
+    const formData = new FormData();
+    const timestampedName = generateTimestampedName();
+
+    formData.append('userEmail', userEmail);
+    formData.append('image', {
+      uri: photoUri,
+      type: 'image/jpeg',
+      name: timestampedName,
+    });
+
+    try {
+      console.log('Uploading image for review:', timestampedName);
+
+      const response = await fetch(
+        'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      if (response.ok) {
+        navigation.navigate('WritePage', {uploadedImageName: timestampedName});
+      } else {
+        Alert.alert('이미지 업로드 실패', '이미지를 업로드할 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      Alert.alert('오류', '사진 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleImageLayout = (event: LayoutChangeEvent) => {
     const {width} = event.nativeEvent.layout;
-    setImageWidth(width); // 이미지의 실제 가로 길이 저장
+    setImageWidth(width);
   };
 
   return (

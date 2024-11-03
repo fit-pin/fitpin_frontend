@@ -35,13 +35,17 @@ const WritePage: React.FC = () => {
 
   // 라우트에서 넘어온 이미지 URI를 가져옴
   const passedImageUri = route.params?.selectedImageUri || null;
+  const uploadedImageName = route.params?.uploadedImageName;
 
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(
-    passedImageUri,
-  ); // 라우트에서 넘어온 이미지 자동 설정
+    passedImageUri || (uploadedImageName ? `${DATA_URL.replace(
+      /\/$/,
+      '',
+    )}/api/img/imgserve/fitstorageimg/${uploadedImageName}` : null),
+  );
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
@@ -81,8 +85,8 @@ const WritePage: React.FC = () => {
 
   // 이미지 업로드 및 코멘트 저장
   const handleSubmit = async () => {
-    if (!selectedImageUri) {
-      Alert.alert('이미지를 선택해주세요.');
+    if (!uploadedImageName) {
+      Alert.alert('오류', '이미지 업로드가 필요합니다.');
       return;
     }
 
@@ -96,57 +100,19 @@ const WritePage: React.FC = () => {
       return;
     }
 
-    let imageName = selectedImageUri.split('/').pop(); // 기본적으로 선택한 이미지 이름 사용
+    const commentData = {
+      userEmail,
+      fitStorageImg: uploadedImageName,
+      fitComment: reviewText,
+      itemType: selectedCategory,
+      itemBrand: brandName,
+      itemSize: selectedSize,
+      option: selectedFit,
+      itemName: productName,
+    };
 
     try {
-      // 1. 이미지가 이미 서버에 있는지 확인
-      const checkResponse = await fetch(
-        `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${imageName}`,
-      );
-
-      if (checkResponse.status === 404) {
-        // 서버에 이미지가 없으면 업로드 진행
-        const formData = new FormData();
-        formData.append('userEmail', userEmail);
-        formData.append('image', {
-          uri: selectedImageUri,
-          type: 'image/jpeg',
-          name: imageName,
-        });
-
-        const uploadResponse = await fetch(
-          'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
-          {
-            method: 'POST',
-            body: formData,
-          },
-        );
-
-        const uploadResult = await uploadResponse.json();
-
-        if (uploadResponse.ok) {
-          imageName = uploadResult.message.split(': ')[1]; // 업로드 성공 시 반환된 이미지 이름 사용
-        } else {
-          Alert.alert('이미지 업로드 실패', uploadResult.message);
-          return;
-        }
-      } else if (checkResponse.ok) {
-        console.log('이미지가 이미 존재합니다. 중복 업로드를 방지합니다.');
-      }
-
-      // 2. 코멘트 저장
-      const commentData = {
-        userEmail: userEmail,
-        fitStorageImg: imageName, // 서버에서 반환된 이미지 이름 사용
-        fitComment: reviewText,
-        itemType: selectedCategory,
-        itemBrand: brandName,
-        itemSize: selectedSize,
-        option: selectedFit,
-        itemName: productName, // **제품명 추가**
-      };
-
-      const commentResponse = await fetch(
+      const response = await fetch(
         'http://fitpitback.kro.kr:8080/api/fit_comment/save_comment',
         {
           method: 'POST',
@@ -157,21 +123,17 @@ const WritePage: React.FC = () => {
         },
       );
 
-      const commentResult = await commentResponse.json();
+      const result = await response.json();
 
-      if (commentResponse.ok) {
-        Alert.alert(
-          '코멘트가 성공적으로 저장되었습니다.',
-          `제품명: ${productName}`,
-        );
+      if (response.ok) {
+        Alert.alert('코멘트가 성공적으로 저장되었습니다.');
         navigation.navigate('Comment');
       } else {
-        Alert.alert('코멘트 저장 실패', commentResult.message);
+        Alert.alert('코멘트 저장 실패', result.message);
       }
     } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert('처리 중 오류가 발생했습니다.', error.message);
-      }
+      Alert.alert('처리 중 오류가 발생했습니다.');
+      console.error(error);
     }
   };
 
