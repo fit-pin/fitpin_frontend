@@ -353,9 +353,6 @@ const ProductPage = () => {
         <Text style={styles.originalSize}>원래 사이즈</Text>
         <View style={styles.sizeChartRow2}>
           <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemSize}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
             {productInfo.itemTopInfo[0].itemHeight}
           </Text>
           <Text style={styles.sizeChartRowText}>
@@ -379,7 +376,6 @@ const ProductPage = () => {
           <Text style={styles.sizeChartCell}>90</Text>
           <Text style={styles.sizeChartCell}>43</Text>
           <Text style={styles.sizeChartCell}>50</Text>
-          <Text style={styles.sizeChartCell}>64</Text>
         </View>
       </View>
 
@@ -516,9 +512,6 @@ const ProductPage = () => {
                 </View>
               </View>
             </View>
-            <TouchableOpacity style={styles.customButton}>
-              <Text style={styles.customButtonText}>수선하기</Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>
