@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,13 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
+import {
+  useRoute,
+  useNavigation,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
+import {BackHandler} from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
@@ -51,6 +57,23 @@ const SizeInfoScreen: React.FC = () => {
     return `photo_${year}${month}${day}T${hours}${minutes}${seconds}${milliseconds}Z.jpg`;
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      const backAction = () => {
+        navigation.navigate('Main'); // 뒤로가기 시 메인 페이지로 이동
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction,
+      );
+
+      return () => backHandler.remove();
+    }, [navigation]),
+  );
+
+  // 핏보관함 저장시 이미지 업로드 부분
   const handleUploadImage = async () => {
     if (!meaPhotoUri) {
       Alert.alert('알림', '카테고리를 선택하여 측정을 진행 해 주세요');
@@ -130,18 +153,45 @@ const SizeInfoScreen: React.FC = () => {
     setIsUploading(false);
   };
 
-  const goToWritePage = () => {
+  // 핏 코멘트 이동시 이미지 업로드 부분
+  const goToWritePage = async () => {
     if (!meaPhotoUri) {
       Alert.alert('알림', '카테고리를 선택하여 측정을 진행 해 주세요');
       return;
     }
 
-    navigation.navigate('WritePage', {selectedImageUri: meaPhotoUri});
+    setIsUploading(true);
+    const formData = new FormData();
+    const timestampedName = generateTimestampedName();
+
+    formData.append('userEmail', userEmail);
+    formData.append('image', {
+      uri: meaPhotoUri,
+      type: 'image/jpeg',
+      name: timestampedName,
+    });
+
+    const response = await reqFileUpload(
+      path.join(DATA_URL, 'api', 'fitStorageImages', 'upload'),
+      formData,
+    );
+
+    console.log('Uploading image:', timestampedName);
+    console.log('Upload result:', response.data);
+
+    if (response.ok) {
+      // `uploadedImageName` 전달
+      navigation.navigate('WritePage', {uploadedImageName: timestampedName});
+    } else {
+      Alert.alert('이미지 업로드 실패', '이미지를 업로드할 수 없습니다.');
+    }
+
+    setIsUploading(false);
   };
 
   const handleImageLayout = (event: LayoutChangeEvent) => {
     const {width} = event.nativeEvent.layout;
-    setImageWidth(width); // 이미지의 실제 가로 길이 저장
+    setImageWidth(width);
   };
 
   return (

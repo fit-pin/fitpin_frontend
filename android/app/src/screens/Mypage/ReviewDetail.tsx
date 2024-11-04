@@ -8,17 +8,13 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  Modal,
-  FlatList,
-  ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
 import {DATA_URL} from '../../Constant';
-import {useFocusEffect} from '@react-navigation/native'; // 추가
+import {useFocusEffect} from '@react-navigation/native';
 import path from 'path';
 import {reqGet, reqPost} from '../../utills/Request';
 
@@ -46,9 +42,6 @@ const ReviewDetail: React.FC = () => {
   const {userEmail} = useUser();
   const [review, setReview] = useState<Review>(route.params.review);
   const [editMode, setEditMode] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageLoadError, setImageLoadError] = useState<boolean>(false);
   const formattedImageUri = `${DATA_URL.replace(
     /\/$/,
@@ -57,57 +50,10 @@ const ReviewDetail: React.FC = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchReview(); // 리뷰 데이터 가져오기
+      fetchReview();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
-
-  const fetchImagesFromBackend = async () => {
-    setIsLoading(true);
-    try {
-      const data = await reqGet(
-        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
-      );
-
-      if (Array.isArray(data)) {
-        const imageUrls = data.map(item =>
-          path.join(
-            DATA_URL,
-            'api',
-            'img',
-            'imgserve',
-            'fitstorageimg',
-            item.fitStorageImg,
-          ),
-        );
-        setImages(imageUrls);
-      } else {
-        throw new Error('Invalid data format');
-      }
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      Alert.alert('Error', 'Failed to fetch images.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  //TODO: 이거 연결해서 이미지 바꾸는거 구현 하려는 거죠?
-  const openImageSelector = async () => {
-    setImages([]);
-    setImageLoadError(false);
-    setIsModalVisible(true);
-    await fetchImagesFromBackend();
-  };
-
-  const selectImage = (imageUri: string) => {
-    const imageName = imageUri.split('/').pop()?.trim();
-    setReview(prevReview => ({
-      ...prevReview,
-      fitStorageImg: imageName || '',
-    }));
-    setIsModalVisible(false);
-  };
 
   const handleDelete = async () => {
     const url = path.join(DATA_URL, 'api', 'fit_comment', 'delete_comment');
@@ -128,8 +74,6 @@ const ReviewDetail: React.FC = () => {
 
       if (response.ok) {
         Alert.alert('리뷰가 삭제되었습니다.');
-
-        // 리뷰 목록 화면으로 이동 + 리뷰 전달
         navigation.navigate('WriteComment', {
           review: review,
         });
@@ -163,9 +107,9 @@ const ReviewDetail: React.FC = () => {
       console.log(response);
 
       Alert.alert('리뷰가 수정되었습니다.');
-      await fetchReview(); // 최신 리뷰 데이터 가져오기
-      setEditMode(false); // 수정 모드 해제
-      setImageLoadError(false); // 이미지 오류 초기화
+      await fetchReview();
+      setEditMode(false);
+      setImageLoadError(false);
     } catch (error) {
       Alert.alert('오류', '리뷰를 수정하지 못했습니다');
       console.error('Network Error:', error);
@@ -185,7 +129,7 @@ const ReviewDetail: React.FC = () => {
 
       if (latestReview) {
         console.log('Latest Review Found:', latestReview);
-        setReview(latestReview); // 최신 리뷰로 상태 업데이트
+        setReview(latestReview);
       } else {
         console.warn('Latest review not found.');
       }
@@ -203,41 +147,17 @@ const ReviewDetail: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
-        {editMode ? (
-          <TouchableOpacity
-            onPress={openImageSelector}
-            style={styles.editTouchable}>
-            {review.fitStorageImg && !imageLoadError ? (
-              <Image
-                source={{uri: formattedImageUri}}
-                style={styles.selectedImage}
-                key={`${editMode}`}
-                resizeMode="cover"
-                onError={error => {
-                  console.error('Image Load Error:', error.nativeEvent.error);
-                  setImageLoadError(true);
-                }}
-              />
-            ) : (
-              <Text style={styles.placeholderText}>이미지를 선택하세요</Text>
-            )}
-            {imageLoadError && (
-              <Text style={styles.errorText}>
-                이미지를 불러오지 못했습니다.
-              </Text>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <Image
-            source={{uri: formattedImageUri}}
-            style={styles.selectedImage}
-            key={`${editMode}`}
-            resizeMode="cover"
-            onError={error => {
-              console.error('Image Load Error:', error.nativeEvent.error);
-              setImageLoadError(true);
-            }}
-          />
+        <Image
+          source={{uri: formattedImageUri}}
+          style={styles.selectedImage}
+          resizeMode="cover"
+          onError={error => {
+            console.error('Image Load Error:', error.nativeEvent.error);
+            setImageLoadError(true);
+          }}
+        />
+        {imageLoadError && (
+          <Text style={styles.errorText}>이미지를 불러오지 못했습니다.</Text>
         )}
       </View>
 
@@ -340,50 +260,9 @@ const ReviewDetail: React.FC = () => {
           <Text style={styles.submitButtonText}>삭제</Text>
         </TouchableOpacity>
       )}
-
-      {/* 이미지 선택 모달 */}
-      <Modal
-        visible={isModalVisible}
-        transparent
-        onRequestClose={() => setIsModalVisible(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {isLoading ? (
-              <ActivityIndicator size="large" color="#000" />
-            ) : (
-              <FlatList
-                data={
-                  images.length % 2 !== 0 ? [...images, 'placeholder'] : images // 홀수일 때 placeholder 추가
-                }
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({item}) =>
-                  item !== 'placeholder' ? (
-                    <TouchableOpacity
-                      onPress={() => selectImage(item)}
-                      style={styles.modalImageContainer}>
-                      <Image source={{uri: item}} style={styles.modalImage} />
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={styles.placeholderContainer} /> // placeholder일 경우 빈 뷰
-                  )
-                }
-                numColumns={2}
-                columnWrapperStyle={styles.row}
-              />
-            )}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsModalVisible(false)}>
-              <Text style={styles.closeButtonText}>닫기</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
-
-const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -405,15 +284,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
-  },
-  editTouchable: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
   },
   errorText: {
     color: 'red',
@@ -541,49 +411,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontSize: 18,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  modalContent: {
-    width: '95%',
-    height: screenHeight * 0.9,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-  },
-  modalImageContainer: {
-    flex: 1,
-    margin: 5,
-    aspectRatio: 1, // 정사각형 비율 유지
-  },
-  modalImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10, // 모서리를 둥글게
-    resizeMode: 'cover', // 이미지를 꽉 채우되 잘 맞도록 조정
-  },
-  closeButton: {
-    backgroundColor: '#000',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  closeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  row: {
-    justifyContent: 'space-between',
-  },
-  placeholderContainer: {
-    flex: 1,
-    margin: 5,
-    aspectRatio: 1, // 비어있는 공간도 정사각형 유지
   },
 });
 
