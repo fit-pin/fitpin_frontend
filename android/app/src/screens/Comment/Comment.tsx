@@ -180,13 +180,15 @@ const Comment: React.FC = () => {
         style={styles.writeButton}
         onPress={() =>
           navigation.navigate('WritePage', {selectedImageUri: undefined})
-        }>
+        } // 상태 초기화를 위해 undefined 전달
+      >
         <Image
           source={require('../../assets/img/main/write.png')}
           style={styles.writeIcon}
           onError={() => console.warn('Failed to load write icon.')}
         />
       </TouchableOpacity>
+
       <BottomTabNavigator />
     </SafeAreaView>
   );

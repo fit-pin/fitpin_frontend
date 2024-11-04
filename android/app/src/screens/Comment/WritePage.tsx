@@ -110,6 +110,8 @@ const WritePage: React.FC = () => {
             uploadedImageName!!,
           ),
         );
+      } else {
+        setSelectedImageUri(null); // 새로운 리뷰를 작성할 때는 이전 이미지 초기화
       }
     }, [uploadedImageName]),
   );
