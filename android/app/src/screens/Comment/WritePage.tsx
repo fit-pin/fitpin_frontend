@@ -87,12 +87,14 @@ const WritePage: React.FC = () => {
       setSelectedCategory('상의');
       setSelectedSize(null);
       setSelectedFit(null);
-
+  
       // `uploadedImageName`이 있을 경우에만 `selectedImageUri` 설정
       if (uploadedImageName) {
         setSelectedImageUri(
           `${DATA_URL.replace(/\/$/, '')}/api/img/imgserve/fitstorageimg/${uploadedImageName}`
         );
+      } else {
+        setSelectedImageUri(null); // 새로운 리뷰를 작성할 때는 이전 이미지 초기화
       }
     }, [uploadedImageName])
   );
