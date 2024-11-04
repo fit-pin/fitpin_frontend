@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {useNavigation, useRoute, RouteProp, useFocusEffect} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
@@ -40,11 +40,11 @@ const WritePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string | null>(null);
+  // `selectedImageUri` 초기값을 `uploadedImageName`을 사용하여 설정
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(
-    passedImageUri || (uploadedImageName ? `${DATA_URL.replace(
-      /\/$/,
-      '',
-    )}/api/img/imgserve/fitstorageimg/${uploadedImageName}` : null),
+    uploadedImageName
+      ? `${DATA_URL.replace(/\/$/, '')}/api/img/imgserve/fitstorageimg/${uploadedImageName}`
+      : null
   );
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
@@ -77,6 +77,25 @@ const WritePage: React.FC = () => {
       Alert.alert('Error', 'Failed to fetch images.');
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      // 페이지 포커스 시 모든 상태를 초기화
+      setBrandName('');
+      setProductName('');
+      setReviewText('');
+      setSelectedCategory('상의');
+      setSelectedSize(null);
+      setSelectedFit(null);
+
+      // `uploadedImageName`이 있을 경우에만 `selectedImageUri` 설정
+      if (uploadedImageName) {
+        setSelectedImageUri(
+          `${DATA_URL.replace(/\/$/, '')}/api/img/imgserve/fitstorageimg/${uploadedImageName}`
+        );
+      }
+    }, [uploadedImageName])
+  );
 
   useEffect(() => {
     fetchImagesFromBackend();
