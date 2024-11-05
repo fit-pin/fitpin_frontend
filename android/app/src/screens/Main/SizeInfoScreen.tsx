@@ -9,23 +9,12 @@ import {
   ActivityIndicator,
   LayoutChangeEvent,
   Dimensions,
-  Modal,
-  TouchableWithoutFeedback,
 } from 'react-native';
-import {
-  useRoute,
-  useNavigation,
-  RouteProp,
-  useFocusEffect,
-} from '@react-navigation/native';
-import {BackHandler} from 'react-native';
+import {useRoute, useNavigation, RouteProp, useFocusEffect} from '@react-navigation/native';
+import { BackHandler } from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
-import RNPickerSelect from 'react-native-picker-select';
-import {ArRequest, reqFileUpload} from '../../utills/Request';
-import path from 'path';
-import {AR_URL, DATA_URL} from '../../Constant';
 
 type SizeInfoScreenRouteProp = RouteProp<RootStackParamList, 'SizeInfoScreen'>;
 type SizeInfoScreenNavigationProp = StackNavigationProp<
@@ -39,11 +28,7 @@ const SizeInfoScreen: React.FC = () => {
   const {userEmail} = useUser();
   const {photoUri} = route.params;
   const [isUploading, setIsUploading] = useState(false);
-  const [imageWidth, setImageWidth] = useState(300); // 초기 값 설정
-  const [isModalVisible, setIsModalVisible] = useState(false); // 모달 상태 관리
-
-  //TODO: 테스트 시 useState 값을 photoUri 로 해놓으셈
-  const [meaPhotoUri, setMeaPhotoUri] = useState<string | undefined>(undefined); //의류측정 uri
+  const [imageWidth, setImageWidth] = useState(300);
 
   const generateTimestampedName = (): string => {
     const now = new Date();
@@ -63,131 +48,97 @@ const SizeInfoScreen: React.FC = () => {
         navigation.navigate('Main'); // 뒤로가기 시 메인 페이지로 이동
         return true;
       };
-
+  
       const backHandler = BackHandler.addEventListener(
         'hardwareBackPress',
-        backAction,
+        backAction
       );
-
+  
       return () => backHandler.remove();
-    }, [navigation]),
+    }, [navigation])
   );
 
-  // 핏보관함 저장시 이미지 업로드 부분
   const handleUploadImage = async () => {
-    if (!meaPhotoUri) {
-      Alert.alert('알림', '카테고리를 선택하여 측정을 진행 해 주세요');
-      return;
-    }
-
     setIsUploading(true);
     const formData = new FormData();
     const timestampedName = generateTimestampedName();
 
     formData.append('userEmail', userEmail);
     formData.append('image', {
-      uri: meaPhotoUri,
-      type: 'image/jpeg',
-      name: timestampedName,
-    });
-
-    const response = await reqFileUpload(
-      path.join(DATA_URL, 'api', 'fitStorageImages', 'upload'),
-      formData,
-    );
-
-    console.log('Uploading image:', timestampedName);
-    console.log('Upload result:', response.data);
-
-    if (response.ok) {
-      Alert.alert('성공', '사진이 핏 보관함에 저장되었습니다.');
-      navigation.reset({
-        index: 1,
-        routes: [{name: 'Main'}, {name: 'Fit_box', params: {fromUpload: true}}],
-      });
-    } else {
-      Alert.alert('업로드 실패', response.data || '업로드에 실패했습니다.');
-    }
-
-    setIsUploading(false);
-  };
-
-  // 카테고리 지정하면 오프라인 의류측정 시작
-  const handleCatagory = async (value: string) => {
-    if (meaPhotoUri) {
-      setMeaPhotoUri(undefined);
-    }
-    setIsUploading(true);
-    const formData = new FormData();
-    const timestampedName = generateTimestampedName();
-
-    formData.append('clothesImg', {
       uri: photoUri,
-      type: 'image/png',
-      name: timestampedName,
-    });
-    formData.append('clothesType', value);
-
-    const response = await ArRequest(path.join(AR_URL, 'clothesmea'), formData);
-
-    if (!response.ok) {
-      const data = await response.json();
-      if (data.detail === 'not_detection_card') {
-        Alert.alert('의류 측정 실패', '사진에서 카드를 감지하지 못했습니다.');
-      } else {
-        Alert.alert('의류 측정 실패', JSON.stringify(data));
-      }
-
-      setIsUploading(false);
-    } else {
-      const blob = await response.blob();
-
-      const fileReaderInstance = new FileReader();
-      fileReaderInstance.readAsDataURL(blob);
-      fileReaderInstance.onload = () => {
-        const base64data = fileReaderInstance.result;
-        setMeaPhotoUri(base64data as string);
-      };
-    }
-
-    setIsUploading(false);
-  };
-
-  // 핏 코멘트 이동시 이미지 업로드 부분
-  const goToWritePage = async () => {
-    if (!meaPhotoUri) {
-      Alert.alert('알림', '카테고리를 선택하여 측정을 진행 해 주세요');
-      return;
-    }
-
-    setIsUploading(true);
-    const formData = new FormData();
-    const timestampedName = generateTimestampedName();
-
-    formData.append('userEmail', userEmail);
-    formData.append('image', {
-      uri: meaPhotoUri,
       type: 'image/jpeg',
       name: timestampedName,
     });
 
-    const response = await reqFileUpload(
-      path.join(DATA_URL, 'api', 'fitStorageImages', 'upload'),
-      formData,
-    );
+    try {
+      console.log('Uploading image:', timestampedName);
 
-    console.log('Uploading image:', timestampedName);
-    console.log('Upload result:', response.data);
+      const response = await fetch(
+        'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
 
-    if (response.ok) {
-      // `uploadedImageName` 전달
-      navigation.navigate('WritePage', {uploadedImageName: timestampedName});
-    } else {
-      Alert.alert('이미지 업로드 실패', '이미지를 업로드할 수 없습니다.');
+      const result = await response.json();
+      console.log('Upload result:', result);
+
+      if (response.ok) {
+        Alert.alert('성공', '사진이 핏 보관함에 저장되었습니다.');
+        navigation.navigate('Fit_box', {fromUpload: true});
+      } else {
+        Alert.alert('업로드 실패', result.message || '업로드에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      Alert.alert('오류', '사진 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
     }
-
-    setIsUploading(false);
   };
+
+  const goToWritePage = async () => {
+    setIsUploading(true);
+    const formData = new FormData();
+    const timestampedName = generateTimestampedName();
+  
+    formData.append('userEmail', userEmail);
+    formData.append('image', {
+      uri: photoUri,
+      type: 'image/jpeg',
+      name: timestampedName,
+    });
+  
+    try {
+      const response = await fetch(
+        'http://fitpitback.kro.kr:8080/api/fitStorageImages/upload',
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+  
+      if (response.ok) {
+        // `uploadedImageName` 전달
+        navigation.navigate('WritePage', { uploadedImageName: timestampedName });
+      } else {
+        Alert.alert('이미지 업로드 실패', '이미지를 업로드할 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      Alert.alert('오류', '사진 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
 
   const handleImageLayout = (event: LayoutChangeEvent) => {
     const {width} = event.nativeEvent.layout;
@@ -198,84 +149,29 @@ const SizeInfoScreen: React.FC = () => {
     <View style={styles.container}>
       <Text style={styles.title}>사이즈 정보를 알려드릴게요</Text>
 
-      {/* 터치시 모달로 보여주게 */}
-      <TouchableOpacity
-        style={styles.imageContainer}
-        onPress={() => setIsModalVisible(true)}>
+      <View style={styles.imageContainer}>
         <Image
-          source={{uri: meaPhotoUri || photoUri}}
+          source={{uri: photoUri}}
           style={styles.image}
           onLayout={handleImageLayout}
         />
-      </TouchableOpacity>
-
-      {/* 모달 */}
-      <Modal visible={isModalVisible} transparent={true}>
-        <TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
-          <View style={styles.modalBackground}>
-            <View style={styles.modalContent}>
-              <Image
-                source={{uri: meaPhotoUri || photoUri}}
-                style={styles.modalImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>카테고리</Text>
-        <RNPickerSelect
-          onValueChange={handleCatagory}
-          items={[
-            {label: '반팔', value: '반팔'},
-            {label: '긴팔', value: '긴팔'},
-            {label: '반팔 아우터', value: '반팔 아우터'},
-            {label: '긴팔 아우터', value: '긴팔 아우터'},
-            {label: '조끼', value: '조끼'},
-            {label: '슬링', value: '슬링'},
-            {label: '반바지', value: '반바지'},
-            {label: '긴바지', value: '긴바지'},
-            {label: '치마', value: '치마'},
-            {label: '반팔 원피스', value: '반팔 원피스'},
-            {label: '긴팔 원피스', value: '긴팔 원피스'},
-            {label: '조끼 원피스', value: '조끼 원피스'},
-            {label: '슬링 원피스', value: '슬링 원피스'},
-          ]}
-          placeholder={{
-            label: '카테고리를 선택하세요',
-            value: null,
-          }}
-        />
       </View>
 
-      <View style={styles.line} />
-
       <View style={[styles.buttonContainer, {width: imageWidth}]}>
-        {isUploading ? (
-          <View style={meaPhotoUri ? styles.button : {...styles.buttonDisable}}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleUploadImage}
+          disabled={isUploading}>
+          {isUploading ? (
             <ActivityIndicator size="small" color="#fff" />
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={meaPhotoUri ? styles.button : {...styles.buttonDisable}}
-            onPress={handleUploadImage}>
+          ) : (
             <Text style={styles.buttonText}>사진 보관하기</Text>
-          </TouchableOpacity>
-        )}
+          )}
+        </TouchableOpacity>
 
-        {isUploading ? (
-          <View style={meaPhotoUri ? styles.button : {...styles.buttonDisable}}>
-            <ActivityIndicator size="small" color="#fff" />
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={meaPhotoUri ? styles.button : {...styles.buttonDisable}}
-            onPress={goToWritePage}>
-            <Text style={styles.buttonText}>다른 사람들과 사진 공유하기 →</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity style={styles.button} onPress={goToWritePage}>
+          <Text style={styles.buttonText}>다른 사람들과 사진 공유하기 →</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -308,6 +204,7 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     height: height * 0.5,
     resizeMode: 'contain',
+    marginBottom: height * 0.02,
   },
   buttonContainer: {
     width: '100%',
@@ -322,59 +219,10 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.015,
     width: width * 0.8,
   },
-  buttonDisable: {
-    backgroundColor: '#EBEBE4',
-    paddingVertical: height * 0.018,
-    marginVertical: height * 0.01,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-    width: width * 0.8,
-  },
   buttonText: {
     color: '#fff',
     fontSize: width * 0.042,
     fontWeight: 'bold',
-  },
-  inputContainer: {
-    width: width * 0.8,
-  },
-  picker: {
-    backgroundColor: 'red',
-    padding: 0,
-    margin: 0,
-  },
-  label: {
-    paddingLeft: 15,
-    paddingRight: 15,
-    fontSize: 16,
-    marginBottom: '1%',
-    color: '#000',
-    fontWeight: 'bold',
-  },
-  line: {
-    height: 1,
-    backgroundColor: '#E9E9E9',
-    marginVertical: '2%',
-    marginBottom: '3%',
-  },
-
-  // 모달 설정
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // 반투명 배경
-  },
-  modalContent: {
-    width: '90%',
-    height: '70%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalImage: {
-    width: '100%',
-    height: '100%',
   },
 });
 
