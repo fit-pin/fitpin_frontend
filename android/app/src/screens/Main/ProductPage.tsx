@@ -26,11 +26,30 @@ type ProductPageoNavigationProp = StackNavigationProp<
 
 type ProductPageRouteProp = RouteProp<RootStackParamList, 'ProductPage'>;
 
+type TopInfoType = {
+  itemSize: string;
+  itemHeight: number;
+  itemShoulder: number;
+  itemChest: number;
+  itemSleeve: number;
+};
+
+type BottomInfoType = {
+  itemSize: string;
+  itemHeight: number;
+  frontRise: number;
+  itemWaists: number;
+  itemHipWidth: number;
+  itemThighs: number;
+  itemHemWidth: number;
+};
+
 const ProductPage = () => {
   const navigation = useNavigation<ProductPageoNavigationProp>();
   const route = useRoute<ProductPageRouteProp>(); // route의 타입을 지정
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeData, setSizeData] = useState<any>(null);
+  const [recommendedSize, setRecommendedSize] = useState<TopInfoType | BottomInfoType | null>(null);
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
   const [chest, setChest] = useState(0);
@@ -82,6 +101,35 @@ const ProductPage = () => {
   });
   const { userHeight, userEmail } = useUser();
   const itemid = route.params.itemkey;
+
+  const [userBodyInfo, setUserBodyInfo] = useState<{
+    userHeight: number;
+    userWeight: number;
+    armSize: number;
+    shoulderSize: number;
+    bodySize: number;
+    legSize: number;
+  } | null>(null);
+
+  const fetchUserBodyInfo = async () => {
+    try {
+      const res = await reqGet(
+        path.join(DATA_URL, 'api', 'userbodyinfo', userEmail)
+      );
+      if (res) {
+        setUserBodyInfo({
+          userHeight: res.userHeight,
+          userWeight: res.userWeight,
+          armSize: res.armSize,
+          shoulderSize: res.shoulderSize,
+          bodySize: res.bodySize,
+          legSize: res.legSize,
+        });
+      }
+    } catch (error) {
+      console.error('사용자 신체 정보 가져오기 오류:', error);
+    }
+  };
 
   const handleIncrementLength = () => setLength(length + 1);
   const handleDecrementLength = () => length > 0 && setLength(length - 1);
@@ -244,12 +292,43 @@ const ProductPage = () => {
     };
   };
 
+  // 추천 사이즈 계산
+  const calculateRecommendedSize = () => {
+    if (!userBodyInfo || !productInfo) return;
+
+    let bestFit: TopInfoType | BottomInfoType | null = null;
+    let minDifference = Infinity;
+
+    const calculateDifference = (item: TopInfoType) => {
+      const heightDiff = Math.abs(item.itemHeight - userBodyInfo.bodySize); // 총장과 사용자 상체 길이 비교
+      const shoulderDiff = Math.abs(item.itemShoulder - userBodyInfo.shoulderSize); // 어깨너비와 사용자 어깨 너비 비교
+      const chestDiff = Math.abs(item.itemChest - productInfo.itemTopInfo[0].itemChest); // 가슴단면 그대로
+      const sleeveDiff = Math.abs(item.itemSleeve - userBodyInfo.armSize); // 소매길이와 사용자 팔 길이 비교
+
+      return heightDiff + shoulderDiff + chestDiff + sleeveDiff; // 총합으로 가장 적합한 사이즈 찾기
+    };
+
+    if (productInfo.itemTopInfo && productInfo.itemTopInfo.length > 0) {
+      productInfo.itemTopInfo.forEach((item: TopInfoType) => {
+        const difference = calculateDifference(item);
+        if (difference < minDifference) {
+          minDifference = difference;
+          bestFit = item;
+        }
+      });
+    }
+
+    setRecommendedSize(bestFit); // recommendedSize 상태 업데이트
+  };
+
   useEffect(() => {
-    fetchProductData().catch(e => {
-      console.error(`제품 이미지 로드 오류: ${e}`);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchUserBodyInfo(); // 기존에 정의된 fetchUserBodyInfo 함수를 사용
+    fetchProductData(); // 상품 데이터 가져오는 함수
   }, []);
+
+  useEffect(() => {
+    calculateRecommendedSize();
+  }, [userBodyInfo, productInfo]);
 
   useEffect(() => {
     if (productInfo.itemImgNames && PordimgUri) {
@@ -359,50 +438,41 @@ const ProductPage = () => {
       <View style={styles.customFitContainer}>
         <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
         <Text style={styles.originalSize}>원래 사이즈</Text>
-        {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && (
+
+        {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
           <View style={styles.sizeChartRow2}>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo[0].itemHeight}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo[0].itemShoulder}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo[0].itemArm}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo[0].itemChest}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo[0].itemSleeve}
-            </Text>
+            <Text style={styles.sizeChartRowText}>{userBodyInfo.bodySize}</Text>
+            <Text style={styles.sizeChartRowText}>{userBodyInfo.shoulderSize}</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemTopInfo[0].itemChest}</Text>
+            <Text style={styles.sizeChartRowText}>{userBodyInfo.armSize}</Text>
           </View>
         )}
+        
+        {/* 추천 사이즈 */}
+        {recommendedSize && (
+          <View style={styles.sizeChartContainer}>
+            <Text style={styles.originalSize}>추천 사이즈</Text>
+            <View style={styles.sizeChartRow}>
+              <Text style={styles.sizeChartRowTitle}>{recommendedSize.itemSize}</Text>
+              <Text style={styles.sizeChartRowText}>{recommendedSize.itemHeight}</Text>
+              <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemShoulder}</Text>
+              <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemChest}</Text>
+              <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemSleeve}</Text>
+            </View>
+          </View>
+        )}
+
         {Array.isArray(productInfo.itemBottomInfo) && productInfo.itemBottomInfo[0] && (
           <View style={styles.sizeChartRow2}>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemBottomInfo[0].itemHeight}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemBottomInfo[0].frontRise}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemBottomInfo[0].itemWaists}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemBottomInfo[0].itemHipWidth}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemBottomInfo[0].itemThighs}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemBottomInfo[0].itemHemWidth}
-            </Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHeight} cm</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].frontRise} cm</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemWaists} cm</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHipWidth} cm</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemThighs} cm</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHemWidth} cm</Text>
           </View>
         )}
       </View>
-
-      <View style={styles.divider} />
 
       {/* 수선 */}
       <View style={styles.tailoringSection}>
@@ -663,7 +733,7 @@ const styles = StyleSheet.create({
     marginVertical: '2%',
     right: '2%',
   },
-  divider: {
+  divider: {  
     height: 1,
     backgroundColor: '#C5C5C5',
     marginVertical: '4%',
@@ -844,7 +914,6 @@ const styles = StyleSheet.create({
   },
   sizeChartContainer: {
     marginTop: 10,
-    marginBottom: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
