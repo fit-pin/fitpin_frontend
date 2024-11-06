@@ -77,6 +77,12 @@ const Comment: React.FC = () => {
     return items;
   };
 
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>작성된 리뷰가 없어요. 지금 첫 리뷰를 작성해보세요!</Text>
+    </View>
+  );
+
   const renderHeader = () => (
     <>
       <View style={styles.header}>
@@ -156,6 +162,7 @@ const Comment: React.FC = () => {
         columnWrapperStyle={styles.columnWrapper} // 컬럼 여백 스타일
         contentContainerStyle={styles.contentContainer} // 리스트 전체 여백
         ListHeaderComponent={renderHeader} // 헤더 컴포넌트 추가
+        ListEmptyComponent={renderEmptyComponent} // 데이터가 없을 때 표시할 컴포넌트
       />
       <TouchableOpacity
         style={styles.writeButton}
@@ -302,6 +309,17 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 8,
     backgroundColor: 'transparent',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: '50%',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#919191',
+    textAlign: 'center',
   },
 });
 
