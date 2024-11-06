@@ -1,5 +1,4 @@
-/* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,13 +11,13 @@ import {
   TouchableWithoutFeedback, // 모달 외부 터치 감지용
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import {RootStackParamList} from '../../../../../App.tsx';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
-import {AR_URL, DATA_URL} from '../../Constant.ts';
+import { RootStackParamList } from '../../../../../App.tsx';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { AR_URL, DATA_URL } from '../../Constant.ts';
 import path from 'path';
-import {ArRequest, reqGet, reqPost} from '../../utills/Request.ts';
-import {useUser} from '../UserContext.tsx';
+import { ArRequest, reqGet, reqPost } from '../../utills/Request.ts';
+import { useUser } from '../UserContext.tsx';
 
 type ProductPageoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -31,6 +30,7 @@ const ProductPage = () => {
   const navigation = useNavigation<ProductPageoNavigationProp>();
   const route = useRoute<ProductPageRouteProp>(); // route의 타입을 지정
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [sizeData, setSizeData] = useState<any>(null);
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
   const [chest, setChest] = useState(0);
@@ -80,7 +80,7 @@ const ProductPage = () => {
     itemBottomInfo: null,
     itemImgNames: '',
   });
-  const {userHeight, userEmail} = useUser();
+  const { userHeight, userEmail } = useUser();
   const itemid = route.params.itemkey;
 
   const handleIncrementLength = () => setLength(length + 1);
@@ -92,7 +92,13 @@ const ProductPage = () => {
   const handleDecrementChest = () => chest > 0 && setChest(chest - 1);
   const handleIncrementSleeve = () => setSleeve(sleeve + 1);
   const handleDecrementSleeve = () => sleeve > 0 && setSleeve(sleeve - 1);
-  const handleSizeSelect = (size: string) => setSelectedSize(size);
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
+    if (productInfo && productInfo.itemTopInfo) {
+      const selectedSizeData = productInfo.itemTopInfo.find((info: any) => info.itemSize === size);
+      setSizeData(selectedSizeData);
+    }
+  };
   const [qty, setQty] = useState(1);
 
   // 수량
@@ -162,8 +168,9 @@ const ProductPage = () => {
     };
 
     // 결제 페이지로 데이터를 전달합니다
-    navigation.navigate('Order', {purchaseData});
+    navigation.navigate('Order', { purchaseData });
   };
+
   // 상품 정보 가져오기
   const fetchProductData = async () => {
     // 제품 상세 정보 요청
@@ -274,7 +281,7 @@ const ProductPage = () => {
       {/* 제품 이미지 */}
       <View style={styles.roundedRect}>
         {PordimgUri ? (
-          <Image source={{uri: PordimgUri}} style={styles.productImage} />
+          <Image source={{ uri: PordimgUri }} style={styles.productImage} />
         ) : (
           <></>
         )}
@@ -288,61 +295,62 @@ const ProductPage = () => {
       </Text>
       <Text style={styles.description}>{productInfo.itemContent}</Text>
 
-      {/* 사이즈 선택 */}
-      <View style={styles.sizeContainer}>
-        <Text style={styles.sizeTitle}>Select Size</Text>
-        <View style={styles.sizeButtons}>
-          {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
+      {/* 사이즈 표 */}
+      <View style={styles.sizeButtons}>
+        {(
+          Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo.length > 0
+            ? productInfo.itemTopInfo
+            : Array.isArray(productInfo.itemBottomInfo) && productInfo.itemBottomInfo.length > 0
+              ? productInfo.itemBottomInfo
+              : []
+        )
+          .sort((a: { itemSize: string }, b: { itemSize: string }) => {
+            const order = ['S', 'M', 'L', 'XL', 'XXL', 'Free'];
+            return order.indexOf(a.itemSize) - order.indexOf(b.itemSize);
+          })
+          .map((info: { itemSize: string }) => (
             <TouchableOpacity
-              key={size}
+              key={info.itemSize}
               style={[
                 styles.sizeButton,
-                selectedSize === size && styles.selectedSizeButton,
+                selectedSize === info.itemSize && styles.selectedSizeButton,
               ]}
-              onPress={() => handleSizeSelect(size)}>
+              onPress={() => handleSizeSelect(info.itemSize)}>
               <Text
                 style={[
                   styles.sizeButtonText,
-                  selectedSize === size && styles.selectedSizeButtonText,
+                  selectedSize === info.itemSize && styles.selectedSizeButtonText,
                 ]}>
-                {size}
+                {info.itemSize}
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
       </View>
-      {/* 사이즈 표 */}
-      <View style={styles.sizeChartContainer}>
-        <View style={styles.sizeChartHeader}>
-          {['Size', 'Height', 'Shoulder', 'Arm', 'Chest', 'Sleeve'].map(
-            (header, index) => (
+
+      {sizeData && (
+        <View style={styles.sizeChartContainer}>
+          <View style={styles.sizeChartHeader}>
+            {['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map((header, index) => (
               <Text key={index} style={styles.sizeChartHeaderText}>
                 {header}
               </Text>
-            ),
-          )}
+            ))}
+          </View>
+          <View style={styles.sizeChartRow}>
+            <Text style={styles.sizeChartRowTitle}>{sizeData.itemSize}</Text>
+            <Text style={styles.sizeChartRowText}>{sizeData.itemHeight}</Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo ? sizeData.itemShoulder : sizeData.frontRise}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo ? sizeData.itemChest : sizeData.itemWaists}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo ? sizeData.itemSleeve : sizeData.itemHipWidth}
+            </Text>
+          </View>
         </View>
-        <View style={styles.sizeChartRow}>
-          <Text style={styles.sizeChartRowTitle}>
-            {productInfo.itemTopInfo[0].itemSize}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemHeight}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemShoulder}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemArm}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemChest}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemSleeve}
-          </Text>
-        </View>
-      </View>
+      )}
 
       {/* 줄 */}
       <View style={styles.divider} />
@@ -351,32 +359,47 @@ const ProductPage = () => {
       <View style={styles.customFitContainer}>
         <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
         <Text style={styles.originalSize}>원래 사이즈</Text>
-        <View style={styles.sizeChartRow2}>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemHeight}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemShoulder}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemArm}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemChest}
-          </Text>
-          <Text style={styles.sizeChartRowText}>
-            {productInfo.itemTopInfo[0].itemSleeve}
-          </Text>
-        </View>
-        <Text style={styles.originalSize}>추천 사이즈</Text>
-        <View style={styles.sizeChartRow2}>
-          {/* 예시 데이터 */}
-          <Text style={styles.sizeChartCell}>90</Text>
-          <Text style={styles.sizeChartCell}>71</Text>
-          <Text style={styles.sizeChartCell}>90</Text>
-          <Text style={styles.sizeChartCell}>43</Text>
-          <Text style={styles.sizeChartCell}>50</Text>
-        </View>
+        {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && (
+          <View style={styles.sizeChartRow2}>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo[0].itemHeight}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo[0].itemShoulder}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo[0].itemArm}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo[0].itemChest}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemTopInfo[0].itemSleeve}
+            </Text>
+          </View>
+        )}
+        {Array.isArray(productInfo.itemBottomInfo) && productInfo.itemBottomInfo[0] && (
+          <View style={styles.sizeChartRow2}>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemBottomInfo[0].itemHeight}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemBottomInfo[0].frontRise}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemBottomInfo[0].itemWaists}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemBottomInfo[0].itemHipWidth}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemBottomInfo[0].itemThighs}
+            </Text>
+            <Text style={styles.sizeChartRowText}>
+              {productInfo.itemBottomInfo[0].itemHemWidth}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.divider} />
@@ -388,7 +411,7 @@ const ProductPage = () => {
           <CheckBox
             value={isTailoringChecked}
             onValueChange={setIsTailoringChecked}
-            tintColors={{true: '#1A16FF', false: '#1A16FF'}}
+            tintColors={{ true: '#1A16FF', false: '#1A16FF' }}
             style={styles.checkbox}
           />
         </View>
@@ -397,7 +420,7 @@ const ProductPage = () => {
         <TouchableOpacity onPress={openModal}>
           <View style={styles.roundedRect}>
             {tryimgUri ? (
-              <Image source={{uri: tryimgUri}} style={styles.productImage} />
+              <Image source={{ uri: tryimgUri }} style={styles.productImage} />
             ) : (
               <></>
             )}
@@ -411,7 +434,7 @@ const ProductPage = () => {
               <View style={styles.modalContent}>
                 {tryimgUri ? (
                   <Image
-                    source={{uri: tryimgUri}}
+                    source={{ uri: tryimgUri }}
                     style={styles.modalImage}
                     resizeMode="contain"
                   />
@@ -425,7 +448,7 @@ const ProductPage = () => {
 
         {isTailoringChecked && (
           <View>
-            <View style={{flexDirection: 'row'}}>
+            <View style={{ flexDirection: 'row' }}>
               {/* 총장 부분 */}
               <View style={styles.buttoncontainer}>
                 <View style={styles.buttontitleContainer}>
@@ -447,7 +470,7 @@ const ProductPage = () => {
               </View>
 
               {/* 어깨 부분 */}
-              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
+              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
                 <View style={styles.buttontitleContainer}>
                   <Text style={styles.buttontitle}>어깨 :</Text>
                   <View style={styles.buttoncontainer2}>
@@ -467,7 +490,7 @@ const ProductPage = () => {
               </View>
             </View>
 
-            <View style={{flexDirection: 'row'}}>
+            <View style={{ flexDirection: 'row' }}>
               {/* 가슴 부분 */}
               <View style={styles.buttoncontainer}>
                 <View style={styles.buttontitleContainer}>
@@ -492,7 +515,7 @@ const ProductPage = () => {
               <View
                 style={[
                   styles.buttoncontainer,
-                  {marginLeft: '14%', marginTop: '1%'},
+                  { marginLeft: '14%', marginTop: '1%' },
                 ]}>
                 <View style={styles.buttontitleContainer}>
                   <Text style={styles.buttontitle}>소매 :</Text>
@@ -839,10 +862,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
   },
   sizeChartHeaderText: {
-    flex: 1,
     fontSize: 13,
     textAlign: 'center',
-    fontWeight: 'bold',
+    flex: 1, // 각 셀의 크기 동일하게
+    minWidth: 50, // 최소 너비 설정
   },
   sizeChartRow: {
     flexDirection: 'row',
@@ -855,11 +878,13 @@ const styles = StyleSheet.create({
   sizeChartRowTitle: {
     fontWeight: 'bold',
     textAlign: 'center',
-    letterSpacing: 50,
+    flex: 1, // 각 셀이 동일한 크기를 가지도록 설정
+    minWidth: 50, // 최소 너비를 설정하여 두 글자 이상도 잘 맞도록
   },
   sizeChartRowText: {
-    flex: 1,
     textAlign: 'center',
+    flex: 1, // 각 셀이 동일한 크기를 가지도록 설정
+    minWidth: 50, // 최소 너비 설정
   },
   customFitContainer: {
     marginTop: 10,
