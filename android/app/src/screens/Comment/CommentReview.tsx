@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, ScrollView, Image} from 'react-native';
+import {RouteProp, useRoute} from '@react-navigation/native';
+import {RootStackParamList} from '../../../../../App';
+import {reqGet} from '../../utills/Request';
+import path from 'path';
+import {DATA_URL} from '../../Constant';
 
 interface FitComment {
   fitStorageKey: number;
@@ -14,56 +16,73 @@ interface FitComment {
   itemBrand: string;
   itemSize: string;
   option: string;
+  userName: string;
+  userHeight: string;
+  userWeight: string;
 }
 
 const CommentReview: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'CommentReview'>>();
-  const { fitStorageKey } = route.params;
-
-  const { userName, userHeight, userWeight } = useUser();
+  const {fitStorageKey} = route.params;
 
   const [comment, setComment] = useState<FitComment | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
 
   // API 호출하여 코멘트 데이터 가져오기
   const fetchComment = async () => {
     try {
-      const response = await fetch(
-        `http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment/${fitStorageKey}`
+      const fitResponse = await reqGet(
+        path.join(
+          DATA_URL,
+          'api',
+          'fit_comment',
+          'get_fitcomment',
+          `${fitStorageKey}`,
+        ),
       );
-      if (response.ok) {
-        const data = await response.json();
-        setComment(data);
+
+      if (fitResponse.userEmail) {
+        const userbodyinfo = await reqGet(
+          path.join(DATA_URL, 'api', 'userbodyinfo', fitResponse.userEmail),
+        );
+
+        if (userbodyinfo.userHeight && userbodyinfo.userWeight) {
+          setComment({
+            ...fitResponse,
+            userHeight: userbodyinfo.userHeight,
+            userWeight: userbodyinfo.userWeight,
+          });
+        } else {
+          throw new Error(
+            `${fitResponse.userEmail}유저의 키, 몸무개를 가져 올 수 없음`,
+          );
+        }
       } else {
-        console.error('Comment not found');
+        throw new Error('핏코멘트에서 이메일을 확인할 수 없음');
       }
-    } catch (error) {
-      console.error('Error fetching comment:', error);
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error('Error fetching comment:', e);
     }
   };
 
   useEffect(() => {
     fetchComment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
   if (!comment) {
-    return <Text>해당 코멘트를 찾을 수 없습니다.</Text>;
+    return <Text>핏 코멘트를 찾을 수 없습니다.</Text>;
   }
 
   return (
     <ScrollView style={styles.container}>
       {/* 헤더 */}
-      <Text style={styles.header}>{userName}님의 핏코멘트</Text>
+      <Text style={styles.header}>{comment.userName}님의 핏코멘트</Text>
 
       {/* 이미지 */}
       <Image
-        source={{ uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${comment.fitStorageImg}` }}
+        source={{
+          uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${comment.fitStorageImg}`,
+        }}
         style={styles.galleryImage}
       />
 
@@ -89,14 +108,14 @@ const CommentReview: React.FC = () => {
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>키</Text>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>{userHeight}cm</Text>
+              <Text style={styles.tagText}>{comment.userHeight}cm</Text>
             </View>
           </View>
 
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>몸무게</Text>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>{userWeight}kg</Text>
+              <Text style={styles.tagText}>{comment.userWeight}kg</Text>
             </View>
           </View>
         </View>
@@ -116,7 +135,7 @@ const CommentReview: React.FC = () => {
 
       {/* 한줄평 섹션 */}
       <View style={styles.textContainer}>
-        <Text style={styles.title}>{userName}님의 한줄평</Text>
+        <Text style={styles.title}>{comment.userName}님의 한줄평</Text>
         <Text style={styles.reviewText}>{comment.fitComment}</Text>
       </View>
     </ScrollView>
@@ -220,7 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F4F4',
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10, 
+    paddingVertical: 10,
     minWidth: '30%',
     alignSelf: 'flex-start',
     marginTop: 10,
