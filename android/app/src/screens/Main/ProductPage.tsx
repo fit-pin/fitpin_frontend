@@ -340,6 +340,44 @@ const ProductPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productInfo.itemImgNames, PordimgUri]);
 
+  const handleSizeRecommendation = () => {
+    if (!userBodyInfo || !productInfo?.itemTopInfo) return;
+
+    let selectedSizeIndex = 0;
+    productInfo.itemTopInfo.some((sizeInfo: TopInfoType, index: number) => {
+      if (
+        sizeInfo.itemHeight >= userBodyInfo.bodySize &&
+        sizeInfo.itemShoulder >= userBodyInfo.shoulderSize &&
+        sizeInfo.itemSleeve >= userBodyInfo.armSize
+      ) {
+        selectedSizeIndex = index;
+        return true;
+      }
+      return false;
+    });
+
+    const finalSize = productInfo.itemTopInfo[selectedSizeIndex];
+    setRecommendedSize(finalSize);
+    setSelectedSize(finalSize.itemSize);
+  };
+
+  useEffect(() => {
+    if (isTailoringChecked) {
+      handleSizeRecommendation();
+    } else {
+      setSelectedSize(null);
+    }
+  }, [isTailoringChecked, userBodyInfo, productInfo]);
+
+  useEffect(() => {
+    if (selectedSize && productInfo.itemTopInfo) {
+      const selectedSizeData = productInfo.itemTopInfo.find(
+        (info: any) => info.itemSize === selectedSize
+      );
+      setSizeData(selectedSizeData);
+    }
+  }, [selectedSize, productInfo.itemTopInfo]);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* 헤더 */}
@@ -387,14 +425,19 @@ const ProductPage = () => {
             const order = ['S', 'M', 'L', 'XL', 'XXL', 'Free'];
             return order.indexOf(a.itemSize) - order.indexOf(b.itemSize);
           })
-          .map((info: { itemSize: string }) => (
+          .map((info: { itemSize: string, itemHeight: number, itemShoulder: number, itemChest: number, itemSleeve: number }) => (
             <TouchableOpacity
               key={info.itemSize}
               style={[
                 styles.sizeButton,
                 selectedSize === info.itemSize && styles.selectedSizeButton,
               ]}
-              onPress={() => handleSizeSelect(info.itemSize)}>
+              onPress={() => {
+                if (!isTailoringChecked) {
+                  handleSizeSelect(info.itemSize);
+                }
+              }}
+              disabled={isTailoringChecked}>
               <Text
                 style={[
                   styles.sizeButtonText,
@@ -406,7 +449,8 @@ const ProductPage = () => {
           ))}
       </View>
 
-      {sizeData && (
+      {/* 선택된 사이즈 정보 표시 */}
+      {selectedSize && sizeData && (
         <View style={styles.sizeChartContainer}>
           <View style={styles.sizeChartHeader}>
             {['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map((header, index) => (
@@ -418,15 +462,9 @@ const ProductPage = () => {
           <View style={styles.sizeChartRow}>
             <Text style={styles.sizeChartRowTitle}>{sizeData.itemSize}</Text>
             <Text style={styles.sizeChartRowText}>{sizeData.itemHeight}</Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo ? sizeData.itemShoulder : sizeData.frontRise}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo ? sizeData.itemChest : sizeData.itemWaists}
-            </Text>
-            <Text style={styles.sizeChartRowText}>
-              {productInfo.itemTopInfo ? sizeData.itemSleeve : sizeData.itemHipWidth}
-            </Text>
+            <Text style={styles.sizeChartRowText}>{sizeData.itemShoulder}</Text>
+            <Text style={styles.sizeChartRowText}>{sizeData.itemChest}</Text>
+            <Text style={styles.sizeChartRowText}>{sizeData.itemSleeve}</Text>
           </View>
         </View>
       )}
@@ -447,7 +485,7 @@ const ProductPage = () => {
             <Text style={styles.sizeChartRowText}>{userBodyInfo.armSize}</Text>
           </View>
         )}
-        
+
         {/* 추천 사이즈 */}
         {recommendedSize && (
           <View style={styles.sizeChartContainer}>
@@ -733,7 +771,7 @@ const styles = StyleSheet.create({
     marginVertical: '2%',
     right: '2%',
   },
-  divider: {  
+  divider: {
     height: 1,
     backgroundColor: '#C5C5C5',
     marginVertical: '4%',
