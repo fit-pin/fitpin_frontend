@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './android/app/src/screens/Start/Splash';
@@ -33,6 +33,9 @@ import {UserProvider} from './android/app/src/screens/UserContext';
 import Loading from './android/app/src/screens/Join/Loading';
 import ReviewDetail from './android/app/src/screens/Mypage/ReviewDetail';
 import SizeInfoScreen from './android/app/src/screens/Main/SizeInfoScreen';
+
+import EventSource from 'react-native-sse';
+import {AUCTION_URL} from './android/app/src/Constant';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -83,6 +86,21 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
+  useEffect(() => {
+    const sseClient = new EventSource(AUCTION_URL);
+
+    sseClient.addEventListener('message', event => {
+      console.log('ssedata', event.data);
+    });
+
+    sseClient.addEventListener('error', event => {
+      console.error('sse error', event);
+    });
+
+    sseClient.addEventListener('close', _ => {
+      console.log('sse close');
+    });
+  }, []);
   return (
     <UserProvider>
       <NavigationContainer>
