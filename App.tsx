@@ -55,6 +55,7 @@ export type RootStackParamList = {
       itemPrice: number;
       qty: number;
       pitStatus: boolean;
+      pitPrice: number | null;
       pitTopInfo: {} | null;
       pitBottomInfo: {} | null;
     },
