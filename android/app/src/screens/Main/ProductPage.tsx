@@ -263,20 +263,37 @@ const ProductPage = () => {
       return;
     }
 
-    const purchaseData = {
-      itemKey: productInfo.itemKey,
-      userEmail: userEmail,
-      itemImgName: productInfo.itemImgNames,
-      itemName: productInfo.itemName,
-      itemSize: selectedSize,
-      itemType: productInfo.itemType,
-      itemPrice: productInfo.itemPrice,
-      pit: 1,
-      qty: qty,
-    };
+    const data = [
+      {
+        itemKey: productInfo.itemKey,
+        itemName: productInfo.itemName,
+        itemSize: selectedSize,
+        itemPrice: productInfo.itemPrice,
+        qty: qty,
+        pitStatus: isTailoringChecked,
+        pitPrice: isTailoringChecked ? productInfo.pitPrice : 0,
+        pitTopInfo: productInfo.itemType === '상의' && isTailoringChecked
+          ? {
+            itemHeight: length,
+            itemShoulder: shoulder,
+            itemChest: chest,
+            itemSleeve: sleeve,
+          }
+          : null,
+        pitBottomInfo: productInfo.itemType === '하의' && isTailoringChecked
+          ? {
+            itemHeight: bottomLength,
+            frontrise: frontRise,
+            itemWaists: waist,
+            itemhipWidth: hipWidth,
+            itemThighs: thigh,
+            itemHemWidth: hemWidth,
+          }
+          : null,
+      },
+    ];
 
-    // 결제 페이지로 데이터를 전달합니다
-    navigation.navigate('Order', { purchaseData });
+    navigation.navigate('Order', { data });
   };
 
   // 상품 정보 가져오기
