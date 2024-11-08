@@ -84,6 +84,7 @@ const ProductPage = () => {
     ];
     itemBottomInfo: any;
     itemImgNames: string;
+    pitPrice: number;
   }>({
     itemKey: 0,
     itemName: '',
@@ -104,6 +105,7 @@ const ProductPage = () => {
     ],
     itemBottomInfo: null,
     itemImgNames: '',
+    pitPrice: 0,
   });
   const { userHeight, userEmail } = useUser();
   const itemid = route.params.itemkey;
@@ -168,7 +170,7 @@ const ProductPage = () => {
 
   const handleSizeSelect = (size: string, type: 'top' | 'bottom') => {
     if (isTailoringChecked) return;  // 수선하기 체크 시 선택 불가
-  
+
     setSelectedSize(size);
     const selectedSizeData = type === 'top'
       ? productInfo.itemTopInfo.find((info: TopInfoType) => info.itemSize === size)
@@ -196,28 +198,58 @@ const ProductPage = () => {
       Alert.alert('사이즈를 선택해 주세요.');
       return;
     }
+
+    // 수선 여부 및 수선 정보 구성
+    const pitStatus = isTailoringChecked;
+    const pitItemCart = pitStatus
+      ? productInfo.itemType === '상의'
+        ? {
+          itemType: '상의',
+          itemSize: selectedSize,
+          itemHeight: length,
+          itemShoulder: shoulder,
+          itemChest: chest,
+          itemSleeve: sleeve,
+        }
+        : {
+          itemType: '하의',
+          itemSize: selectedSize,
+          itemHeight: bottomLength,
+          frontRise: frontRise,
+          itemWaists: waist,
+          itemHipWidth: hipWidth,
+          itemThighs: thigh,
+          itemHemWidth: hemWidth,
+        }
+      : null;
+
+    // 총 가격 계산: 수선 선택 시 수선 가격을 포함
+    const totalItemPrice = pitStatus ? productInfo.itemPrice + productInfo.pitPrice : productInfo.itemPrice;
+
     const body = {
       itemKey: productInfo.itemKey,
       userEmail: userEmail,
       itemImgName: productInfo.itemImgNames,
       itemName: productInfo.itemName,
-      itemSize: selectedSize || '',
+      itemSize: selectedSize,
       itemType: productInfo.itemType,
-      itemPrice: productInfo.itemPrice,
-      pit: 1,
+      itemPrice: totalItemPrice, // 총 가격을 요청 바디에 포함
       qty: qty,
+      pitStatus,
+      pitPrice: productInfo.pitPrice, // 제품 상세 API에서 가져온 수선 가격
+      pitItemCart,
     };
 
     try {
       const res = await reqPost(
         path.join(DATA_URL, 'api', 'cart', 'store'),
-        body,
+        body
       );
 
       if (res.message === '장바구니에 상품이 성공적으로 추가되었습니다.') {
         Alert.alert('장바구니 담기 성공');
       } else {
-        Alert.alert('장바구니 담기 실패 다시 시도해 주세요.');
+        Alert.alert('장바구니 담기 실패. 다시 시도해 주세요.');
       }
     } catch (error) {
       console.error('장바구니에 추가하는 도중 오류가 발생했습니다:', error);
@@ -268,6 +300,7 @@ const ProductPage = () => {
       itemTopInfo: productRes.itemTopInfo,
       itemBottomInfo: processedBottomInfo || null,
       itemImgNames: productRes.itemImgName[0],
+      pitPrice: productRes.pitPrice || 0, // pitPrice가 있으면 할당
     });
 
     setProdUri(
@@ -436,7 +469,7 @@ const ProductPage = () => {
       setSizeData(null);       // 관련 사이즈 데이터도 초기화
     }
   }, [isTailoringChecked]);
-  
+
   useEffect(() => {
     updateSizeData();
   }, [selectedSize, productInfo, recommendedSize]);
@@ -817,6 +850,12 @@ const ProductPage = () => {
         </View>
       </View>
 
+      {isTailoringChecked && (
+        <View style={styles.pitPriceContainer}>
+          <Text style={styles.pitPriceText}>수선 가격: ₩{productInfo.pitPrice.toLocaleString()}</Text>
+        </View>
+      )}
+
       {/* 아래 버튼 */}
       <View style={styles.bottomSection}>
         <View style={styles.buttonsContainer}>
@@ -1194,6 +1233,16 @@ const styles = StyleSheet.create({
   quantityButtonText2: {
     fontSize: 20,
     color: '#000',
+  },
+  pitPriceContainer: {
+    marginVertical: 10,
+    padding: 10,
+    alignItems: 'flex-end',
+  },
+  pitPriceText: {
+    fontSize: 18,
+    color: '#787878',
+    textAlign: 'right',
   },
 });
 
