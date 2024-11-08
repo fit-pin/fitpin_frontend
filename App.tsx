@@ -29,13 +29,16 @@ import My_Fit from './android/app/src/screens/Mypage/My_Fit';
 import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
-import {UserProvider} from './android/app/src/screens/UserContext';
+import {UserProvider, useUser} from './android/app/src/screens/UserContext';
 import Loading from './android/app/src/screens/Join/Loading';
 import ReviewDetail from './android/app/src/screens/Mypage/ReviewDetail';
 import SizeInfoScreen from './android/app/src/screens/Main/SizeInfoScreen';
 
 import EventSource from 'react-native-sse';
+
 import {AUCTION_URL} from './android/app/src/Constant';
+import path from 'path';
+import {PERMISSIONS, request} from 'react-native-permissions';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -85,24 +88,44 @@ export type RootStackParamList = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+/** 수선 경매 알림을 위한 SSE 등록 */
+const ConnectSSE = () => {
+  const {userEmail} = useUser();
+
+  useEffect(() => {
+    if (userEmail) {
+      console.log('SSE 등록');
+      const sseClient = new EventSource(
+        path.join(AUCTION_URL, 'auction_listener', userEmail),
+      );
+
+      sseClient.addEventListener('message', event => {
+        console.log('ssedata', event.data);
+      });
+
+      sseClient.addEventListener('error', event => {
+        console.log('SSE 연결 오류 (다시 연결시도)', event);
+      });
+
+      sseClient.addEventListener('close', _ => {
+        console.log('SSE 연결 종료');
+      });
+    }
+  }, [userEmail]);
+
+  return <></>;
+};
+
 const App = () => {
   useEffect(() => {
-    const sseClient = new EventSource(AUCTION_URL);
-
-    sseClient.addEventListener('message', event => {
-      console.log('ssedata', event.data);
-    });
-
-    sseClient.addEventListener('error', event => {
-      console.error('sse error', event);
-    });
-
-    sseClient.addEventListener('close', _ => {
-      console.log('sse close');
+    request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS).then(result => {
+      console.log(result);
     });
   }, []);
+
   return (
     <UserProvider>
+      <ConnectSSE />
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen

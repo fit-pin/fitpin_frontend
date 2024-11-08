@@ -5,4 +5,4 @@ export const AR_URL = 'http://dmumars.kro.kr/';
 export const DATA_URL = 'http://fitpitback.kro.kr:8080/';
 
 /** 수선 경매 알림 서버 주소 */
-export const AUCTION_URL = 'http://korseok.kro.kr:8080/auction_listener';
+export const AUCTION_URL = 'http://korseok.kro.kr:8080';
