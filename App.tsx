@@ -38,7 +38,7 @@ import EventSource from 'react-native-sse';
 
 import {AUCTION_URL} from './android/app/src/Constant';
 import path from 'path';
-import {PERMISSIONS, request} from 'react-native-permissions';
+import PushNotification from 'react-native-push-notification';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -110,10 +110,6 @@ const ConnectSSE = () => {
   const {userEmail} = useUser();
 
   useEffect(() => {
-    request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS).then(result => {
-      console.log(result);
-    });
-
     if (userEmail) {
       console.log('SSE 등록');
       const sseClient = new EventSource(
@@ -122,31 +118,25 @@ const ConnectSSE = () => {
 
       sseClient.addEventListener('message', event => {
         const message: {
-          auctionTime: number;
-          price?: number;
-          itemName?: string;
-          auctionList: [
-            {
-              token: string;
-              company: string;
-              price: number;
-              time: Date;
-              isMy: boolean;
-            },
-          ];
+          itemName: string;
+          token: string;
+          company: string;
+          price: number;
+          time: Date;
+          isMy: boolean;
         } = JSON.parse(event.data!!);
 
         console.log(message);
 
-        // PushNotification.localNotification({
-        //   channelId: 'auction', // Android 채널 ID 지정
-        //   title: '새로운 알림', // 알림 제목
-        //   message: '메시징', // 서버로부터 수신한 메시지 내용
-        //   playSound: true,
-        //   soundName: 'default',
-        //   importance: 'default',
-        //   priority: 'default',
-        // });
+        PushNotification.localNotification({
+          channelId: 'auction', // Android 채널 ID 지정
+          title: `${message.itemName} 수선가격 결정`, // 알림 제목
+          message: `가격: ${message.price}원, 업체명: ${message.company}`, // 서버로부터 수신한 메시지 내용
+          playSound: true,
+          soundName: 'default',
+          importance: 'default',
+          priority: 'default',
+        });
       });
 
       sseClient.addEventListener('error', event => {

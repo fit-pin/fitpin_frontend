@@ -210,8 +210,8 @@ const Cart = () => {
             </Text>
           </View>
         ) : (
-          cartItems.map(item => (
-            <View key={item.itemKey} style={styles.itemContainer}>
+          cartItems.map((item, index) => (
+            <View key={index} style={styles.itemContainer}>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => confirmDelete(item.cartKey)}>

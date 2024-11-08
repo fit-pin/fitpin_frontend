@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
 import {
   View,
@@ -89,8 +88,8 @@ const Purchase = () => {
             <Text style={styles.emptyCartText}>주문 내역이 없습니다.</Text>
           </View>
         ) : (
-          orders.map(order => (
-            <View key={order.itemKey} style={styles.itemContainer}>
+          orders.map((order, index) => (
+            <View key={index} style={styles.itemContainer}>
               <Text style={styles.purchaseDateText}>{order.purchaseDate}</Text>
               {/* 수선 여부에 따른 라벨 */}
               {order.pitStatus ? (
