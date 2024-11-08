@@ -286,7 +286,6 @@ const Order = () => {
           qty: item.qty,
           pitStatus: pitStatus,
           pitPrice: item.pitPrice, // 수선 비용, 수선이 없으면 null
-          pitItemCart: null, // 수선 정보가 없을 때 null
           pitItemOrder: pitItemOrder,
         };
       });

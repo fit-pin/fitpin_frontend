@@ -162,6 +162,11 @@ const Purchase = () => {
                       <>
                         <View style={[styles.sizeColumn, styles.mColumn]}>
                           <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemHeight}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
                             {order.pitItemOrder.frontrise}
                           </Text>
                         </View>
