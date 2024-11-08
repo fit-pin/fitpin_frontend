@@ -47,18 +47,35 @@ export type RootStackParamList = {
   Main: undefined;
   ProductPage: {itemkey: number};
   Cart: undefined;
-  Order: [
-    {
+  Order: {
+    Orderdata: {
       itemKey: number;
+      userEmail: string;
+      itemImgName: string;
       itemName: string;
       itemSize: string;
+      itemType: string;
       itemPrice: number;
+      pitPrice: number | null;
+      pit: number;
       qty: number;
       pitStatus: boolean;
-      pitTopInfo: {} | null;
-      pitBottomInfo: {} | null;
-    },
-  ];
+      pitTopInfo: {
+        itemHeight?: number;
+        itemShoulder?: number;
+        itemChest?: number;
+        itemSleeve?: number;
+      } | null;
+      pitBottomInfo: {
+        itemHeight?: number;
+        frontrise?: number;
+        itemWaists?: number;
+        itemhipWidth?: number;
+        itemThighs?: number;
+        itemHemWidth?: number;
+      } | null;
+    }[];
+  };
   OrderComplete: undefined;
   Camera: undefined;
   CameraBodyPhoto: undefined;

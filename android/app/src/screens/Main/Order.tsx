@@ -10,16 +10,13 @@ import {
   Image,
   Dimensions,
   Alert,
-  Linking,
 } from 'react-native';
-import CheckBox from '@react-native-community/checkbox';
 import {RootStackParamList} from '../../../../../App';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 import PostcodeComponent from './PostcodeComponent';
-import {AR_URL, DATA_URL} from '../../Constant.ts';
+import {DATA_URL} from '../../Constant.ts';
 import path from 'path';
-import {reqGet} from '../../utills/Request.ts';
 import {useUser} from '../UserContext.tsx';
 import {reqPost} from '../../utills/Request.ts';
 
@@ -32,6 +29,22 @@ const formatPrice = (price: number) => {
   return price.toLocaleString('ko-KR') + '원';
 };
 
+interface PitTopInfo {
+  itemHeight?: number;
+  itemShoulder?: number;
+  itemChest?: number;
+  itemSleeve?: number;
+}
+
+interface PitBottomInfo {
+  itemHeight?: number;
+  frontrise?: number;
+  itemWaists?: number;
+  itemhipWidth?: number;
+  itemThighs?: number;
+  itemHemWidth?: number;
+}
+
 interface CartItem {
   itemKey: number;
   userEmail: string;
@@ -40,54 +53,36 @@ interface CartItem {
   itemSize: string;
   itemType: string;
   itemPrice: number;
-  pit: number;
+  pitStatus: boolean;
+  pitPrice: number | null;
   qty: number;
+  pitTopInfo?: PitTopInfo | null;
+  pitBottomInfo?: PitBottomInfo | null;
 }
 
 const Order = () => {
   const navigation = useNavigation<OrderNavigationProp>();
-  const route = useRoute<OrderRouteProp>(); // route의 타입을 지정
-  const {purchaseData} = route.params || {};
-  const {userEmail} = useUser(); // userEmail 가져오기
-  const [cartItems, setCartItems] = useState<CartItem[]>([]); // cartItems 상태 추가
-  const [isChecked, setIsChecked] = useState(true);
+  const route = useRoute<OrderRouteProp>();
+  const {purchaseData, Orderdata} = route.params || {};
+  const {userEmail} = useUser();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isPostcodeVisible, setIsPostcodeVisible] = useState(false);
   const [postcode, setPostcode] = useState('');
   const [address, setAddress] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
   const [quantities, setQuantities] = useState<Record<number, number>>({});
-
-  //이름, 전화번호
   const [buyerName, setBuyerName] = useState('');
   const [buyerTel, setBuyerTel] = useState('');
 
-  const fetchCartItems = async () => {
-    if (!purchaseData) {
-      // 바로 구매가 아닌 경우에만 장바구니 항목을 불러옵니다.
-      try {
-        // 어차피 userEmail 없으면 알아서 예외 발생되어 아래 catch 문 실행
-        const response: CartItem[] = await reqGet(
-          path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
-        );
-
-        setCartItems(response);
-      } catch (error) {
-        console.error(
-          '장바구니 항목을 가져오는 중 오류가 발생했습니다:',
-          error,
-        );
-        setCartItems([]);
-      }
-    } else {
-      // 바로 구매인 경우 purchaseData를 cartItems 배열에 넣어줍니다.
-      const quantity = purchaseData.qty || 1;
-      setCartItems([{...route.params?.purchaseData!!, qty: quantity}]);
-    }
-  };
-
   useEffect(() => {
-    fetchCartItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purchaseData]);
+    // 장바구니 데이터 설정
+    if (purchaseData) {
+      const quantity = purchaseData.qty || 1;
+      setCartItems([{...purchaseData, qty: quantity}]);
+    } else if (Orderdata) {
+      setCartItems(Orderdata);
+    }
+  }, [purchaseData, Orderdata]);
 
   useEffect(() => {
     const initialQuantities: Record<number, number> = {};
@@ -104,26 +99,46 @@ const Order = () => {
     }));
   };
 
-  // 총 가격 계산
-  const totalPrice = cartItems.reduce((total, item) => {
+  // 상품 금액 계산
+  const totalProductPrice = cartItems.reduce((total, item) => {
     const quantity = quantities[item.itemKey] || 1;
-    const tailorCost = isChecked ? 20000 * quantity : 0; // 수선비 계산
-    return total + item.itemPrice * quantity + tailorCost; // 상품 가격 + 수선비
+    return total + item.itemPrice * quantity; // 상품 가격만 합산
   }, 0);
-  const formattedTotalPrice = formatPrice(totalPrice);
+
+  // 수선 비용 계산
+  const totalTailorCost = cartItems.reduce((total, item) => {
+    const quantity = quantities[item.itemKey] || 1;
+    if (item.pitStatus && item.pitPrice !== null) {
+      return total + item.pitPrice * quantity; // 수선된 제품에 대해 수선비 추가
+    }
+    return total;
+  }, 0);
+
+  // 배송비
+  const shippingCost = 2000;
+
+  // 총 결제 금액
+  const totalAmount = totalProductPrice + totalTailorCost + shippingCost;
+
+  const formattedTotalProductPrice = formatPrice(totalProductPrice); // 상품 금액
+  const formattedTotalTailorCost = formatPrice(totalTailorCost); // 수선 금액
+  const formattedShippingCost = formatPrice(shippingCost); // 배송비
+  const formattedTotalAmount = formatPrice(totalAmount); // 총 결제 금액
 
   const handleAddressSelected = (data: any) => {
     setPostcode(data.zonecode);
     setAddress(data.address);
+    setAddressDetail(data.addressdetail);
     setIsPostcodeVisible(false);
   };
   const handlePayment = async (item: CartItem) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const quantity = quantities[item.itemKey] || item.qty;
-    const totalAmount = totalPrice + (isChecked ? 20000 : 0) + 2000; // 수선 비용
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const data = {
-      pg: 'kakaopay', // 카카오페이
-      pay_method: 'card', // 결제 방식
+      pg: 'direct_payment', // 결제방식 직접 처리
+      pay_method: 'card', // 결제 방식 (카드 등)
       merchant_uid: `mid_${new Date().getTime()}`, // 고유 주문번호
       name: item.itemName, // 상품 이름
       amount: totalAmount, // 총 결제 금액
@@ -135,8 +150,8 @@ const Order = () => {
     };
 
     try {
-      // 카카오 결제 API 변경 https://developers.kakaopay.com
-      // 기존에 있던 API는 이제 지원 중단임
+      // 카카오 결제 API 요청 부분 주석 처리
+      /*
       const response = await fetch(
         path.join(
           'https://open-api.kakaopay.com',
@@ -150,7 +165,7 @@ const Order = () => {
           headers: {
             'Content-Type': 'application/json',
             Authorization:
-              'SECRET_KEY DEV5BCEBFA4ED006CF1EA64F2466AE8D2F6343B8',
+              'SECRET_KEY DEV5BCEBFA4ED006CF1EA64F2466AE8D2F6343B8', // 카카오페이 비밀키
           },
           body: JSON.stringify({
             cid: 'TC0ONETIME',
@@ -160,15 +175,13 @@ const Order = () => {
             quantity: quantity,
             total_amount: data.amount,
             tax_free_amount: 0,
-            // 리다이렉트 처리는 AR 백엔드에 해놓음
+            // 리다이렉트 처리 제거
             approval_url: `${AR_URL}payment/approval`,
             cancel_url: `${AR_URL}payment/cancel`,
             fail_url: `${AR_URL}payment/fail`,
           }),
         },
       );
-
-      //next_redirect_app_url 값에 경우 백엔드에 요청이 가지 않아서 next_redirect_mobile_url로 요청함
       const result = (await response.json()) as {
         tid: string;
         next_redirect_app_url: string;
@@ -180,7 +193,6 @@ const Order = () => {
       };
 
       Linking.addEventListener('url', res => {
-        // 등록한 url에서 재대로 redirect 처리 된 경우 해당 callback 작동함
         const getParamLine = res.url.split('?')[1];
         const param: {
           state: string;
@@ -196,7 +208,6 @@ const Order = () => {
         if (param.state === 'approval') {
           postOrder()
             .then(() => {
-              //TODO: 이제 결제 완료하고 웹 웹소켓 통신을 구현 해야...
               navigation.reset({
                 index: 1,
                 routes: [{name: 'Main'}, {name: 'OrderComplete'}],
@@ -211,12 +222,19 @@ const Order = () => {
         } else {
           Alert.alert('결제 실패', '카카오 페이 결제를 실패하였습니다.');
         }
-        // 중복 이벤트 발생 해결
         Linking.removeAllListeners('url');
       });
 
       Linking.openURL(result.next_redirect_mobile_url).catch(() => {
         Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
+      });
+      */
+
+      // 카카오페이 결제 부분을 주석 처리하고 바로 API 호출
+      await postOrder();
+      navigation.reset({
+        index: 1,
+        routes: [{name: 'Main'}, {name: 'OrderComplete'}],
       });
     } catch (error) {
       console.error('결제 요청 중 오류 발생:', error);
@@ -225,30 +243,70 @@ const Order = () => {
   };
 
   const postOrder = async () => {
-    if (!cartItems.length) {
-      console.error('장바구니가 비어 있습니다.');
-      return;
-    }
+    try {
+      // 주문 항목들 준비
+      const orderItems = Orderdata.map(item => {
+        const pitStatus = item.pitStatus;
+        let pitItemOrder = null;
 
-    if (userEmail) {
-      const data = {
-        itemKey: cartItems[0].itemKey, // 상품 키
+        if (pitStatus) {
+          // 수선 정보가 있을 경우
+          if (item.itemType === '상의' && item.pitTopInfo) {
+            // 상의 정보가 있을 때
+            pitItemOrder = {
+              itemType: '상의',
+              itemSize: item.itemSize,
+              itemHeight: item.pitTopInfo.itemHeight,
+              itemShoulder: item.pitTopInfo.itemShoulder,
+              itemChest: item.pitTopInfo.itemChest,
+              itemSleeve: item.pitTopInfo.itemSleeve,
+              pitPrice: item.pitPrice,
+            };
+          } else if (item.itemType === '하의' && item.pitBottomInfo) {
+            // 하의 정보가 있을 때
+            pitItemOrder = {
+              itemType: '하의',
+              itemSize: item.itemSize,
+              itemHeight: item.pitBottomInfo.itemHeight,
+              frontrise: item.pitBottomInfo.frontrise,
+              itemWaists: item.pitBottomInfo.itemWaists,
+              itemhipWidth: item.pitBottomInfo.itemhipWidth,
+              itemThighs: item.pitBottomInfo.itemThighs,
+              itemHemWidth: item.pitBottomInfo.itemHemWidth,
+              pitPrice: item.pitPrice,
+            };
+          }
+        }
+
+        return {
+          itemKey: item.itemKey,
+          itemName: item.itemName,
+          itemSize: item.itemSize,
+          itemPrice: item.itemPrice,
+          qty: item.qty,
+          pitStatus: pitStatus,
+          pitPrice: item.pitPrice, // 수선 비용, 수선이 없으면 null
+          pitItemCart: null, // 수선 정보가 없을 때 null
+          pitItemOrder: pitItemOrder,
+        };
+      });
+
+      // API 요청 본문
+      const orderBody = {
         userEmail: userEmail,
-        userName: buyerName, // 구매자 이름
-        userAddr: address, // 배송지 주소
-        userNumber: buyerTel, // 구매자 전화번호
-        itemName: cartItems[0].itemName, // 상품명
-        itemSize: cartItems[0].itemSize, // 상품 사이즈
-        itemPrice: cartItems[0].itemPrice, // 상품 가격
-        itemTotal: totalPrice, // 총 결제 금액
-        pitPrice: isChecked ? 20000 : 0, // 맞춤비용 (선택 사항)
-        qty: quantities[cartItems[0].itemKey] || 1, // 상품 수량 (선택 사항)
+        userName: buyerName,
+        userAddr: address,
+        userAddrDetail: addressDetail,
+        userNumber: buyerTel,
+        itemTotal: totalAmount,
+        pitPrice: totalTailorCost,
+        items: orderItems, // 수정된 items 리스트 추가
       };
 
       // API 호출: 주문 정보 전송
       const response = await reqPost(
-        path.join(DATA_URL, 'api', 'order', 'post_order'), // API URL
-        data, // 전송할 데이터
+        path.join(DATA_URL, 'api', 'order', 'post_order'),
+        orderBody,
       );
 
       if (response.message === '주문 등록 완료.') {
@@ -256,6 +314,8 @@ const Order = () => {
       } else {
         throw new Error(response.message);
       }
+    } catch (error) {
+      console.error('주문 등록 중 오류 발생:', error);
     }
   };
 
@@ -290,7 +350,12 @@ const Order = () => {
           value={address}
           editable={false}
         />
-        <TextInput style={styles.input} placeholder="상세 주소" />
+        <TextInput
+          style={styles.input}
+          value={addressDetail}
+          placeholder="상세 주소"
+          onChangeText={setAddressDetail}
+        />
         <Text style={styles.sectionTitle2}>전화번호</Text>
         <TextInput
           style={styles.input}
@@ -299,115 +364,175 @@ const Order = () => {
           onChangeText={setBuyerTel}
         />
       </View>
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>상품정보</Text>
+        <Text style={styles.sectionTitle3}>상품정보</Text>
         {cartItems.map(item => (
-          <View key={item.itemKey} style={styles.item}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={{
-                  uri: path.join(
-                    DATA_URL,
-                    'api',
-                    'img',
-                    'imgserve',
-                    'itemimg',
-                    item.itemImgName,
-                  ),
-                }}
-                style={styles.itemImage}
-              />
-            </View>
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{item.itemName}</Text>
-              <Text style={styles.itemDescription}>{item.itemType}</Text>
-              <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
-              <Text style={styles.itemQuantity}>
-                {' '}
-                수량 : {quantities[item.itemKey] || item.qty}
-              </Text>
-              <View style={styles.quantityAndPrice}>
-                <View style={styles.quantityControl}>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => handleQuantityChange(item.itemKey, -1)}>
-                    <Text style={styles.quantityButtonText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.itemQuantityText}>
-                    {' '}
-                    {quantities[item.itemKey] || item.qty}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => handleQuantityChange(item.itemKey, 1)}>
-                    <Text style={styles.quantityButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.itemPrice}>
-                  {(
-                    item.itemPrice * (quantities[item.itemKey] || item.qty)
-                  ).toLocaleString()}
-                  원
+          <View key={item.itemKey} style={styles.itemContainer}>
+            {/* 수선된 제품 라벨 */}
+            {item.pitStatus && (
+              <Text style={styles.alteredLabel}>수선 요청</Text>
+            )}
+            {/* 제품 정보 */}
+            <View style={styles.itemInfo}>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{
+                    uri: path.join(
+                      DATA_URL,
+                      'api',
+                      'img',
+                      'imgserve',
+                      'itemimg',
+                      item.itemImgName,
+                    ),
+                  }}
+                  style={styles.itemImage}
+                />
+              </View>
+
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemTitle}>{item.itemName}</Text>
+                <Text style={styles.itemDescription}>{item.itemType}</Text>
+                <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
+
+                <Text style={styles.itemQuantity}>
+                  수량 : {quantities[item.itemKey] || item.qty}
                 </Text>
+
+                <View style={styles.quantityAndPrice}>
+                  <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                      style={styles.quantityButton}
+                      onPress={() => handleQuantityChange(item.itemKey, -1)}>
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.itemQuantityText}>
+                      {quantities[item.itemKey] || item.qty}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.quantityButton}
+                      onPress={() => handleQuantityChange(item.itemKey, 1)}>
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.itemPrice}>
+                    {(
+                      item.itemPrice * (quantities[item.itemKey] || item.qty)
+                    ).toLocaleString()}{' '}
+                    원
+                  </Text>
+                </View>
               </View>
             </View>
-            <TouchableOpacity style={styles.removeButton}>
-              <Text style={styles.removeButtonText}>X</Text>
-            </TouchableOpacity>
+            {item.pitStatus && (
+              <View style={styles.subTextContainer}>
+                <Text style={styles.subText}>수선한 사이즈</Text>
+                <View style={styles.sizeTable}>
+                  <View style={[styles.sizeColumn, styles.mColumn2]}>
+                    <Text style={styles.sizeText}>{item.itemSize}</Text>
+                  </View>
+
+                  {/* 상의 */}
+                  {item.pitTopInfo && (
+                    <>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitTopInfo.itemHeight}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitTopInfo.itemShoulder}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitTopInfo.itemChest}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitTopInfo.itemSleeve}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+
+                  {/* 하의 */}
+                  {item.pitBottomInfo && (
+                    <>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitBottomInfo.itemHeight}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitBottomInfo.frontrise}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitBottomInfo.itemWaists}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitBottomInfo.itemhipWidth}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitBottomInfo.itemThighs}
+                        </Text>
+                      </View>
+                      <View style={[styles.sizeColumn, styles.mColumn]}>
+                        <Text style={styles.sizeText}>
+                          {item.pitBottomInfo.itemHemWidth}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+                {item.pitStatus && item.pitPrice !== null && (
+                  <Text style={styles.subText2}>
+                    수선 비용 : {formatPrice(item.pitPrice)}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
         ))}
-
-        <View style={styles.separator} />
-
-        <View style={styles.tailorContainer}>
-          <View style={styles.tailorCheckBoxContainer}>
-            <Text style={styles.tailorText}>수선해서 구매하기</Text>
-            <CheckBox value={isChecked} onValueChange={setIsChecked} />
-          </View>
-          {isChecked && (
-            <Text style={styles.tailorCost}>
-              수선 비용 :{' '}
-              {formatPrice(
-                cartItems.reduce((totalTailorCost, item) => {
-                  const quantity = quantities[item.itemKey] || 1;
-                  return totalTailorCost + 20000 * quantity;
-                }, 0),
-              )}
-            </Text>
-          )}
-        </View>
       </View>
 
       <View style={styles.section}>
         <View style={styles.totalAmountContainer}>
-          <Text style={styles.totalAmountLabel}>총 결제 금액</Text>
-          <Text style={styles.totalAmountValue}>{formattedTotalPrice}</Text>
+          <Text style={styles.totalAmountLabel}>결제 금액</Text>
+          <Text style={styles.totalAmountValue}>{formattedTotalAmount}</Text>
         </View>
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>총 상품 금액</Text>
-          <Text style={styles.totalValue}>{formattedTotalPrice}</Text>
+          <Text style={styles.totalLabel}>상품 금액</Text>
+          <Text style={styles.totalValue}>{formattedTotalProductPrice}</Text>
         </View>
-        {isChecked && (
+
+        {/* 수선 금액이 있을 때만 보여짐 */}
+        {totalTailorCost > 0 && (
           <View style={styles.totalContainer}>
-            <Text style={styles.totalLabel}>총 예상 수선 금액</Text>
-            <Text style={styles.totalValue}>
-              {formatPrice(
-                cartItems.reduce((totalTailorCost, item) => {
-                  const quantity = quantities[item.itemKey] || 1;
-                  return totalTailorCost + 20000 * quantity;
-                }, 0),
-              )}
-            </Text>
+            <Text style={styles.totalLabel}>예상 수선 금액</Text>
+            <Text style={styles.totalValue}>{formattedTotalTailorCost}</Text>
           </View>
         )}
+
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>배송비</Text>
-          <Text style={styles.totalValue}>2,000원</Text>
+          <Text style={styles.totalValue}>{formattedShippingCost}</Text>
         </View>
+
+        {/* 결제 버튼 */}
         <TouchableOpacity
           style={styles.payButton}
           onPress={() => {
-            // 결제 처리 함수 호출
             if (cartItems.length === 0) {
               Alert.alert('장바구니가 비어 있습니다.');
               return;
@@ -443,8 +568,6 @@ const styles = StyleSheet.create({
   section: {
     padding: 16,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
   },
   sectionTitle: {
     fontSize: 20,
@@ -457,6 +580,12 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  sectionTitle3: {
+    fontSize: 20,
+    color: '#000',
+    fontWeight: 'bold',
+    marginBottom: -3,
   },
   input: {
     height: 40,
@@ -671,6 +800,73 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  subTextContainer: {
+    flexDirection: 'column',
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  sizeTable: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    marginBottom: 15,
+    marginLeft: 20,
+    width: '92%',
+  },
+  subText: {
+    fontSize: 16,
+    color: '#787878',
+    fontWeight: 'bold',
+    marginBottom: 15,
+    marginLeft: 20,
+    marginTop: 15,
+  },
+  subText2: {
+    fontSize: 16,
+    color: '#787878',
+    fontWeight: 'bold',
+    marginLeft: 20,
+  },
+  sizeColumn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  sizeText: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  mColumn: {
+    backgroundColor: '#fff',
+    borderWidth: 0.9,
+    borderColor: '#ddd',
+  },
+  mColumn2: {
+    backgroundColor: '#ddd',
+    borderWidth: 0.9,
+    borderColor: '#ddd',
+  },
+  itemContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    marginVertical: 5,
+  },
+  itemInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    bottom: 5,
+  },
+  alteredLabel: {
+    fontSize: 17,
+    color: '#2D3FE3',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    marginLeft: 15,
   },
 });
 

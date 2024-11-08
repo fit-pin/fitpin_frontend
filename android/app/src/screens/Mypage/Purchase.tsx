@@ -16,18 +16,36 @@ import {useUser} from '../UserContext.tsx';
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
+type PitItemOrder = {
+  itemKey: number;
+  cartKey: number;
+  itemType: string;
+  itemSize: string;
+  itemHeight?: number;
+  itemShoulder?: number;
+  itemChest?: number;
+  itemSleeve?: number;
+  frontrise?: number;
+  itemWaists?: number;
+  itemhipWidth?: number;
+  itemThighs?: number;
+  itemHemWidth?: number;
+};
+
 type Order = {
   itemKey: number;
   userEmail: string;
-  optional: string;
+  purchaseDate: string;
+  itemName: string;
   itemImg: string;
   itemSize: string;
   itemPrice: number;
   itemTotal: number;
   qty: number;
-  pitStatus: string;
-  displayPitPrice: string;
+  pitStatus: boolean;
+  pitPrice: number | null;
   displayOrderStatus: string;
+  pitItemOrder: PitItemOrder | null;
 };
 
 const Purchase = () => {
@@ -67,19 +85,21 @@ const Purchase = () => {
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
         {orders.length === 0 ? (
-          <View style={styles.noOrdersContainer}>
-            <Text style={styles.noOrdersText}>구매한 제품이 없습니다.</Text>
+          <View style={styles.emptyCartContainer}>
+            <Text style={styles.emptyCartText}>주문 내역이 없습니다.</Text>
           </View>
         ) : (
-          orders.map((order, index) => (
-            <View key={index}>
-              <Text style={styles.completed}>
-                {order.displayOrderStatus === '결제 완료'
-                  ? '[ 구매 완료 ]'
-                  : order.displayOrderStatus}
-              </Text>
-
-              <View style={[styles.item, {borderBottomWidth: 0}]}>
+          orders.map(order => (
+            <View key={order.itemKey} style={styles.itemContainer}>
+              <Text style={styles.purchaseDateText}>{order.purchaseDate}</Text>
+              {/* 수선 여부에 따른 라벨 */}
+              {order.pitStatus ? (
+                <Text style={styles.alteredLabel}>구매 / 수선 완료</Text>
+              ) : (
+                <Text style={styles.completedLabel}>구매 완료</Text>
+              )}
+              {/* 제품 정보 */}
+              <View style={styles.itemInfo}>
                 <View style={styles.imageContainer}>
                   <Image
                     source={{
@@ -89,44 +109,90 @@ const Purchase = () => {
                         'img',
                         'imgserve',
                         'itemimg',
-                        `${order.itemImg}`,
+                        order.itemImg,
                       ),
                     }}
                     style={styles.itemImage}
                   />
                 </View>
+
                 <View style={styles.itemDetails}>
-                  <Text style={styles.itemTitle}>{order.optional}</Text>
+                  <Text style={styles.itemTitle}>{order.itemName}</Text>
                   <Text style={styles.itemSize}>Size : {order.itemSize}</Text>
                   <Text style={styles.itemQuantity}>수량 : {order.qty}</Text>
                   <Text style={styles.itemPrice}>
-                    가격 : {order.itemPrice}원
+                    {order.itemPrice.toLocaleString()} 원
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.subTextContainer}>
-                {order.pitStatus === '수선 있음' ? (
-                  <>
-                    <Text style={styles.tailorText}>수선 ver.</Text>
-                    <Text style={styles.tailorSize}>수선한 사이즈</Text>
-                    <View style={styles.sizeChartRow2}>
-                      <Text style={styles.sizeChartCell}>90</Text>
-                      <Text style={styles.sizeChartCell}>71</Text>
-                      <Text style={styles.sizeChartCell}>90</Text>
-                      <Text style={styles.sizeChartCell}>43</Text>
-                      <Text style={styles.sizeChartCell}>50</Text>
-                      <Text style={styles.sizeChartCell}>64</Text>
+              {/* 수선한 사이즈 */}
+              {order.pitStatus && order.pitItemOrder && (
+                <View style={styles.subTextContainer}>
+                  <Text style={styles.subText}>수선한 사이즈</Text>
+                  <View style={styles.sizeTable}>
+                    <View style={[styles.sizeColumn, styles.mColumn2]}>
+                      <Text style={styles.sizeText}>{order.itemSize}</Text>
                     </View>
-                    <Text style={styles.tailorCost}>
-                      수선 비용 : {order.displayPitPrice}원
-                    </Text>
-                  </>
-                ) : (
-                  <Text style={styles.tailorText}>수선 선택 X</Text>
-                )}
-              </View>
-              <View style={styles.separator} />
+                    {/* 동일한 상의/하의 조건 처리 */}
+                    {order.pitItemOrder.itemType === '상의' ? (
+                      <>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemHeight}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemShoulder}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemChest}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemSleeve}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.frontrise}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemWaists}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemhipWidth}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemThighs}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {order.pitItemOrder.itemHemWidth}
+                          </Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                  <Text style={styles.subText2}>
+                    수선 비용 : {order.pitPrice}원
+                  </Text>
+                </View>
+              )}
             </View>
           ))
         )}
@@ -257,12 +323,6 @@ const styles = StyleSheet.create({
     marginLeft: screenWidth * 0.04,
     marginBottom: screenHeight * 0.03,
   },
-  subText: {
-    fontSize: screenWidth * 0.04,
-    color: '#787878',
-    fontWeight: 'bold',
-    marginBottom: screenHeight * 0.04,
-  },
   tailorCheckBoxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -334,6 +394,93 @@ const styles = StyleSheet.create({
     fontSize: screenWidth * 0.05,
     color: '#888',
     fontWeight: 'bold',
+  },
+  emptyCartContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyCartText: {
+    fontSize: 18,
+    color: '#787878',
+    fontWeight: 'bold',
+  },
+  itemContainer: {
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    marginVertical: 5,
+  },
+  itemInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    bottom: 5,
+  },
+  alteredLabel: {
+    fontSize: 17,
+    color: '#2D3FE3',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    marginLeft: 15,
+  },
+  completedLabel: {
+    fontSize: 17,
+    color: '#2D3FE3',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    marginLeft: 15,
+  },
+  purchaseDateText: {
+    fontSize: 18,
+    color: '#000',
+    fontWeight: 'bold',
+    marginBottom: 5,
+    marginLeft: 15,
+  },
+  sizeTable: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    marginBottom: 15,
+    marginLeft: 5,
+    width: '92%',
+  },
+  subText: {
+    fontSize: 16,
+    color: '#787878',
+    fontWeight: 'bold',
+    marginBottom: 15,
+    marginLeft: 5,
+    marginTop: 15,
+  },
+  subText2: {
+    fontSize: 16,
+    color: '#787878',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  sizeColumn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  sizeText: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  mColumn: {
+    backgroundColor: '#fff',
+    borderWidth: 0.9,
+    borderColor: '#ddd',
+  },
+  mColumn2: {
+    backgroundColor: '#ddd',
+    borderWidth: 0.9,
+    borderColor: '#ddd',
   },
 });
 
