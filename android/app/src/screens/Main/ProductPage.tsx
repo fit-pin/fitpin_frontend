@@ -167,11 +167,12 @@ const ProductPage = () => {
   const handleDecrementHemWidth = () => hemWidth > 0 && setHemWidth(hemWidth - 1);
 
   const handleSizeSelect = (size: string, type: 'top' | 'bottom') => {
-    if (isTailoringChecked) return;
+    if (isTailoringChecked) return;  // 수선하기 체크 시 선택 불가
+  
     setSelectedSize(size);
     const selectedSizeData = type === 'top'
-      ? productInfo.itemTopInfo.find((info: TopInfoType) => info.itemSize === size)  // info에 타입 추가
-      : productInfo.itemBottomInfo?.find((info: BottomInfoType) => info.itemSize === size);  // info에 타입 추가
+      ? productInfo.itemTopInfo.find((info: TopInfoType) => info.itemSize === size)
+      : productInfo.itemBottomInfo?.find((info: BottomInfoType) => info.itemSize === size);
     setSizeData(selectedSizeData);
   };
   const [qty, setQty] = useState(1);
@@ -434,8 +435,11 @@ const ProductPage = () => {
       setSelectedSize(null);  // 수선하기 버튼 해제 시 선택된 사이즈 초기화
       setSizeData(null);       // 관련 사이즈 데이터도 초기화
     }
+  }, [isTailoringChecked]);
+  
+  useEffect(() => {
     updateSizeData();
-  }, [isTailoringChecked, selectedSize, productInfo, recommendedSize]);
+  }, [selectedSize, productInfo, recommendedSize]);
 
   useEffect(() => {
     if (selectedSize && productInfo.itemTopInfo) {
