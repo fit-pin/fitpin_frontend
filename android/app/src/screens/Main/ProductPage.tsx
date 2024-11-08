@@ -139,34 +139,173 @@ const ProductPage = () => {
     }
   };
 
-  const handleIncrementLength = () => setLength(length + 1);
-  const handleDecrementLength = () => length > 0 && setLength(length - 1);
-  const handleIncrementShoulder = () => setShoulder(shoulder + 1);
-  const handleDecrementShoulder = () =>
-    shoulder > 0 && setShoulder(shoulder - 1);
-  const handleIncrementChest = () => setChest(chest + 1);
-  const handleDecrementChest = () => chest > 0 && setChest(chest - 1);
-  const handleIncrementSleeve = () => setSleeve(sleeve + 1);
-  const handleDecrementSleeve = () => sleeve > 0 && setSleeve(sleeve - 1);
+  // 추천 사이즈를 업데이트하는 함수
+  const adjustRecommendedSize = (newValue: number, type: keyof TopInfoType | keyof BottomInfoType) => {
+    setRecommendedSize((prevSize) => {
+      if (prevSize) {
+        // 각 타입에 맞게 업데이트
+        if ('itemShoulder' in prevSize) {
+          // TopInfoType
+          return {
+            ...prevSize,
+            [type]: newValue,
+          } as TopInfoType;
+        } else {
+          // BottomInfoType
+          return {
+            ...prevSize,
+            [type]: newValue,
+          } as BottomInfoType;
+        }
+      }
+      return prevSize;
+    });
+  };
 
-  // 하의 조정 버튼에 필요한 함수 추가
-  const handleIncrementBottomLength = () => setBottomLength(bottomLength + 1);
-  const handleDecrementBottomLength = () => bottomLength > 0 && setBottomLength(bottomLength - 1);
 
-  const handleIncrementFrontRise = () => setFrontRise(frontRise + 1);
-  const handleDecrementFrontRise = () => frontRise > 0 && setFrontRise(frontRise - 1);
+  // 상의 조정 버튼 핸들러들
+  const handleIncrementLength = () => {
+    const newLength = length + 1;
+    setLength(newLength);
+    adjustRecommendedSize(newLength, 'itemHeight');
+  };
 
-  const handleIncrementWaist = () => setWaist(waist + 1);
-  const handleDecrementWaist = () => waist > 0 && setWaist(waist - 1);
+  const handleDecrementLength = () => {
+    if (length > 0) {
+      const newLength = length - 1;
+      setLength(newLength);
+      adjustRecommendedSize(newLength, 'itemHeight');
+    }
+  };
 
-  const handleIncrementHipWidth = () => setHipWidth(hipWidth + 1);
-  const handleDecrementHipWidth = () => hipWidth > 0 && setHipWidth(hipWidth - 1);
+  const handleIncrementShoulder = () => {
+    const newShoulder = shoulder + 1;
+    setShoulder(newShoulder);
+    adjustRecommendedSize(newShoulder, 'itemShoulder');
+  };
 
-  const handleIncrementThigh = () => setThigh(thigh + 1);
-  const handleDecrementThigh = () => thigh > 0 && setThigh(thigh - 1);
+  const handleDecrementShoulder = () => {
+    if (shoulder > 0) {
+      const newShoulder = shoulder - 1;
+      setShoulder(newShoulder);
+      adjustRecommendedSize(newShoulder, 'itemShoulder');
+    }
+  };
 
-  const handleIncrementHemWidth = () => setHemWidth(hemWidth + 1);
-  const handleDecrementHemWidth = () => hemWidth > 0 && setHemWidth(hemWidth - 1);
+  // 가슴
+  const handleIncrementChest = () => {
+    const newChest = chest + 1;
+    setChest(newChest);
+    adjustRecommendedSize(newChest, 'itemChest');
+  };
+
+  const handleDecrementChest = () => {
+    if (chest > 0) {
+      const newChest = chest - 1;
+      setChest(newChest);
+      adjustRecommendedSize(newChest, 'itemChest');
+    }
+  };
+
+  // 소매
+  const handleIncrementSleeve = () => {
+    const newSleeve = sleeve + 1;
+    setSleeve(newSleeve);
+    adjustRecommendedSize(newSleeve, 'itemSleeve');
+  };
+
+  const handleDecrementSleeve = () => {
+    if (sleeve > 0) {
+      const newSleeve = sleeve - 1;
+      setSleeve(newSleeve);
+      adjustRecommendedSize(newSleeve, 'itemSleeve');
+    }
+  };
+
+  // 하의 조정 버튼 핸들러들
+  const handleIncrementBottomLength = () => {
+    const newBottomLength = bottomLength + 1;
+    setBottomLength(newBottomLength);
+    adjustRecommendedSize(newBottomLength, 'itemHeight');
+  };
+
+  const handleDecrementBottomLength = () => {
+    if (bottomLength > 0) {
+      const newBottomLength = bottomLength - 1;
+      setBottomLength(newBottomLength);
+      adjustRecommendedSize(newBottomLength, 'itemHeight');
+    }
+  };
+
+  const handleIncrementFrontRise = () => {
+    const newFrontRise = frontRise + 1;
+    setFrontRise(newFrontRise);
+    adjustRecommendedSize(newFrontRise, 'frontRise');
+  };
+
+  const handleDecrementFrontRise = () => {
+    if (frontRise > 0) {
+      const newFrontRise = frontRise - 1;
+      setFrontRise(newFrontRise);
+      adjustRecommendedSize(newFrontRise, 'frontRise');
+    }
+  };
+
+  const handleIncrementWaist = () => {
+    const newWaist = waist + 1;
+    setWaist(newWaist);
+    adjustRecommendedSize(newWaist, 'itemWaists');
+  };
+
+  const handleDecrementWaist = () => {
+    if (waist > 0) {
+      const newWaist = waist - 1;
+      setWaist(newWaist);
+      adjustRecommendedSize(newWaist, 'itemWaists');
+    }
+  };
+
+  const handleIncrementHipWidth = () => {
+    const newHipWidth = hipWidth + 1;
+    setHipWidth(newHipWidth);
+    adjustRecommendedSize(newHipWidth, 'itemHipWidth');
+  };
+
+  const handleDecrementHipWidth = () => {
+    if (hipWidth > 0) {
+      const newHipWidth = hipWidth - 1;
+      setHipWidth(newHipWidth);
+      adjustRecommendedSize(newHipWidth, 'itemHipWidth');
+    }
+  };
+
+  const handleIncrementThigh = () => {
+    const newThigh = thigh + 1;
+    setThigh(newThigh);
+    adjustRecommendedSize(newThigh, 'itemThighs');
+  };
+
+  const handleDecrementThigh = () => {
+    if (thigh > 0) {
+      const newThigh = thigh - 1;
+      setThigh(newThigh);
+      adjustRecommendedSize(newThigh, 'itemThighs');
+    }
+  };
+
+  const handleIncrementHemWidth = () => {
+    const newHemWidth = hemWidth + 1;
+    setHemWidth(newHemWidth);
+    adjustRecommendedSize(newHemWidth, 'itemHemWidth');
+  };
+
+  const handleDecrementHemWidth = () => {
+    if (hemWidth > 0) {
+      const newHemWidth = hemWidth - 1;
+      setHemWidth(newHemWidth);
+      adjustRecommendedSize(newHemWidth, 'itemHemWidth');
+    }
+  };
 
   const handleSizeSelect = (size: string, type: 'top' | 'bottom') => {
     if (isTailoringChecked) return;  // 수선하기 체크 시 선택 불가
@@ -226,6 +365,7 @@ const ProductPage = () => {
     // 총 가격 계산: 수선 선택 시 수선 가격을 포함
     const totalItemPrice = pitStatus ? productInfo.itemPrice + productInfo.pitPrice : productInfo.itemPrice;
 
+    // 장바구니 요청에 추천 사이즈 반영
     const body = {
       itemKey: productInfo.itemKey,
       userEmail: userEmail,
@@ -233,18 +373,16 @@ const ProductPage = () => {
       itemName: productInfo.itemName,
       itemSize: selectedSize,
       itemType: productInfo.itemType,
-      itemPrice: totalItemPrice, // 총 가격을 요청 바디에 포함
+      itemPrice: totalItemPrice,
       qty: qty,
       pitStatus,
-      pitPrice: productInfo.pitPrice, // 제품 상세 API에서 가져온 수선 가격
+      pitPrice: productInfo.pitPrice,
       pitItemCart,
+      recommendedSize: recommendedSize ? recommendedSize.itemSize : selectedSize, // 추천 사이즈 반영
     };
 
     try {
-      const res = await reqPost(
-        path.join(DATA_URL, 'api', 'cart', 'store'),
-        body
-      );
+      const res = await reqPost(path.join(DATA_URL, 'api', 'cart', 'store'), body);
 
       if (res.message === '장바구니에 상품이 성공적으로 추가되었습니다.') {
         Alert.alert('장바구니 담기 성공');
@@ -499,6 +637,28 @@ const ProductPage = () => {
       setSizeData(selectedSizeData);
     }
   }, [selectedSize, productInfo.itemTopInfo]);
+
+  // 추천 사이즈가 업데이트될 때 초기값을 설정합니다.
+  useEffect(() => {
+    if (recommendedSize) {
+      // 상의일 경우
+      if ('itemShoulder' in recommendedSize) {
+        setLength(recommendedSize.itemHeight || 0);
+        setShoulder(recommendedSize.itemShoulder || 0);
+        setChest(recommendedSize.itemChest || 0);
+        setSleeve(recommendedSize.itemSleeve || 0);
+      }
+      // 하의일 경우
+      else if ('frontRise' in recommendedSize) {
+        setBottomLength(recommendedSize.itemHeight || 0);
+        setFrontRise(recommendedSize.frontRise || 0);
+        setWaist(recommendedSize.itemWaists || 0);
+        setHipWidth(recommendedSize.itemHipWidth || 0);
+        setThigh(recommendedSize.itemThighs || 0);
+        setHemWidth(recommendedSize.itemHemWidth || 0);
+      }
+    }
+  }, [recommendedSize]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
