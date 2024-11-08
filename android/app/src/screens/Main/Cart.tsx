@@ -171,7 +171,7 @@ const Cart = () => {
       itemSize: item.itemSize,
       itemType: item.itemType,
       itemPrice: item.itemPrice,
-      pitPrice: item.pitStatus ? 20000 : null,
+      pitPrice: item.pitStatus ? item.pitPrice : null,
       pit: 1,
       qty: quantities[item.itemKey] || item.qty,
       pitStatus: item.pitStatus,
