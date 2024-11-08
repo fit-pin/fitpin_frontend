@@ -54,6 +54,12 @@ const ProductPage = () => {
   const [shoulder, setShoulder] = useState(0);
   const [chest, setChest] = useState(0);
   const [sleeve, setSleeve] = useState(0);
+  const [bottomLength, setBottomLength] = useState(0);
+  const [frontRise, setFrontRise] = useState(0);
+  const [waist, setWaist] = useState(0);
+  const [hipWidth, setHipWidth] = useState(0);
+  const [thigh, setThigh] = useState(0);
+  const [hemWidth, setHemWidth] = useState(0);
   const [isTailoringChecked, setIsTailoringChecked] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false); // 모달 상태 관리
   const [PordimgUri, setProdUri] = useState<string>(''); // 제품 페이지 uri 관리
@@ -140,12 +146,33 @@ const ProductPage = () => {
   const handleDecrementChest = () => chest > 0 && setChest(chest - 1);
   const handleIncrementSleeve = () => setSleeve(sleeve + 1);
   const handleDecrementSleeve = () => sleeve > 0 && setSleeve(sleeve - 1);
-  const handleSizeSelect = (size: string) => {
+
+  // 하의 조정 버튼에 필요한 함수 추가
+  const handleIncrementBottomLength = () => setBottomLength(bottomLength + 1);
+  const handleDecrementBottomLength = () => bottomLength > 0 && setBottomLength(bottomLength - 1);
+
+  const handleIncrementFrontRise = () => setFrontRise(frontRise + 1);
+  const handleDecrementFrontRise = () => frontRise > 0 && setFrontRise(frontRise - 1);
+
+  const handleIncrementWaist = () => setWaist(waist + 1);
+  const handleDecrementWaist = () => waist > 0 && setWaist(waist - 1);
+
+  const handleIncrementHipWidth = () => setHipWidth(hipWidth + 1);
+  const handleDecrementHipWidth = () => hipWidth > 0 && setHipWidth(hipWidth - 1);
+
+  const handleIncrementThigh = () => setThigh(thigh + 1);
+  const handleDecrementThigh = () => thigh > 0 && setThigh(thigh - 1);
+
+  const handleIncrementHemWidth = () => setHemWidth(hemWidth + 1);
+  const handleDecrementHemWidth = () => hemWidth > 0 && setHemWidth(hemWidth - 1);
+
+  const handleSizeSelect = (size: string, type: 'top' | 'bottom') => {
+    if (isTailoringChecked) return;
     setSelectedSize(size);
-    if (productInfo && productInfo.itemTopInfo) {
-      const selectedSizeData = productInfo.itemTopInfo.find((info: any) => info.itemSize === size);
-      setSizeData(selectedSizeData);
-    }
+    const selectedSizeData = type === 'top'
+      ? productInfo.itemTopInfo.find((info: TopInfoType) => info.itemSize === size)  // info에 타입 추가
+      : productInfo.itemBottomInfo?.find((info: BottomInfoType) => info.itemSize === size);  // info에 타입 추가
+    setSizeData(selectedSizeData);
   };
   const [qty, setQty] = useState(1);
 
@@ -221,15 +248,14 @@ const ProductPage = () => {
 
   // 상품 정보 가져오기
   const fetchProductData = async () => {
-    // 제품 상세 정보 요청
-    const productRes = await reqGet(
-      path.join(DATA_URL, 'api', 'item-info', `${itemid}`),
-    );
+    const productRes = await reqGet(path.join(DATA_URL, 'api', 'item-info', `${itemid}`));
 
-    // 오류 체크 콘솔 로그
-    console.log('Product response:', productRes);
+    const processedBottomInfo = productRes.itemBottomInfo?.map((info: any) => ({
+      ...info,
+      frontRise: info.frontrise,
+      itemHipWidth: info.itemhipWidth,
+    }));
 
-    // productInfo 업데이트
     setProductInfo({
       itemKey: productRes.itemKey,
       itemName: productRes.itemName,
@@ -239,19 +265,12 @@ const ProductPage = () => {
       itemPrice: productRes.itemPrice,
       itemContent: productRes.itemContent,
       itemTopInfo: productRes.itemTopInfo,
-      itemBottomInfo: productRes.itemBottomInfo,
+      itemBottomInfo: processedBottomInfo || null,
       itemImgNames: productRes.itemImgName[0],
     });
 
     setProdUri(
-      path.join(
-        DATA_URL,
-        'api',
-        'img',
-        'imgserve',
-        'itemimg',
-        productRes.itemImgName[0],
-      ),
+      path.join(DATA_URL, 'api', 'img', 'imgserve', 'itemimg', productRes.itemImgName[0])
     );
   };
 
@@ -299,26 +318,48 @@ const ProductPage = () => {
     let bestFit: TopInfoType | BottomInfoType | null = null;
     let minDifference = Infinity;
 
-    const calculateDifference = (item: TopInfoType) => {
-      const heightDiff = Math.abs(item.itemHeight - userBodyInfo.bodySize); // 총장과 사용자 상체 길이 비교
-      const shoulderDiff = Math.abs(item.itemShoulder - userBodyInfo.shoulderSize); // 어깨너비와 사용자 어깨 너비 비교
-      const chestDiff = Math.abs(item.itemChest - productInfo.itemTopInfo[0].itemChest); // 가슴단면 그대로
-      const sleeveDiff = Math.abs(item.itemSleeve - userBodyInfo.armSize); // 소매길이와 사용자 팔 길이 비교
-
-      return heightDiff + shoulderDiff + chestDiff + sleeveDiff; // 총합으로 가장 적합한 사이즈 찾기
-    };
-
     if (productInfo.itemTopInfo && productInfo.itemTopInfo.length > 0) {
       productInfo.itemTopInfo.forEach((item: TopInfoType) => {
-        const difference = calculateDifference(item);
+        const heightDiff = Math.abs(item.itemHeight - userBodyInfo.bodySize);
+        const shoulderDiff = Math.abs(item.itemShoulder - userBodyInfo.shoulderSize);
+        const chestDiff = Math.abs(item.itemChest - userBodyInfo.armSize);
+        const sleeveDiff = Math.abs(item.itemSleeve - userBodyInfo.armSize);
+
+        const difference = heightDiff + shoulderDiff + chestDiff + sleeveDiff;
         if (difference < minDifference) {
           minDifference = difference;
           bestFit = item;
         }
       });
+
+    } else if (productInfo.itemBottomInfo && productInfo.itemBottomInfo.length > 0) {
+      productInfo.itemBottomInfo.forEach((item: BottomInfoType) => {
+        const legDiff = Math.abs(item.itemHeight - userBodyInfo.legSize);
+        if (legDiff < minDifference) {
+          minDifference = legDiff;
+          bestFit = item;
+        }
+      });
     }
 
-    setRecommendedSize(bestFit); // recommendedSize 상태 업데이트
+    console.log("Calculated recommendedSize:", bestFit); // 추가된 디버그 출력
+    setRecommendedSize(bestFit);
+  };
+
+  const handleSizeRecommendationForBottom = () => {
+    if (!userBodyInfo || !productInfo?.itemBottomInfo) return;
+
+    const nextLargerSize = productInfo.itemBottomInfo.find(
+      (sizeInfo: BottomInfoType) => sizeInfo.itemHeight > userBodyInfo.legSize  // sizeInfo에 타입 추가
+    );
+
+    if (nextLargerSize) {
+      setRecommendedSize(nextLargerSize);
+      setSelectedSize(nextLargerSize.itemSize);
+    } else {
+      setRecommendedSize(productInfo.itemBottomInfo[productInfo.itemBottomInfo.length - 1]);
+      setSelectedSize(productInfo.itemBottomInfo[productInfo.itemBottomInfo.length - 1].itemSize);
+    }
   };
 
   useEffect(() => {
@@ -340,7 +381,8 @@ const ProductPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productInfo.itemImgNames, PordimgUri]);
 
-  const handleSizeRecommendation = () => {
+  // 사이즈 추천 함수: 상의
+  const handleSizeRecommendationForTop = () => {
     if (!userBodyInfo || !productInfo?.itemTopInfo) return;
 
     let selectedSizeIndex = 0;
@@ -361,13 +403,39 @@ const ProductPage = () => {
     setSelectedSize(finalSize.itemSize);
   };
 
+  // 사이즈 데이터 설정 함수 (수선하기, 사용자가 임의로 선택한 경우 모두 대응)
+  const updateSizeData = () => {
+    if (productInfo.itemTopInfo && selectedSize) {
+      const selectedSizeData = productInfo.itemTopInfo.find(
+        (info: TopInfoType) => info.itemSize === selectedSize
+      );
+      setSizeData(selectedSizeData);
+    } else if (productInfo.itemBottomInfo && selectedSize) {
+      const selectedSizeData = productInfo.itemBottomInfo.find(
+        (info: BottomInfoType) => info.itemSize === selectedSize
+      );
+      setSizeData(selectedSizeData);
+    } else if (isTailoringChecked && recommendedSize) {
+      setSizeData(recommendedSize);  // 수선하기 버튼이 눌린 상태일 경우 recommendedSize 사용
+    } else {
+      setSizeData(null);
+    }
+  };
+
+  // 수선하기 체크 상태에 따라 상의/하의 추천 사이즈 계산 및 사이즈 데이터 업데이트
   useEffect(() => {
     if (isTailoringChecked) {
-      handleSizeRecommendation();
+      if (productInfo.itemTopInfo) {
+        handleSizeRecommendationForTop();
+      } else if (productInfo.itemBottomInfo) {
+        handleSizeRecommendationForBottom();
+      }
     } else {
-      setSelectedSize(null);
+      setSelectedSize(null);  // 수선하기 버튼 해제 시 선택된 사이즈 초기화
+      setSizeData(null);       // 관련 사이즈 데이터도 초기화
     }
-  }, [isTailoringChecked, userBodyInfo, productInfo]);
+    updateSizeData();
+  }, [isTailoringChecked, selectedSize, productInfo, recommendedSize]);
 
   useEffect(() => {
     if (selectedSize && productInfo.itemTopInfo) {
@@ -414,29 +482,19 @@ const ProductPage = () => {
 
       {/* 사이즈 표 */}
       <View style={styles.sizeButtons}>
-        {(
-          Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo.length > 0
-            ? productInfo.itemTopInfo
-            : Array.isArray(productInfo.itemBottomInfo) && productInfo.itemBottomInfo.length > 0
-              ? productInfo.itemBottomInfo
-              : []
-        )
+        {(Array.isArray(productInfo.itemTopInfo) ? productInfo.itemTopInfo : productInfo.itemBottomInfo || [])
           .sort((a: { itemSize: string }, b: { itemSize: string }) => {
-            const order = ['S', 'M', 'L', 'XL', 'XXL', 'Free'];
+            const order = ['S', 'M', 'L', 'XL', '2XL', '3XL', 'Free'];
             return order.indexOf(a.itemSize) - order.indexOf(b.itemSize);
           })
-          .map((info: { itemSize: string, itemHeight: number, itemShoulder: number, itemChest: number, itemSleeve: number }) => (
+          .map((info: TopInfoType | BottomInfoType) => (
             <TouchableOpacity
               key={info.itemSize}
               style={[
                 styles.sizeButton,
                 selectedSize === info.itemSize && styles.selectedSizeButton,
               ]}
-              onPress={() => {
-                if (!isTailoringChecked) {
-                  handleSizeSelect(info.itemSize);
-                }
-              }}
+              onPress={() => handleSizeSelect(info.itemSize, productInfo.itemTopInfo ? 'top' : 'bottom')}
               disabled={isTailoringChecked}>
               <Text
                 style={[
@@ -449,22 +507,38 @@ const ProductPage = () => {
           ))}
       </View>
 
-      {/* 선택된 사이즈 정보 표시 */}
-      {selectedSize && sizeData && (
+      {/* 사이즈 정보 표시 (수선하기가 체크된 경우와 사용자가 임의로 사이즈를 선택한 경우) */}
+      {(isTailoringChecked || selectedSize) && sizeData && (
         <View style={styles.sizeChartContainer}>
           <View style={styles.sizeChartHeader}>
-            {['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map((header, index) => (
-              <Text key={index} style={styles.sizeChartHeaderText}>
-                {header}
-              </Text>
-            ))}
+            {productInfo.itemTopInfo ? (
+              ['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map((header, index) => (
+                <Text key={index} style={styles.sizeChartHeaderText}>{header}</Text>
+              ))
+            ) : (
+              ['Size', 'Height', 'Front Rise', 'Waist', 'Hip', 'Thigh', 'Hem Width'].map((header, index) => (
+                <Text key={index} style={styles.sizeChartHeaderText}>{header}</Text>
+              ))
+            )}
           </View>
           <View style={styles.sizeChartRow}>
             <Text style={styles.sizeChartRowTitle}>{sizeData.itemSize}</Text>
             <Text style={styles.sizeChartRowText}>{sizeData.itemHeight}</Text>
-            <Text style={styles.sizeChartRowText}>{sizeData.itemShoulder}</Text>
-            <Text style={styles.sizeChartRowText}>{sizeData.itemChest}</Text>
-            <Text style={styles.sizeChartRowText}>{sizeData.itemSleeve}</Text>
+            {productInfo.itemTopInfo ? (
+              <>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemShoulder}</Text>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemChest}</Text>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemSleeve}</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.sizeChartRowText}>{sizeData.frontRise}</Text>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemWaists}</Text>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemHipWidth}</Text>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemThighs}</Text>
+                <Text style={styles.sizeChartRowText}>{sizeData.itemHemWidth}</Text>
+              </>
+            )}
           </View>
         </View>
       )}
@@ -477,8 +551,10 @@ const ProductPage = () => {
         <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
         <Text style={styles.originalSize}>원래 사이즈</Text>
 
+        {/* 원래 사이즈 - 상의 */}
         {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
           <View style={styles.sizeChartRow2}>
+            <Text style={styles.sizeChartRowText}>상의</Text>
             <Text style={styles.sizeChartRowText}>{userBodyInfo.bodySize}</Text>
             <Text style={styles.sizeChartRowText}>{userBodyInfo.shoulderSize}</Text>
             <Text style={styles.sizeChartRowText}>{productInfo.itemTopInfo[0].itemChest}</Text>
@@ -486,28 +562,43 @@ const ProductPage = () => {
           </View>
         )}
 
-        {/* 추천 사이즈 */}
+        {/* 원래 사이즈 - 하의 */}
+        {productInfo.itemBottomInfo && userBodyInfo && (
+          <View style={styles.sizeChartRow2}>
+            <Text style={styles.sizeChartRowText}>하의</Text>
+            <Text style={styles.sizeChartRowText}>{userBodyInfo.legSize}</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].frontrise}</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemWaists}</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemhipWidth}</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemThighs}</Text>
+            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHemWidth}</Text>
+          </View>
+        )}
+
         {recommendedSize && (
           <View style={styles.sizeChartContainer}>
             <Text style={styles.originalSize}>추천 사이즈</Text>
             <View style={styles.sizeChartRow}>
               <Text style={styles.sizeChartRowTitle}>{recommendedSize.itemSize}</Text>
               <Text style={styles.sizeChartRowText}>{recommendedSize.itemHeight}</Text>
-              <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemShoulder}</Text>
-              <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemChest}</Text>
-              <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemSleeve}</Text>
+              {productInfo.itemTopInfo ? (
+                // 상의일 때 접근
+                <>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemShoulder}</Text>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemChest}</Text>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemSleeve}</Text>
+                </>
+              ) : (
+                // 하의일 때 접근
+                <>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).frontRise}</Text>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemWaists}</Text>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemHipWidth}</Text>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemThighs}</Text>
+                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemHemWidth}</Text>
+                </>
+              )}
             </View>
-          </View>
-        )}
-
-        {Array.isArray(productInfo.itemBottomInfo) && productInfo.itemBottomInfo[0] && (
-          <View style={styles.sizeChartRow2}>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHeight} cm</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].frontRise} cm</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemWaists} cm</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHipWidth} cm</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemThighs} cm</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHemWidth} cm</Text>
           </View>
         )}
       </View>
@@ -554,92 +645,150 @@ const ProductPage = () => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {isTailoringChecked && (
+        {isTailoringChecked && productInfo.itemTopInfo && (
+          // 상의 조정 버튼
           <View>
             <View style={{ flexDirection: 'row' }}>
-              {/* 총장 부분 */}
               <View style={styles.buttoncontainer}>
-                <View style={styles.buttontitleContainer}>
-                  <Text style={styles.buttontitle}>총장 :</Text>
-                  <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementLength}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> - </Text>
-                    </TouchableOpacity>
-                    <Text style={styles.buttonText2}>{length}</Text>
-                    <TouchableOpacity
-                      onPress={handleIncrementLength}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> + </Text>
-                    </TouchableOpacity>
-                  </View>
+                <Text style={styles.buttontitle}>총장 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementLength} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{length}</Text>
+                  <TouchableOpacity onPress={handleIncrementLength} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              {/* 어깨 부분 */}
               <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
-                <View style={styles.buttontitleContainer}>
-                  <Text style={styles.buttontitle}>어깨 :</Text>
-                  <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementShoulder}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> - </Text>
-                    </TouchableOpacity>
-                    <Text style={styles.buttonText2}>{shoulder}</Text>
-                    <TouchableOpacity
-                      onPress={handleIncrementShoulder}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> + </Text>
-                    </TouchableOpacity>
-                  </View>
+                <Text style={styles.buttontitle}>어깨 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementShoulder} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{shoulder}</Text>
+                  <TouchableOpacity onPress={handleIncrementShoulder} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
 
             <View style={{ flexDirection: 'row' }}>
-              {/* 가슴 부분 */}
               <View style={styles.buttoncontainer}>
-                <View style={styles.buttontitleContainer}>
-                  <Text style={styles.buttontitle}>가슴 :</Text>
-                  <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementChest}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> - </Text>
-                    </TouchableOpacity>
-                    <Text style={styles.buttonText2}>{chest}</Text>
-                    <TouchableOpacity
-                      onPress={handleIncrementChest}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> + </Text>
-                    </TouchableOpacity>
-                  </View>
+                <Text style={styles.buttontitle}>가슴 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementChest} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{chest}</Text>
+                  <TouchableOpacity onPress={handleIncrementChest} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              {/* 소매 부분 */}
-              <View
-                style={[
-                  styles.buttoncontainer,
-                  { marginLeft: '14%', marginTop: '1%' },
-                ]}>
-                <View style={styles.buttontitleContainer}>
-                  <Text style={styles.buttontitle}>소매 :</Text>
-                  <View style={styles.buttoncontainer2}>
-                    <TouchableOpacity
-                      onPress={handleDecrementSleeve}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> - </Text>
-                    </TouchableOpacity>
-                    <Text style={styles.buttonText2}>{sleeve}</Text>
-                    <TouchableOpacity
-                      onPress={handleIncrementSleeve}
-                      style={styles.button}>
-                      <Text style={styles.buttonText}> + </Text>
-                    </TouchableOpacity>
-                  </View>
+              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+                <Text style={styles.buttontitle}>소매 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementSleeve} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{sleeve}</Text>
+                  <TouchableOpacity onPress={handleIncrementSleeve} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {isTailoringChecked && productInfo.itemBottomInfo && (
+          // 하의 조정 버튼
+          <View>
+            <View style={{ flexDirection: 'row' }}>
+              <View style={styles.buttoncontainer}>
+                <Text style={styles.buttontitle}>총장 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementBottomLength} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{bottomLength}</Text>
+                  <TouchableOpacity onPress={handleIncrementBottomLength} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+                <Text style={styles.buttontitle}>밑위 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementFrontRise} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{frontRise}</Text>
+                  <TouchableOpacity onPress={handleIncrementFrontRise} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row' }}>
+              <View style={styles.buttoncontainer}>
+                <Text style={styles.buttontitle}>허리 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementWaist} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{waist}</Text>
+                  <TouchableOpacity onPress={handleIncrementWaist} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+                <Text style={styles.buttontitle}>엉덩이 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementHipWidth} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{hipWidth}</Text>
+                  <TouchableOpacity onPress={handleIncrementHipWidth} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row' }}>
+              <View style={styles.buttoncontainer}>
+                <Text style={styles.buttontitle}>허벅지 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementThigh} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{thigh}</Text>
+                  <TouchableOpacity onPress={handleIncrementThigh} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+                <Text style={styles.buttontitle}>밑단 :</Text>
+                <View style={styles.buttoncontainer2}>
+                  <TouchableOpacity onPress={handleDecrementHemWidth} style={styles.button}>
+                    <Text style={styles.buttonText}> - </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.buttonText2}>{hemWidth}</Text>
+                  <TouchableOpacity onPress={handleIncrementHemWidth} style={styles.button}>
+                    <Text style={styles.buttonText}> + </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
