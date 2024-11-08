@@ -93,6 +93,10 @@ const ConnectSSE = () => {
   const {userEmail} = useUser();
 
   useEffect(() => {
+    request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS).then(result => {
+      console.log(result);
+    });
+
     if (userEmail) {
       console.log('SSE 등록');
       const sseClient = new EventSource(
@@ -100,7 +104,32 @@ const ConnectSSE = () => {
       );
 
       sseClient.addEventListener('message', event => {
-        console.log('ssedata', event.data);
+        const message: {
+          auctionTime: number;
+          price?: number;
+          itemName?: string;
+          auctionList: [
+            {
+              token: string;
+              company: string;
+              price: number;
+              time: Date;
+              isMy: boolean;
+            },
+          ];
+        } = JSON.parse(event.data!!);
+
+        console.log(message);
+
+        // PushNotification.localNotification({
+        //   channelId: 'auction', // Android 채널 ID 지정
+        //   title: '새로운 알림', // 알림 제목
+        //   message: '메시징', // 서버로부터 수신한 메시지 내용
+        //   playSound: true,
+        //   soundName: 'default',
+        //   importance: 'default',
+        //   priority: 'default',
+        // });
       });
 
       sseClient.addEventListener('error', event => {
@@ -117,12 +146,6 @@ const ConnectSSE = () => {
 };
 
 const App = () => {
-  useEffect(() => {
-    request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS).then(result => {
-      console.log(result);
-    });
-  }, []);
-
   return (
     <UserProvider>
       <ConnectSSE />
