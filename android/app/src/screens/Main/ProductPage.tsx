@@ -772,36 +772,10 @@ const ProductPage = () => {
       {/* 사이즈 추천 */}
       <View style={styles.customFitContainer}>
         <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
-        <Text style={styles.originalSize}>내 체형 정보</Text>
-
-        {/* 원래 사이즈 - 상의 */}
-        {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
-          <View style={styles.sizeChartRow2}>
-            <Text style={styles.sizeChartRowText}>상의</Text>
-            <Text style={styles.sizeChartRowText}>{userBodyInfo.bodySize}</Text>
-            <Text style={styles.sizeChartRowText}>{userBodyInfo.shoulderSize}</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemTopInfo[0].itemChest}</Text>
-            <Text style={styles.sizeChartRowText}>{userBodyInfo.armSize}</Text>
-          </View>
-        )}
-
-        {/* 원래 사이즈 - 하의 */}
-        {productInfo.itemBottomInfo && userBodyInfo && (
-          <View style={styles.sizeChartRow2}>
-            <Text style={styles.sizeChartRowText}>하의</Text>
-            <Text style={styles.sizeChartRowText}>{userBodyInfo.legSize}</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].frontrise}</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemWaists}</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemhipWidth}</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemThighs}</Text>
-            <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHemWidth}</Text>
-          </View>
-        )}
-
         {recommendedSize && (
           <View style={styles.sizeChartContainer}>
-            <Text style={styles.originalSize}>추천 사이즈</Text>
-            <View style={styles.sizeChartRow}>
+            <Text style={styles.originalSize}>원래 사이즈</Text>
+            <View style={styles.sizeChartRow2}>
               <Text style={styles.sizeChartRowTitle}>{recommendedSize.itemSize}</Text>
               <Text style={styles.sizeChartRowText}>{recommendedSize.itemHeight}</Text>
               {productInfo.itemTopInfo ? (
@@ -822,6 +796,32 @@ const ProductPage = () => {
                 </>
               )}
             </View>
+
+            <Text style={styles.originalSize}>추천 사이즈</Text>
+
+            {/* 원래 사이즈 - 상의 */}
+            {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
+              <View style={styles.sizeChartRow}>
+                <Text style={styles.sizeChartRowText}>상의</Text>
+                <Text style={styles.sizeChartRowText}>{userBodyInfo.bodySize}</Text>
+                <Text style={styles.sizeChartRowText}>{userBodyInfo.shoulderSize}</Text>
+                <Text style={styles.sizeChartRowText}>{productInfo.itemTopInfo[0].itemChest}</Text>
+                <Text style={styles.sizeChartRowText}>{userBodyInfo.armSize}</Text>
+              </View>
+            )}
+
+            {/* 원래 사이즈 - 하의 */}
+            {productInfo.itemBottomInfo && userBodyInfo && (
+              <View style={styles.sizeChartRow2}>
+                <Text style={styles.sizeChartRowText}>하의</Text>
+                <Text style={styles.sizeChartRowText}>{userBodyInfo.legSize}</Text>
+                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].frontrise}</Text>
+                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemWaists}</Text>
+                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemhipWidth}</Text>
+                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemThighs}</Text>
+                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHemWidth}</Text>
+              </View>
+            )}
           </View>
         )}
       </View>
