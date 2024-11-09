@@ -1,8 +1,8 @@
 /** AR 백엔드 요청 주소 */
-export const AR_URL = 'http://dmumars.kro.kr/';
+export const AR_URL = 'https://dmumars.kro.kr/';
 
 /** 데이터 백엔드 요청 주소 */
 export const DATA_URL = 'http://fitpitback.kro.kr:8080/';
 
 /** 수선 경매 알림 서버 주소 */
-export const AUCTION_URL = 'http://korseok.kro.kr:8080';
+export const AUCTION_URL = 'https://fitpin-web-back.kro.kr/';
