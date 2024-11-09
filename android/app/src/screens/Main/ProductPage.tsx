@@ -162,7 +162,6 @@ const ProductPage = () => {
     });
   };
 
-
   // 상의 조정 버튼 핸들러들
   const handleIncrementLength = () => {
     const newLength = length + 1;
@@ -171,7 +170,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementLength = () => {
-    if (length > 0) {
+    const minLength = Math.ceil(userBodyInfo?.bodySize || 0);
+    if (length > minLength) {
       const newLength = length - 1;
       setLength(newLength);
       adjustRecommendedSize(newLength, 'itemHeight');
@@ -185,7 +185,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementShoulder = () => {
-    if (shoulder > 0) {
+    const minShoulder = Math.ceil(userBodyInfo?.shoulderSize || 0);
+    if (shoulder > minShoulder) {
       const newShoulder = shoulder - 1;
       setShoulder(newShoulder);
       adjustRecommendedSize(newShoulder, 'itemShoulder');
@@ -200,7 +201,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementChest = () => {
-    if (chest > 0) {
+    const minChest = Math.ceil(userBodyInfo?.armSize || 0);
+    if (chest > minChest) {
       const newChest = chest - 1;
       setChest(newChest);
       adjustRecommendedSize(newChest, 'itemChest');
@@ -215,7 +217,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementSleeve = () => {
-    if (sleeve > 0) {
+    const minSleeve = Math.ceil(userBodyInfo?.armSize || 0);
+    if (sleeve > minSleeve) {
       const newSleeve = sleeve - 1;
       setSleeve(newSleeve);
       adjustRecommendedSize(newSleeve, 'itemSleeve');
@@ -230,7 +233,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementBottomLength = () => {
-    if (bottomLength > 0) {
+    const minBottomLength = Math.ceil(userBodyInfo?.legSize || 0);
+    if (bottomLength > minBottomLength) {
       const newBottomLength = bottomLength - 1;
       setBottomLength(newBottomLength);
       adjustRecommendedSize(newBottomLength, 'itemHeight');
@@ -244,7 +248,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementFrontRise = () => {
-    if (frontRise > 0) {
+    const minFrontRise = Math.ceil(userBodyInfo?.legSize || 0);
+    if (frontRise > minFrontRise) {
       const newFrontRise = frontRise - 1;
       setFrontRise(newFrontRise);
       adjustRecommendedSize(newFrontRise, 'frontRise');
@@ -258,7 +263,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementWaist = () => {
-    if (waist > 0) {
+    const minWaist = Math.ceil(userBodyInfo?.legSize || 0);
+    if (waist > minWaist) {
       const newWaist = waist - 1;
       setWaist(newWaist);
       adjustRecommendedSize(newWaist, 'itemWaists');
@@ -272,7 +278,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementHipWidth = () => {
-    if (hipWidth > 0) {
+    const minHipWidth = Math.ceil(userBodyInfo?.legSize || 0);
+    if (hipWidth > minHipWidth) {
       const newHipWidth = hipWidth - 1;
       setHipWidth(newHipWidth);
       adjustRecommendedSize(newHipWidth, 'itemHipWidth');
@@ -286,7 +293,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementThigh = () => {
-    if (thigh > 0) {
+    const minThigh = Math.ceil(userBodyInfo?.legSize || 0);
+    if (thigh > minThigh) {
       const newThigh = thigh - 1;
       setThigh(newThigh);
       adjustRecommendedSize(newThigh, 'itemThighs');
@@ -300,7 +308,8 @@ const ProductPage = () => {
   };
 
   const handleDecrementHemWidth = () => {
-    if (hemWidth > 0) {
+    const minHemWidth = Math.ceil(userBodyInfo?.legSize || 0);
+    if (hemWidth > minHemWidth) {
       const newHemWidth = hemWidth - 1;
       setHemWidth(newHemWidth);
       adjustRecommendedSize(newHemWidth, 'itemHemWidth');
@@ -763,7 +772,7 @@ const ProductPage = () => {
       {/* 사이즈 추천 */}
       <View style={styles.customFitContainer}>
         <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
-        <Text style={styles.originalSize}>원래 사이즈</Text>
+        <Text style={styles.originalSize}>내 체형 정보</Text>
 
         {/* 원래 사이즈 - 상의 */}
         {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
