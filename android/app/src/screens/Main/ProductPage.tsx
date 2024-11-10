@@ -778,22 +778,22 @@ const ProductPage = () => {
             <Text style={styles.originalSize}>원래 사이즈</Text>
             <View style={styles.sizeChartRow2}>
               <Text style={styles.sizeChartRowTitle}>{recommendedSize.itemSize}</Text>
-              <Text style={styles.sizeChartRowText}>{recommendedSize.itemHeight}</Text>
+              <Text style={styles.sizeChartRowText}>{Math.round(recommendedSize.itemHeight)}</Text>
               {productInfo.itemTopInfo ? (
                 // 상의일 때 접근
                 <>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemShoulder}</Text>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemChest}</Text>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as TopInfoType).itemSleeve}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as TopInfoType).itemShoulder)}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as TopInfoType).itemChest)}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as TopInfoType).itemSleeve)}</Text>
                 </>
               ) : (
                 // 하의일 때 접근
                 <>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).frontRise}</Text>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemWaists}</Text>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemHipWidth}</Text>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemThighs}</Text>
-                  <Text style={styles.sizeChartRowText}>{(recommendedSize as BottomInfoType).itemHemWidth}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).frontRise)}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemWaists)}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemHipWidth)}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemThighs)}</Text>
+                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemHemWidth)}</Text>
                 </>
               )}
             </View>
@@ -804,10 +804,10 @@ const ProductPage = () => {
             {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
               <View style={styles.sizeChartRow}>
                 <Text style={styles.sizeChartRowText}>상의</Text>
-                <Text style={styles.sizeChartRowText}>{userBodyInfo.bodySize}</Text>
-                <Text style={styles.sizeChartRowText}>{userBodyInfo.shoulderSize}</Text>
-                <Text style={styles.sizeChartRowText}>{productInfo.itemTopInfo[0].itemChest}</Text>
-                <Text style={styles.sizeChartRowText}>{userBodyInfo.armSize}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.bodySize)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.shoulderSize)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemTopInfo[0].itemChest)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.armSize)}</Text>
               </View>
             )}
 
@@ -815,12 +815,12 @@ const ProductPage = () => {
             {productInfo.itemBottomInfo && userBodyInfo && (
               <View style={styles.sizeChartRow2}>
                 <Text style={styles.sizeChartRowText}>하의</Text>
-                <Text style={styles.sizeChartRowText}>{userBodyInfo.legSize}</Text>
-                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].frontrise}</Text>
-                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemWaists}</Text>
-                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemhipWidth}</Text>
-                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemThighs}</Text>
-                <Text style={styles.sizeChartRowText}>{productInfo.itemBottomInfo[0].itemHemWidth}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.legSize)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].frontrise)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemWaists)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemhipWidth)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemThighs)}</Text>
+                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemHemWidth)}</Text>
               </View>
             )}
           </View>
