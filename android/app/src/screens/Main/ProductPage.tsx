@@ -800,7 +800,7 @@ const ProductPage = () => {
 
             <Text style={styles.originalSize}>추천 사이즈</Text>
 
-            {/* 원래 사이즈 - 상의 */}
+            {/* 추천 사이즈 - 상의 */}
             {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
               <View style={styles.sizeChartRow}>
                 <Text style={styles.sizeChartRowText}>상의</Text>
@@ -811,7 +811,7 @@ const ProductPage = () => {
               </View>
             )}
 
-            {/* 원래 사이즈 - 하의 */}
+            {/* 추천 사이즈 - 하의 */}
             {productInfo.itemBottomInfo && userBodyInfo && (
               <View style={styles.sizeChartRow2}>
                 <Text style={styles.sizeChartRowText}>하의</Text>
