@@ -350,7 +350,7 @@ const ProductPage = () => {
     // 수선 여부 및 수선 정보 구성
     const pitStatus = isTailoringChecked;
     const pitItemCart = pitStatus
-      ? productInfo.itemType === '상의'
+      ? productInfo.itemTopInfo !== null
         ? {
           itemType: '상의',
           itemSize: selectedSize,
@@ -381,13 +381,12 @@ const ProductPage = () => {
       itemImgName: productInfo.itemImgNames,
       itemName: productInfo.itemName,
       itemSize: selectedSize,
-      itemType: productInfo.itemType,
       itemPrice: totalItemPrice,
       qty: qty,
       pitStatus,
       pitPrice: productInfo.pitPrice,
       pitItemCart,
-      recommendedSize: recommendedSize ? recommendedSize.itemSize : selectedSize, // 추천 사이즈 반영
+      recommendedSize: recommendedSize ? recommendedSize.itemSize : selectedSize,
     };
 
     try {
@@ -419,7 +418,7 @@ const ProductPage = () => {
         qty: qty,
         pitStatus: isTailoringChecked,
         pitPrice: isTailoringChecked ? productInfo.pitPrice : 0,
-        pitTopInfo: productInfo.itemType === '상의' && isTailoringChecked
+        pitTopInfo: productInfo.itemTopInfo !== null && isTailoringChecked
           ? {
             itemHeight: length,
             itemShoulder: shoulder,
@@ -427,12 +426,12 @@ const ProductPage = () => {
             itemSleeve: sleeve,
           }
           : null,
-        pitBottomInfo: productInfo.itemType === '하의' && isTailoringChecked
+        pitBottomInfo: productInfo.itemBottomInfo !== null && isTailoringChecked
           ? {
             itemHeight: bottomLength,
-            frontrise: frontRise,
+            frontRise: frontRise,
             itemWaists: waist,
-            itemhipWidth: hipWidth,
+            itemHipWidth: hipWidth,
             itemThighs: thigh,
             itemHemWidth: hemWidth,
           }
