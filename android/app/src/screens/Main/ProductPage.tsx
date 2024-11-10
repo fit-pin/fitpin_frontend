@@ -650,25 +650,25 @@ const ProductPage = () => {
 
   // 추천 사이즈가 업데이트될 때 초기값을 설정합니다.
   useEffect(() => {
-    if (recommendedSize) {
+    if (userBodyInfo) {
       // 상의일 경우
-      if ('itemShoulder' in recommendedSize) {
-        setLength(recommendedSize.itemHeight || 0);
-        setShoulder(recommendedSize.itemShoulder || 0);
-        setChest(recommendedSize.itemChest || 0);
-        setSleeve(recommendedSize.itemSleeve || 0);
+      if (productInfo.itemTopInfo) {
+        setLength(Math.round(userBodyInfo.bodySize || 0));
+        setShoulder(Math.round(userBodyInfo.shoulderSize || 0));
+        setChest(Math.round(productInfo.itemTopInfo[0]?.itemChest || 0));
+        setSleeve(Math.round(userBodyInfo.armSize || 0));
       }
       // 하의일 경우
-      else if ('frontRise' in recommendedSize) {
-        setBottomLength(recommendedSize.itemHeight || 0);
-        setFrontRise(recommendedSize.frontRise || 0);
-        setWaist(recommendedSize.itemWaists || 0);
-        setHipWidth(recommendedSize.itemHipWidth || 0);
-        setThigh(recommendedSize.itemThighs || 0);
-        setHemWidth(recommendedSize.itemHemWidth || 0);
+      else if (productInfo.itemBottomInfo) {
+        setBottomLength(Math.round(userBodyInfo.legSize || 0));
+        setFrontRise(Math.round(productInfo.itemBottomInfo[0]?.frontrise || 0));
+        setWaist(Math.round(productInfo.itemBottomInfo[0]?.itemWaists || 0));
+        setHipWidth(Math.round(productInfo.itemBottomInfo[0]?.itemhipWidth || 0));
+        setThigh(Math.round(productInfo.itemBottomInfo[0]?.itemThighs || 0));
+        setHemWidth(Math.round(productInfo.itemBottomInfo[0]?.itemHemWidth || 0));
       }
     }
-  }, [recommendedSize]);
+  }, [userBodyInfo, productInfo.itemTopInfo, productInfo.itemBottomInfo]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
