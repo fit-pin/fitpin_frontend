@@ -414,10 +414,11 @@ const ProductPage = () => {
         itemKey: productInfo.itemKey,
         itemName: productInfo.itemName,
         itemSize: selectedSize,
-        itemPrice: productInfo.itemPrice,
+        itemPrice: isTailoringChecked ? productInfo.itemPrice + productInfo.pitPrice : productInfo.itemPrice,
         qty: qty,
         pitStatus: isTailoringChecked,
         pitPrice: isTailoringChecked ? productInfo.pitPrice : 0,
+        // 상의 수선 정보
         pitTopInfo: productInfo.itemTopInfo !== null && isTailoringChecked
           ? {
             itemHeight: length,
@@ -426,6 +427,7 @@ const ProductPage = () => {
             itemSleeve: sleeve,
           }
           : null,
+        // 하의 수선 정보
         pitBottomInfo: productInfo.itemBottomInfo !== null && isTailoringChecked
           ? {
             itemHeight: bottomLength,
