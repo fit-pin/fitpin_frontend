@@ -775,7 +775,9 @@ const ProductPage = () => {
         <Text style={styles.customFitTitle}>체형에 맞는 사이즈 추천이에요</Text>
         {recommendedSize && (
           <View style={styles.sizeChartContainer}>
-            <Text style={styles.originalSize}>원래 사이즈</Text>
+            <Text style={styles.originalSize}>
+              {isTailoringChecked ? '수선된 사이즈' : '원래 사이즈'}
+            </Text>
             <View style={styles.sizeChartRow2}>
               <Text style={styles.sizeChartRowTitle}>{recommendedSize.itemSize}</Text>
               <Text style={styles.sizeChartRowText}>{Math.round(recommendedSize.itemHeight)}</Text>
