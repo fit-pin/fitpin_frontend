@@ -88,7 +88,9 @@ const Comment: React.FC = () => {
 
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>작성된 리뷰가 없어요. 지금 첫 리뷰를 작성해보세요!</Text>
+      <Text style={styles.emptyText}>
+        작성된 리뷰가 없어요. 지금 첫 리뷰를 작성해보세요!
+      </Text>
     </View>
   );
 

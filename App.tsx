@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Splash from './android/app/src/screens/Start/Splash';
@@ -29,10 +29,16 @@ import My_Fit from './android/app/src/screens/Mypage/My_Fit';
 import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
-import {UserProvider} from './android/app/src/screens/UserContext';
+import {UserProvider, useUser} from './android/app/src/screens/UserContext';
 import Loading from './android/app/src/screens/Join/Loading';
 import ReviewDetail from './android/app/src/screens/Mypage/ReviewDetail';
 import SizeInfoScreen from './android/app/src/screens/Main/SizeInfoScreen';
+
+import EventSource from 'react-native-sse';
+
+import {AUCTION_URL} from './android/app/src/Constant';
+import path from 'path';
+import PushNotification from 'react-native-push-notification';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -47,19 +53,35 @@ export type RootStackParamList = {
   Main: undefined;
   ProductPage: {itemkey: number};
   Cart: undefined;
-  Order: [
-    {
+  Order: {
+    Orderdata: {
       itemKey: number;
+      userEmail: string;
+      itemImgName: string;
       itemName: string;
       itemSize: string;
+      itemType: string;
       itemPrice: number;
+      pitPrice: number | null;
+      pit: number;
       qty: number;
       pitStatus: boolean;
-      pitPrice: number | null;
-      pitTopInfo: {} | null;
-      pitBottomInfo: {} | null;
-    },
-  ];
+      pitTopInfo: {
+        itemHeight?: number;
+        itemShoulder?: number;
+        itemChest?: number;
+        itemSleeve?: number;
+      } | null;
+      pitBottomInfo: {
+        itemHeight?: number;
+        frontrise?: number;
+        itemWaists?: number;
+        itemhipWidth?: number;
+        itemThighs?: number;
+        itemHemWidth?: number;
+      } | null;
+    }[];
+  };
   OrderComplete: undefined;
   Camera: undefined;
   CameraBodyPhoto: undefined;
@@ -83,9 +105,57 @@ export type RootStackParamList = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+/** 수선 경매 알림을 위한 SSE 등록 */
+const ConnectSSE = () => {
+  const {userEmail} = useUser();
+
+  useEffect(() => {
+    if (userEmail) {
+      console.log('SSE 등록');
+      const sseClient = new EventSource(
+        path.join(AUCTION_URL, 'auction_listener', userEmail),
+      );
+
+      sseClient.addEventListener('message', event => {
+        const message: {
+          itemName: string;
+          token: string;
+          company: string;
+          price: number;
+          time: Date;
+          isMy: boolean;
+        } = JSON.parse(event.data!!);
+
+        console.log(message);
+
+        PushNotification.localNotification({
+          channelId: 'auction', // Android 채널 ID 지정
+          title: `${message.itemName} 수선가격 결정`, // 알림 제목
+          message: `가격: ${message.price}원, 업체명: ${message.company}`, // 서버로부터 수신한 메시지 내용
+          playSound: true,
+          soundName: 'default',
+          importance: 'default',
+          priority: 'default',
+        });
+      });
+
+      sseClient.addEventListener('error', event => {
+        console.log('SSE 연결 오류 (다시 연결시도)', event);
+      });
+
+      sseClient.addEventListener('close', _ => {
+        console.log('SSE 연결 종료');
+      });
+    }
+  }, [userEmail]);
+
+  return <></>;
+};
+
 const App = () => {
   return (
     <UserProvider>
+      <ConnectSSE />
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import {useNavigation, NavigationProp} from '@react-navigation/native';
 import {RootStackParamList} from '../../../../../App.tsx';
@@ -17,16 +18,53 @@ import {useUser} from '../UserContext.tsx';
 
 const screenWidth = Dimensions.get('window').width;
 
+interface PitItemCart {
+  itemKey: number;
+  cartKey: number;
+  itemType: string;
+  itemSize: string;
+  itemHeight?: number;
+  itemShoulder?: number;
+  itemChest?: number;
+  itemSleeve?: number;
+  frontrise?: number;
+  itemWaists?: number;
+  itemhipWidth?: number;
+  itemThighs?: number;
+  itemHemWidth?: number;
+}
+
+interface PitTopInfo {
+  itemHeight?: number;
+  itemShoulder?: number;
+  itemChest?: number;
+  itemSleeve?: number;
+}
+
+interface PitBottomInfo {
+  itemHeight?: number;
+  frontrise?: number;
+  itemWaists?: number;
+  itemhipWidth?: number;
+  itemThighs?: number;
+  itemHemWidth?: number;
+}
+
 interface CartItem {
   itemKey: number;
+  cartKey: number;
   userEmail: string;
   itemImgName: string;
   itemName: string;
   itemSize: string;
   itemType: string;
   itemPrice: number;
-  pit: number;
+  pitStatus: boolean;
+  pitPrice: number | null;
   qty: number;
+  pitItemCart: PitItemCart | null;
+  pitTopInfo?: PitTopInfo | null;
+  pitBottomInfo?: PitBottomInfo | null;
 }
 
 const Cart = () => {
@@ -36,21 +74,20 @@ const Cart = () => {
 
   const fetchCartItems = async () => {
     try {
-      // 어차피 userEmail 없으면 알아서 예외 발생되어 아래 catch 문 실행
       const response: CartItem[] = await reqGet(
         path.join(DATA_URL, 'api', 'cart', 'get-store', userEmail),
       );
 
       if (Array.isArray(response)) {
         setCartItems(response);
-        console.log('Fetched cart items:', response); // 여기서 응답을 확인
+        console.log('Fetched cart items:', response);
       } else {
         console.error('장바구니에 담긴 상품이 없습니다:', response);
-        setCartItems([]); // 잘못된 형식의 응답 시 빈 배열로 초기화
+        setCartItems([]);
       }
     } catch (error) {
       console.error('장바구니 항목을 가져오는 중 오류가 발생했습니다:', error);
-      setCartItems([]); // 오류 발생 시 빈 배열로 초기화
+      setCartItems([]);
     }
   };
 
@@ -59,29 +96,109 @@ const Cart = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 각 아이템의 수량과 가격을 관리하기 위한 상태
+  const deleteCartItem = async (cartKey: number) => {
+    try {
+      const response = await fetch(
+        `http://fitpitback.kro.kr:8080/api/cart/delete/${cartKey}`,
+        {
+          method: 'DELETE',
+        },
+      );
+
+      if (response.ok) {
+        console.log(
+          `Item with cartKey ${cartKey} successfully deleted from cart`,
+        );
+        setCartItems(prevItems =>
+          prevItems.filter(item => item.cartKey !== cartKey),
+        );
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to delete item:', errorData.message);
+      }
+    } catch (error) {
+      console.error('장바구니 항목을 삭제하는 중 오류가 발생했습니다:', error);
+    }
+  };
+
+  const confirmDelete = (cartKey: number) => {
+    Alert.alert(
+      '삭제',
+      '이 제품을 장바구니에서 삭제하시겠습니까?',
+      [
+        {
+          text: '아니오',
+          style: 'cancel',
+        },
+        {
+          text: '예',
+          onPress: () => deleteCartItem(cartKey),
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
   useEffect(() => {
     const initialQuantities: Record<number, number> = {};
     cartItems.forEach(item => {
-      initialQuantities[item.itemKey] = item.qty;
+      initialQuantities[item.cartKey] = item.qty;
     });
     setQuantities(initialQuantities);
   }, [cartItems]);
 
-  const handleQuantityChange = (itemKey: number, delta: number) => {
+  const handleQuantityChange = (cartKey: number, delta: number) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
-      [itemKey]: Math.max((prevQuantities[itemKey] || 1) + delta, 1),
+      [cartKey]: Math.max((prevQuantities[cartKey] || 1) + delta, 1),
     }));
   };
-
-  // 총 가격 계산
   const totalPrice = cartItems.reduce((total, item) => {
-    const quantity = quantities[item.itemKey] || 1;
-    return total + item.itemPrice * quantity;
+    const quantity = quantities[item.cartKey] || 1;
+    const itemTotal = item.itemPrice * quantity;
+    const alterationCost = item.pitStatus && item.pitPrice ? item.pitPrice : 0;
+    return total + itemTotal + alterationCost;
   }, 0);
+
+  const handleOrder = () => {
+    const Orderdata = cartItems.map((item, index) => ({
+      itemKey: item.itemKey,
+      userEmail: item.userEmail,
+      itemImgName: item.itemImgName,
+      itemName: item.itemName,
+      itemSize: item.itemSize,
+      itemType: item.itemType,
+      itemPrice: item.itemPrice,
+      pitPrice: item.pitStatus ? item.pitPrice : null,
+      pit: index,
+      qty: quantities[item.cartKey] || item.qty,
+      pitStatus: item.pitStatus,
+      pitTopInfo:
+        item.pitStatus && item.pitItemCart?.itemType === '상의'
+          ? {
+              itemHeight: item.pitItemCart?.itemHeight,
+              itemShoulder: item.pitItemCart?.itemShoulder,
+              itemChest: item.pitItemCart?.itemChest,
+              itemSleeve: item.pitItemCart?.itemSleeve,
+            }
+          : null,
+      pitBottomInfo:
+        item.pitStatus && item.pitItemCart?.itemType === '하의'
+          ? {
+              itemHeight: item.pitItemCart?.itemHeight,
+              frontrise: item.pitItemCart?.frontrise,
+              itemWaists: item.pitItemCart?.itemWaists,
+              itemhipWidth: item.pitItemCart?.itemhipWidth,
+              itemThighs: item.pitItemCart?.itemThighs,
+              itemHemWidth: item.pitItemCart?.itemHemWidth,
+            }
+          : null,
+    }));
+
+    navigation.navigate('Order', {Orderdata});
+  };
 
   return (
     <View style={styles.container}>
@@ -93,116 +210,142 @@ const Cart = () => {
             </Text>
           </View>
         ) : (
-          cartItems.map(item => (
-            <View key={item.itemKey} style={styles.item}>
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{
-                    uri: path.join(
-                      DATA_URL,
-                      'api',
-                      'img',
-                      'imgserve',
-                      'itemimg',
-                      item.itemImgName,
-                    ),
-                  }}
-                  style={styles.itemImage}
-                />
-              </View>
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemTitle}>{item.itemName}</Text>
-                <Text style={styles.itemDescription}>{item.itemType}</Text>
-                <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
-                <Text style={styles.itemQuantity}>
-                  수량 : {quantities[item.itemKey] || item.qty}
-                </Text>
-                <View style={styles.quantityAndPrice}>
-                  <View style={styles.quantityControl}>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={() => handleQuantityChange(item.itemKey, -1)}>
-                      <Text style={styles.quantityButtonText}>-</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.itemQuantityText}>
-                      {quantities[item.itemKey] || item.qty}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.quantityButton}
-                      onPress={() => handleQuantityChange(item.itemKey, 1)}>
-                      <Text style={styles.quantityButtonText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={styles.itemPrice}>
-                    {(
-                      item.itemPrice * (quantities[item.itemKey] || item.qty)
-                    ).toLocaleString()}
-                    원
+          cartItems.map((item, index) => (
+            <View key={index} style={styles.itemContainer}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => confirmDelete(item.cartKey)}>
+                <Text style={styles.deleteButtonText}>X</Text>
+              </TouchableOpacity>
+              {/* 수선된 제품 라벨 */}
+              {item.pitStatus && (
+                <Text style={styles.alteredLabel}>수선 요청</Text>
+              )}
+              {/* 제품 정보 */}
+              <View style={styles.itemInfo}>
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{
+                      uri: path.join(
+                        DATA_URL,
+                        'api',
+                        'img',
+                        'imgserve',
+                        'itemimg',
+                        item.itemImgName,
+                      ),
+                    }}
+                    style={styles.itemImage}
+                  />
+                </View>
+
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemTitle}>{item.itemName}</Text>
+                  <Text style={styles.itemDescription}>{item.itemType}</Text>
+                  <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
+
+                  <Text style={styles.itemQuantity}>
+                    수량 : {quantities[item.cartKey] || item.qty}
                   </Text>
+
+                  <View style={styles.quantityAndPrice}>
+                    <View style={styles.quantityControl}>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => handleQuantityChange(item.cartKey, -1)}>
+                        <Text style={styles.quantityButtonText}>-</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.itemQuantityText}>
+                        {quantities[item.cartKey] || item.qty}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => handleQuantityChange(item.cartKey, 1)}>
+                        <Text style={styles.quantityButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.itemPrice}>
+                      {(
+                        item.itemPrice * (quantities[item.cartKey] || item.qty)
+                      ).toLocaleString()}{' '}
+                      원
+                    </Text>
+                  </View>
                 </View>
               </View>
+
+              {/* 수선한 사이즈 */}
+              {item.pitStatus && item.pitItemCart && (
+                <View style={styles.subTextContainer}>
+                  <Text style={styles.subText}>수선한 사이즈</Text>
+                  <View style={styles.sizeTable}>
+                    <View style={[styles.sizeColumn, styles.mColumn2]}>
+                      <Text style={styles.sizeText}>{item.itemSize}</Text>
+                    </View>
+                    <View style={[styles.sizeColumn, styles.mColumn]}>
+                      <Text style={styles.sizeText}>
+                        {item.pitItemCart.itemHeight}
+                      </Text>
+                    </View>
+                    {item.pitItemCart.itemType === '상의' ? (
+                      <>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemShoulder}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemChest}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemSleeve}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.frontrise}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemWaists}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemhipWidth}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemThighs}
+                          </Text>
+                        </View>
+                        <View style={[styles.sizeColumn, styles.mColumn]}>
+                          <Text style={styles.sizeText}>
+                            {item.pitItemCart.itemHemWidth}
+                          </Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                  <Text style={styles.subText2}>
+                    수선 비용 :{' '}
+                    {item.pitPrice ? item.pitPrice.toLocaleString() : '0'}원
+                  </Text>
+                </View>
+              )}
             </View>
           ))
         )}
-        {/*         <View>
-          <View style={styles.textContainer}>
-            <Text style={styles.sectionTitle}>수선 ver</Text>
-          </View>
-          <View style={[styles.item, {borderBottomWidth: 0}]}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={require('../../assets/img/main/top/top1.png')}
-                style={styles.itemImage}
-              />
-            </View>
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>폴로 랄프 로렌</Text>
-              <Text style={styles.itemDescription}>데님 셔츠 - 블루</Text>
-              <Text style={styles.itemSize}>Size : M</Text>
-              <Text style={styles.itemQuantity}>수량 : 1</Text>
-              <View style={styles.quantityAndPrice}>
-                <View style={styles.quantityControl}>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => handleQuantityChange(0, -1)}>
-                    <Text style={styles.quantityButtonText}>-</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.itemQuantityText}>1</Text>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => handleQuantityChange(0, 1)}>
-                    <Text style={styles.quantityButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.itemPrice}>
-                  {(20000).toLocaleString()}원
-                </Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.subTextContainer}>
-            <Text style={styles.subText}>수선한 사이즈</Text>
-            <View style={styles.sizeTable}>
-              <View style={[styles.sizeColumn, styles.mColumn]}>
-                <Text style={styles.sizeText}>M</Text>
-              </View>
-              <View style={[styles.sizeColumn, styles.borderColumn]}>
-                <Text style={styles.sizeText}>50</Text>
-              </View>
-              <View style={[styles.sizeColumn, styles.borderColumn]}>
-                <Text style={styles.sizeText}>50</Text>
-              </View>
-              <View style={[styles.sizeColumn, styles.borderColumn]}>
-                <Text style={styles.sizeText}>50</Text>
-              </View>
-              <View style={[styles.sizeColumn, styles.borderColumn]}>
-                <Text style={styles.sizeText}>50</Text>
-              </View>
-            </View>
-            <Text style={styles.subText}>수선 비용 : 20,000원</Text>
-          </View>
-        </View> */}
       </ScrollView>
+
       {cartItems.length > 0 && (
         <View style={styles.footer}>
           <View style={styles.footerTextContainer}>
@@ -211,9 +354,7 @@ const Cart = () => {
               {totalPrice.toLocaleString()}원
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.orderButton}
-            onPress={() => navigation.navigate('Order')}>
+          <TouchableOpacity style={styles.orderButton} onPress={handleOrder}>
             <Text style={styles.orderButtonText}>주문하기</Text>
           </TouchableOpacity>
         </View>
@@ -230,15 +371,18 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  itemContainer: {
     paddingVertical: 16,
     paddingHorizontal: 8,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     marginVertical: 5,
+  },
+  itemInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    bottom: 5,
   },
   textContainer: {
     position: 'absolute',
@@ -260,7 +404,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
-    marginTop: 10,
+    marginTop: 2,
     marginLeft: 10,
     borderRadius: 27,
   },
@@ -299,7 +443,7 @@ const styles = StyleSheet.create({
   quantityAndPrice: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   quantityControl: {
     flexDirection: 'row',
@@ -331,20 +475,31 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   subTextContainer: {
-    marginLeft: 16,
-    marginBottom: 20,
+    flexDirection: 'column',
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  sizeTable: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    marginBottom: 15,
+    marginLeft: 20,
+    width: '92%',
   },
   subText: {
     fontSize: 16,
     color: '#787878',
     fontWeight: 'bold',
     marginBottom: 15,
+    marginLeft: 20,
+    marginTop: 15,
   },
-  sizeTable: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    width: 402,
+  subText2: {
+    fontSize: 16,
+    color: '#787878',
+    fontWeight: 'bold',
+    marginLeft: 20,
   },
   sizeColumn: {
     flex: 1,
@@ -357,7 +512,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   mColumn: {
-    backgroundColor: '#F4F4F4',
+    backgroundColor: '#fff',
+    borderWidth: 0.9,
+    borderColor: '#ddd',
+  },
+  mColumn2: {
+    backgroundColor: '#ddd',
+    borderWidth: 0.9,
+    borderColor: '#ddd',
   },
   borderColumn: {
     borderWidth: 1,
@@ -404,6 +566,24 @@ const styles = StyleSheet.create({
   emptyCartText: {
     fontSize: 18,
     color: '#787878',
+    fontWeight: 'bold',
+  },
+  alteredLabel: {
+    fontSize: 17,
+    color: '#2D3FE3',
+    fontWeight: 'bold',
+    marginBottom: 12,
+    marginLeft: 15,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+    zIndex: 1,
+  },
+  deleteButtonText: {
+    fontSize: 18,
+    color: '#000',
     fontWeight: 'bold',
   },
 });
