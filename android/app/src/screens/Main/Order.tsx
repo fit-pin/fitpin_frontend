@@ -202,7 +202,7 @@ const Order = () => {
 
         if (pitStatus) {
           // 수선 정보가 있을 경우
-          if (item.itemType === '상의' && item.pitTopInfo) {
+          if (item.pitTopInfo) {
             // 상의 정보가 있을 때
             pitItemOrder = {
               itemType: '상의',
@@ -213,7 +213,7 @@ const Order = () => {
               itemSleeve: item.pitTopInfo.itemSleeve,
               pitPrice: item.pitPrice,
             };
-          } else if (item.itemType === '하의' && item.pitBottomInfo) {
+          } else if (item.pitBottomInfo) {
             // 하의 정보가 있을 때
             pitItemOrder = {
               itemType: '하의',
