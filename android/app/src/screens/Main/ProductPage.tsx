@@ -52,6 +52,7 @@ const ProductPage = () => {
   const [recommendedSize, setRecommendedSize] = useState<
     TopInfoType | BottomInfoType | null
   >(null);
+  const [isFirstComment, setIsFirstComment] = useState<boolean>(false); // 수선비용을 결정하는 추가 상태
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
   const [chest, setChest] = useState(0);
@@ -360,8 +361,9 @@ const ProductPage = () => {
       : null;
 
     // 총 가격 계산: 수선 선택 시 수선 가격을 포함
+    // 수선비용 조건 설정 (처음 핏 코멘트 작성 시 0원)
     const totalItemPrice = pitStatus
-      ? productInfo.itemPrice + productInfo.pitPrice
+      ? productInfo.itemPrice + (isFirstComment ? 0 : productInfo.pitPrice)
       : productInfo.itemPrice;
 
     // 장바구니 요청에 추천 사이즈 반영
@@ -375,7 +377,7 @@ const ProductPage = () => {
       itemPrice: totalItemPrice,
       qty: qty,
       pitStatus,
-      pitPrice: productInfo.pitPrice,
+      pitPrice: isFirstComment ? 0 : productInfo.pitPrice,
       pitItemCart,
     };
 
@@ -408,7 +410,7 @@ const ProductPage = () => {
         itemName: productInfo.itemName,
         itemSize: selectedSize,
         itemPrice: isTailoringChecked
-          ? productInfo.itemPrice + productInfo.pitPrice
+          ? productInfo.itemPrice + (isFirstComment ? 0 : productInfo.pitPrice)
           : productInfo.itemPrice,
         qty: qty,
         itemImgName: productInfo.itemImgNames,
@@ -416,7 +418,11 @@ const ProductPage = () => {
         pit: 0,
         userEmail: userEmail,
         pitStatus: isTailoringChecked,
-        pitPrice: isTailoringChecked ? productInfo.pitPrice : 0,
+        pitPrice: isTailoringChecked
+          ? isFirstComment
+            ? 0
+            : productInfo.pitPrice
+          : 0,
         // 상의 수선 정보
         pitTopInfo:
           productInfo.itemTopInfo !== null && isTailoringChecked
@@ -701,6 +707,26 @@ const ProductPage = () => {
       }
     }
   }, [userBodyInfo, productInfo.itemTopInfo, productInfo.itemBottomInfo]);
+
+  // 핏 보관함 조회 함수 추가
+  const checkFirstFitComment = async () => {
+    try {
+      const res = await reqGet(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
+      );
+      // 핏 코멘트가 비어있는 경우 처음 작성으로 간주
+      if (res && res.length === 0) {
+        setIsFirstComment(true);
+      }
+    } catch (error) {
+      console.error('핏 보관함 조회 오류:', error);
+    }
+  };
+
+  useEffect(() => {
+    checkFirstFitComment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -1195,8 +1221,14 @@ const ProductPage = () => {
       {isTailoringChecked && (
         <View style={styles.pitPriceContainer}>
           <Text style={styles.pitPriceText}>
-            수선 가격: ₩{productInfo.pitPrice.toLocaleString()}
+            수선 가격: ₩
+            {isFirstComment ? '0' : productInfo.pitPrice.toLocaleString()}
           </Text>
+          {isFirstComment && (
+            <Text style={styles.benefitText}>
+              첫 핏 코멘트 작성 혜택이 제공되었어요!
+            </Text>
+          )}
         </View>
       )}
 
@@ -1587,6 +1619,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#787878',
     textAlign: 'right',
+  },
+  benefitText: {
+    fontSize: 16,
+    color: '#1A16FF',
+    marginTop: 6,
   },
 });
 
