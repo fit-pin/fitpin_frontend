@@ -30,37 +30,6 @@ const formatPrice = (price: number) => {
   return price.toLocaleString('ko-KR') + '원';
 };
 
-interface PitTopInfo {
-  itemHeight?: number;
-  itemShoulder?: number;
-  itemChest?: number;
-  itemSleeve?: number;
-}
-
-interface PitBottomInfo {
-  itemHeight?: number;
-  frontrise?: number;
-  itemWaists?: number;
-  itemhipWidth?: number;
-  itemThighs?: number;
-  itemHemWidth?: number;
-}
-
-interface CartItem {
-  itemKey: number;
-  userEmail: string;
-  itemImgName: string;
-  itemName: string;
-  itemSize: string;
-  itemType: string;
-  itemPrice: number;
-  pitStatus: boolean;
-  pitPrice: number | null;
-  qty: number;
-  pitTopInfo?: PitTopInfo | null;
-  pitBottomInfo?: PitBottomInfo | null;
-}
-
 const Order = () => {
   const navigation = useNavigation<OrderNavigationProp>();
   const route = useRoute<OrderRouteProp>();
@@ -77,30 +46,27 @@ const Order = () => {
   useEffect(() => {
     const initialQuantities: Record<number, number> = {};
     Orderdata.forEach(item => {
-      initialQuantities[item.itemKey] = item.qty;
+      initialQuantities[item.pit] = item.qty;
     });
     setQuantities(initialQuantities);
   }, [Orderdata]);
 
-  // TODO: 장바구니 에서 온경우 장바구니 키값으로
-  // 바로 구매에서 온 경우는 그냥 itemKey로
-  // 중복 제품 구매 시 수량이 같이 바뀌는 문제가 있을 수 있음
-  const handleQuantityChange = (itemKey: number, delta: number) => {
+  const handleQuantityChange = (itemPit: number, delta: number) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
-      [itemKey]: Math.max((prevQuantities[itemKey] || 1) + delta, 1),
+      [itemPit]: Math.max((prevQuantities[itemPit] || 1) + delta, 1),
     }));
   };
 
   // 상품 금액 계산
   const totalProductPrice = Orderdata.reduce((total, item) => {
-    const quantity = quantities[item.itemKey] || 1;
+    const quantity = quantities[item.pit] || 1;
     return total + item.itemPrice * quantity; // 상품 가격만 합산
   }, 0);
 
   // 수선 비용 계산
   const totalTailorCost = Orderdata.reduce((total, item) => {
-    const quantity = quantities[item.itemKey] || 1;
+    const quantity = quantities[item.pit] || 1;
     if (item.pitStatus && item.pitPrice !== null) {
       return total + item.pitPrice * quantity; // 수선된 제품에 대해 수선비 추가
     }
@@ -124,14 +90,16 @@ const Order = () => {
     setAddressDetail(data.addressdetail);
     setIsPostcodeVisible(false);
   };
-  const handlePayment = async (item: CartItem) => {
-    const quantity = quantities[item.itemKey] || item.qty;
-
+  const handlePayment = async () => {
     const data = {
       pg: 'direct_payment', // 결제방식 직접 처리
       pay_method: 'card', // 결제 방식 (카드 등)
       merchant_uid: `mid_${new Date().getTime()}`, // 고유 주문번호
-      name: item.itemName, // 상품 이름
+      quantity: 1,
+      name:
+        Orderdata.length === 1
+          ? Orderdata[0].itemName
+          : `${Orderdata[0].itemName} 외${Orderdata.length - 1}개`, // 상품 이름
       amount: totalAmount, // 총 결제 금액
       buyer_email: userEmail || 'example@example.com', // 구매자 이메일
       buyer_name: buyerName, // 구매자 이름
@@ -162,7 +130,7 @@ const Order = () => {
             partner_order_id: data.merchant_uid,
             partner_user_id: userEmail,
             item_name: data.name,
-            quantity: quantity,
+            quantity: data.quantity,
             total_amount: data.amount,
             tax_free_amount: 0,
 
@@ -218,11 +186,6 @@ const Order = () => {
 
       Linking.openURL(result.next_redirect_mobile_url).catch(() => {
         Alert.alert('결제 실패', '결제 페이지를 열 수 없습니다.');
-      });
-
-      navigation.reset({
-        index: 1,
-        routes: [{name: 'Main'}, {name: 'OrderComplete'}],
       });
     } catch (error) {
       console.error('결제 요청 중 오류 발생:', error);
@@ -391,28 +354,28 @@ const Order = () => {
                 <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
 
                 <Text style={styles.itemQuantity}>
-                  수량 : {quantities[item.itemKey] || item.qty}
+                  수량 : {quantities[item.pit] || item.qty}
                 </Text>
 
                 <View style={styles.quantityAndPrice}>
                   <View style={styles.quantityControl}>
                     <TouchableOpacity
                       style={styles.quantityButton}
-                      onPress={() => handleQuantityChange(item.itemKey, -1)}>
+                      onPress={() => handleQuantityChange(item.pit, -1)}>
                       <Text style={styles.quantityButtonText}>-</Text>
                     </TouchableOpacity>
                     <Text style={styles.itemQuantityText}>
-                      {quantities[item.itemKey] || item.qty}
+                      {quantities[item.pit] || item.qty}
                     </Text>
                     <TouchableOpacity
                       style={styles.quantityButton}
-                      onPress={() => handleQuantityChange(item.itemKey, 1)}>
+                      onPress={() => handleQuantityChange(item.pit, 1)}>
                       <Text style={styles.quantityButtonText}>+</Text>
                     </TouchableOpacity>
                   </View>
                   <Text style={styles.itemPrice}>
                     {(
-                      item.itemPrice * (quantities[item.itemKey] || item.qty)
+                      item.itemPrice * (quantities[item.pit] || item.qty)
                     ).toLocaleString()}{' '}
                     원
                   </Text>
@@ -531,7 +494,7 @@ const Order = () => {
               Alert.alert('장바구니가 비어 있습니다.');
               return;
             }
-            handlePayment(Orderdata[0]);
+            handlePayment();
           }}>
           <View style={styles.payButtonContent}>
             <View style={styles.payButtonImageContainer}>

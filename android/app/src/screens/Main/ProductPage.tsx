@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,13 @@ import {
   TouchableWithoutFeedback, // 모달 외부 터치 감지용
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import { RootStackParamList } from '../../../../../App.tsx';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { AR_URL, DATA_URL } from '../../Constant.ts';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {AR_URL, DATA_URL} from '../../Constant.ts';
 import path from 'path';
-import { ArRequest, reqGet, reqPost } from '../../utills/Request.ts';
-import { useUser } from '../UserContext.tsx';
+import {ArRequest, reqGet, reqPost} from '../../utills/Request.ts';
+import {useUser} from '../UserContext.tsx';
 
 type ProductPageoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -37,9 +37,9 @@ type TopInfoType = {
 type BottomInfoType = {
   itemSize: string;
   itemHeight: number;
-  frontRise: number;
+  frontrise: number;
   itemWaists: number;
-  itemHipWidth: number;
+  itemhipWidth: number;
   itemThighs: number;
   itemHemWidth: number;
 };
@@ -49,7 +49,9 @@ const ProductPage = () => {
   const route = useRoute<ProductPageRouteProp>(); // route의 타입을 지정
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeData, setSizeData] = useState<any>(null);
-  const [recommendedSize, setRecommendedSize] = useState<TopInfoType | BottomInfoType | null>(null);
+  const [recommendedSize, setRecommendedSize] = useState<
+    TopInfoType | BottomInfoType | null
+  >(null);
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
   const [chest, setChest] = useState(0);
@@ -72,17 +74,8 @@ const ProductPage = () => {
     itemStyle: string;
     itemPrice: number;
     itemContent: string;
-    itemTopInfo: [
-      {
-        itemSize: string;
-        itemHeight: number;
-        itemShoulder: number;
-        itemArm: number;
-        itemChest: number;
-        itemSleeve: number;
-      },
-    ];
-    itemBottomInfo: any;
+    itemTopInfo: Array<TopInfoType> | null;
+    itemBottomInfo: Array<BottomInfoType> | null;
     itemImgNames: string;
     pitPrice: number;
   }>({
@@ -93,21 +86,12 @@ const ProductPage = () => {
     itemStyle: '',
     itemPrice: 0,
     itemContent: '',
-    itemTopInfo: [
-      {
-        itemSize: '',
-        itemHeight: 0,
-        itemShoulder: 0,
-        itemArm: 0,
-        itemChest: 0,
-        itemSleeve: 0,
-      },
-    ],
+    itemTopInfo: null,
     itemBottomInfo: null,
     itemImgNames: '',
     pitPrice: 0,
   });
-  const { userHeight, userEmail } = useUser();
+  const {userHeight, userEmail} = useUser();
   const itemid = route.params.itemkey;
 
   const [userBodyInfo, setUserBodyInfo] = useState<{
@@ -122,7 +106,7 @@ const ProductPage = () => {
   const fetchUserBodyInfo = async () => {
     try {
       const res = await reqGet(
-        path.join(DATA_URL, 'api', 'userbodyinfo', userEmail)
+        path.join(DATA_URL, 'api', 'userbodyinfo', userEmail),
       );
       if (res) {
         setUserBodyInfo({
@@ -140,8 +124,11 @@ const ProductPage = () => {
   };
 
   // 추천 사이즈를 업데이트하는 함수
-  const adjustRecommendedSize = (newValue: number, type: keyof TopInfoType | keyof BottomInfoType) => {
-    setRecommendedSize((prevSize) => {
+  const adjustRecommendedSize = (
+    newValue: number,
+    type: keyof TopInfoType | keyof BottomInfoType,
+  ) => {
+    setRecommendedSize(prevSize => {
       if (prevSize) {
         // 각 타입에 맞게 업데이트
         if ('itemShoulder' in prevSize) {
@@ -244,7 +231,7 @@ const ProductPage = () => {
   const handleIncrementFrontRise = () => {
     const newFrontRise = frontRise + 1;
     setFrontRise(newFrontRise);
-    adjustRecommendedSize(newFrontRise, 'frontRise');
+    adjustRecommendedSize(newFrontRise, 'frontrise');
   };
 
   const handleDecrementFrontRise = () => {
@@ -252,7 +239,7 @@ const ProductPage = () => {
     if (frontRise > minFrontRise) {
       const newFrontRise = frontRise - 1;
       setFrontRise(newFrontRise);
-      adjustRecommendedSize(newFrontRise, 'frontRise');
+      adjustRecommendedSize(newFrontRise, 'frontrise');
     }
   };
 
@@ -274,7 +261,7 @@ const ProductPage = () => {
   const handleIncrementHipWidth = () => {
     const newHipWidth = hipWidth + 1;
     setHipWidth(newHipWidth);
-    adjustRecommendedSize(newHipWidth, 'itemHipWidth');
+    adjustRecommendedSize(newHipWidth, 'itemhipWidth');
   };
 
   const handleDecrementHipWidth = () => {
@@ -282,7 +269,7 @@ const ProductPage = () => {
     if (hipWidth > minHipWidth) {
       const newHipWidth = hipWidth - 1;
       setHipWidth(newHipWidth);
-      adjustRecommendedSize(newHipWidth, 'itemHipWidth');
+      adjustRecommendedSize(newHipWidth, 'itemhipWidth');
     }
   };
 
@@ -317,12 +304,13 @@ const ProductPage = () => {
   };
 
   const handleSizeSelect = (size: string, type: 'top' | 'bottom') => {
-    if (isTailoringChecked) return;  // 수선하기 체크 시 선택 불가
+    if (isTailoringChecked) return; // 수선하기 체크 시 선택 불가
 
     setSelectedSize(size);
-    const selectedSizeData = type === 'top'
-      ? productInfo.itemTopInfo.find((info: TopInfoType) => info.itemSize === size)
-      : productInfo.itemBottomInfo?.find((info: BottomInfoType) => info.itemSize === size);
+    const selectedSizeData =
+      type === 'top'
+        ? productInfo.itemTopInfo?.find(info => info.itemSize === size)
+        : productInfo.itemBottomInfo?.find(info => info.itemSize === size);
     setSizeData(selectedSizeData);
   };
   const [qty, setQty] = useState(1);
@@ -351,28 +339,30 @@ const ProductPage = () => {
     const pitStatus = isTailoringChecked;
     const pitItemCart = pitStatus
       ? productInfo.itemTopInfo !== null
-        ? {
-          itemType: '상의',
-          itemSize: selectedSize,
-          itemHeight: length,
-          itemShoulder: shoulder,
-          itemChest: chest,
-          itemSleeve: sleeve,
-        }
-        : {
-          itemType: '하의',
-          itemSize: selectedSize,
-          itemHeight: bottomLength,
-          frontRise: frontRise,
-          itemWaists: waist,
-          itemHipWidth: hipWidth,
-          itemThighs: thigh,
-          itemHemWidth: hemWidth,
-        }
+        ? ({
+            itemType: '상의',
+            itemSize: selectedSize,
+            itemHeight: length,
+            itemShoulder: shoulder,
+            itemChest: chest,
+            itemSleeve: sleeve,
+          } as TopInfoType)
+        : ({
+            itemType: '하의',
+            itemSize: selectedSize,
+            itemHeight: bottomLength,
+            frontrise: frontRise,
+            itemWaists: waist,
+            itemhipWidth: hipWidth,
+            itemThighs: thigh,
+            itemHemWidth: hemWidth,
+          } as BottomInfoType)
       : null;
 
     // 총 가격 계산: 수선 선택 시 수선 가격을 포함
-    const totalItemPrice = pitStatus ? productInfo.itemPrice + productInfo.pitPrice : productInfo.itemPrice;
+    const totalItemPrice = pitStatus
+      ? productInfo.itemPrice + productInfo.pitPrice
+      : productInfo.itemPrice;
 
     // 장바구니 요청에 추천 사이즈 반영
     const body = {
@@ -380,17 +370,20 @@ const ProductPage = () => {
       userEmail: userEmail,
       itemImgName: productInfo.itemImgNames,
       itemName: productInfo.itemName,
+      itemType: productInfo.itemType,
       itemSize: selectedSize,
       itemPrice: totalItemPrice,
       qty: qty,
       pitStatus,
       pitPrice: productInfo.pitPrice,
       pitItemCart,
-      recommendedSize: recommendedSize ? recommendedSize.itemSize : selectedSize,
     };
 
     try {
-      const res = await reqPost(path.join(DATA_URL, 'api', 'cart', 'store'), body);
+      const res = await reqPost(
+        path.join(DATA_URL, 'api', 'cart', 'store'),
+        body,
+      );
 
       if (res.message === '장바구니에 상품이 성공적으로 추가되었습니다.') {
         Alert.alert('장바구니 담기 성공');
@@ -409,44 +402,54 @@ const ProductPage = () => {
       return;
     }
 
-    const data = [
+    const Orderdata = [
       {
         itemKey: productInfo.itemKey,
         itemName: productInfo.itemName,
         itemSize: selectedSize,
-        itemPrice: isTailoringChecked ? productInfo.itemPrice + productInfo.pitPrice : productInfo.itemPrice,
+        itemPrice: isTailoringChecked
+          ? productInfo.itemPrice + productInfo.pitPrice
+          : productInfo.itemPrice,
         qty: qty,
+        itemImgName: productInfo.itemImgNames,
+        itemType: productInfo.itemType,
+        pit: 0,
+        userEmail: userEmail,
         pitStatus: isTailoringChecked,
         pitPrice: isTailoringChecked ? productInfo.pitPrice : 0,
         // 상의 수선 정보
-        pitTopInfo: productInfo.itemTopInfo !== null && isTailoringChecked
-          ? {
-            itemHeight: length,
-            itemShoulder: shoulder,
-            itemChest: chest,
-            itemSleeve: sleeve,
-          }
-          : null,
+        pitTopInfo:
+          productInfo.itemTopInfo !== null && isTailoringChecked
+            ? ({
+                itemHeight: length,
+                itemShoulder: shoulder,
+                itemChest: chest,
+                itemSleeve: sleeve,
+              } as TopInfoType)
+            : null,
         // 하의 수선 정보
-        pitBottomInfo: productInfo.itemBottomInfo !== null && isTailoringChecked
-          ? {
-            itemHeight: bottomLength,
-            frontRise: frontRise,
-            itemWaists: waist,
-            itemHipWidth: hipWidth,
-            itemThighs: thigh,
-            itemHemWidth: hemWidth,
-          }
-          : null,
+        pitBottomInfo:
+          productInfo.itemBottomInfo !== null && isTailoringChecked
+            ? ({
+                itemHeight: bottomLength,
+                frontrise: frontRise,
+                itemWaists: waist,
+                itemhipWidth: hipWidth,
+                itemThighs: thigh,
+                itemHemWidth: hemWidth,
+              } as BottomInfoType)
+            : null,
       },
-    ];
+    ] as RootStackParamList['Order']['Orderdata'];
 
-    navigation.navigate('Order', { data });
+    navigation.navigate('Order', {Orderdata});
   };
 
   // 상품 정보 가져오기
   const fetchProductData = async () => {
-    const productRes = await reqGet(path.join(DATA_URL, 'api', 'item-info', `${itemid}`));
+    const productRes = await reqGet(
+      path.join(DATA_URL, 'api', 'item-info', `${itemid}`),
+    );
 
     const processedBottomInfo = productRes.itemBottomInfo?.map((info: any) => ({
       ...info,
@@ -469,7 +472,14 @@ const ProductPage = () => {
     });
 
     setProdUri(
-      path.join(DATA_URL, 'api', 'img', 'imgserve', 'itemimg', productRes.itemImgName[0])
+      path.join(
+        DATA_URL,
+        'api',
+        'img',
+        'imgserve',
+        'itemimg',
+        productRes.itemImgName[0],
+      ),
     );
   };
 
@@ -493,8 +503,12 @@ const ProductPage = () => {
     } as FormDataValue);
 
     formData.append('bodyFileName', reqfile.fileName);
-    // TODO: 백엔드 서버 의류타입 확인 필요
-    formData.append('category', '상의');
+
+    if (productInfo.itemTopInfo) {
+      formData.append('category', '상의');
+    } else {
+      formData.append('category', '하의');
+    }
 
     const res = await ArRequest(path.join(AR_URL, 'try-on'), formData);
     if (!res.ok) {
@@ -520,7 +534,9 @@ const ProductPage = () => {
     if (productInfo.itemTopInfo && productInfo.itemTopInfo.length > 0) {
       productInfo.itemTopInfo.forEach((item: TopInfoType) => {
         const heightDiff = Math.abs(item.itemHeight - userBodyInfo.bodySize);
-        const shoulderDiff = Math.abs(item.itemShoulder - userBodyInfo.shoulderSize);
+        const shoulderDiff = Math.abs(
+          item.itemShoulder - userBodyInfo.shoulderSize,
+        );
         const chestDiff = Math.abs(item.itemChest - userBodyInfo.armSize);
         const sleeveDiff = Math.abs(item.itemSleeve - userBodyInfo.armSize);
 
@@ -530,9 +546,11 @@ const ProductPage = () => {
           bestFit = item;
         }
       });
-
-    } else if (productInfo.itemBottomInfo && productInfo.itemBottomInfo.length > 0) {
-      productInfo.itemBottomInfo.forEach((item: BottomInfoType) => {
+    } else if (
+      productInfo.itemBottomInfo &&
+      productInfo.itemBottomInfo.length > 0
+    ) {
+      productInfo.itemBottomInfo.forEach(item => {
         const legDiff = Math.abs(item.itemHeight - userBodyInfo.legSize);
         if (legDiff < minDifference) {
           minDifference = legDiff;
@@ -541,7 +559,7 @@ const ProductPage = () => {
       });
     }
 
-    console.log("Calculated recommendedSize:", bestFit); // 추가된 디버그 출력
+    console.log('Calculated recommendedSize:', bestFit); // 추가된 디버그 출력
     setRecommendedSize(bestFit);
   };
 
@@ -549,36 +567,44 @@ const ProductPage = () => {
     if (!userBodyInfo || !productInfo?.itemBottomInfo) return;
 
     const nextLargerSize = productInfo.itemBottomInfo.find(
-      (sizeInfo: BottomInfoType) => sizeInfo.itemHeight > userBodyInfo.legSize  // sizeInfo에 타입 추가
+      (sizeInfo: BottomInfoType) => sizeInfo.itemHeight > userBodyInfo.legSize, // sizeInfo에 타입 추가
     );
 
     if (nextLargerSize) {
       setRecommendedSize(nextLargerSize);
       setSelectedSize(nextLargerSize.itemSize);
     } else {
-      setRecommendedSize(productInfo.itemBottomInfo[productInfo.itemBottomInfo.length - 1]);
-      setSelectedSize(productInfo.itemBottomInfo[productInfo.itemBottomInfo.length - 1].itemSize);
+      setRecommendedSize(
+        productInfo.itemBottomInfo[productInfo.itemBottomInfo.length - 1],
+      );
+      setSelectedSize(
+        productInfo.itemBottomInfo[productInfo.itemBottomInfo.length - 1]
+          .itemSize,
+      );
     }
   };
 
   useEffect(() => {
     fetchUserBodyInfo(); // 기존에 정의된 fetchUserBodyInfo 함수를 사용
     fetchProductData(); // 상품 데이터 가져오는 함수
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     calculateRecommendedSize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userBodyInfo, productInfo]);
 
   useEffect(() => {
-    if (productInfo.itemImgNames && PordimgUri) {
+    if (productInfo && PordimgUri) {
       handleSetimg(productInfo.itemImgNames).catch(e => {
         console.log(`가상 피팅 오류: ${e}`);
         settryimgUri(PordimgUri);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productInfo.itemImgNames, PordimgUri]);
+  }, [productInfo, PordimgUri]);
 
   // 사이즈 추천 함수: 상의
   const handleSizeRecommendationForTop = () => {
@@ -606,16 +632,16 @@ const ProductPage = () => {
   const updateSizeData = () => {
     if (productInfo.itemTopInfo && selectedSize) {
       const selectedSizeData = productInfo.itemTopInfo.find(
-        (info: TopInfoType) => info.itemSize === selectedSize
+        (info: TopInfoType) => info.itemSize === selectedSize,
       );
       setSizeData(selectedSizeData);
     } else if (productInfo.itemBottomInfo && selectedSize) {
       const selectedSizeData = productInfo.itemBottomInfo.find(
-        (info: BottomInfoType) => info.itemSize === selectedSize
+        (info: BottomInfoType) => info.itemSize === selectedSize,
       );
       setSizeData(selectedSizeData);
     } else if (isTailoringChecked && recommendedSize) {
-      setSizeData(recommendedSize);  // 수선하기 버튼이 눌린 상태일 경우 recommendedSize 사용
+      setSizeData(recommendedSize); // 수선하기 버튼이 눌린 상태일 경우 recommendedSize 사용
     } else {
       setSizeData(null);
     }
@@ -630,19 +656,21 @@ const ProductPage = () => {
         handleSizeRecommendationForBottom();
       }
     } else {
-      setSelectedSize(null);  // 수선하기 버튼 해제 시 선택된 사이즈 초기화
-      setSizeData(null);       // 관련 사이즈 데이터도 초기화
+      setSelectedSize(null); // 수선하기 버튼 해제 시 선택된 사이즈 초기화
+      setSizeData(null); // 관련 사이즈 데이터도 초기화
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTailoringChecked]);
 
   useEffect(() => {
     updateSizeData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSize, productInfo, recommendedSize]);
 
   useEffect(() => {
     if (selectedSize && productInfo.itemTopInfo) {
       const selectedSizeData = productInfo.itemTopInfo.find(
-        (info: any) => info.itemSize === selectedSize
+        (info: any) => info.itemSize === selectedSize,
       );
       setSizeData(selectedSizeData);
     }
@@ -663,9 +691,13 @@ const ProductPage = () => {
         setBottomLength(Math.round(userBodyInfo.legSize || 0));
         setFrontRise(Math.round(productInfo.itemBottomInfo[0]?.frontrise || 0));
         setWaist(Math.round(productInfo.itemBottomInfo[0]?.itemWaists || 0));
-        setHipWidth(Math.round(productInfo.itemBottomInfo[0]?.itemhipWidth || 0));
+        setHipWidth(
+          Math.round(productInfo.itemBottomInfo[0]?.itemhipWidth || 0),
+        );
         setThigh(Math.round(productInfo.itemBottomInfo[0]?.itemThighs || 0));
-        setHemWidth(Math.round(productInfo.itemBottomInfo[0]?.itemHemWidth || 0));
+        setHemWidth(
+          Math.round(productInfo.itemBottomInfo[0]?.itemHemWidth || 0),
+        );
       }
     }
   }, [userBodyInfo, productInfo.itemTopInfo, productInfo.itemBottomInfo]);
@@ -690,7 +722,7 @@ const ProductPage = () => {
       {/* 제품 이미지 */}
       <View style={styles.roundedRect}>
         {PordimgUri ? (
-          <Image source={{ uri: PordimgUri }} style={styles.productImage} />
+          <Image source={{uri: PordimgUri}} style={styles.productImage} />
         ) : (
           <></>
         )}
@@ -706,8 +738,11 @@ const ProductPage = () => {
 
       {/* 사이즈 표 */}
       <View style={styles.sizeButtons}>
-        {(Array.isArray(productInfo.itemTopInfo) ? productInfo.itemTopInfo : productInfo.itemBottomInfo || [])
-          .sort((a: { itemSize: string }, b: { itemSize: string }) => {
+        {(Array.isArray(productInfo.itemTopInfo)
+          ? productInfo.itemTopInfo
+          : productInfo.itemBottomInfo || []
+        )
+          .sort((a: {itemSize: string}, b: {itemSize: string}) => {
             const order = ['S', 'M', 'L', 'XL', '2XL', '3XL', 'Free'];
             return order.indexOf(a.itemSize) - order.indexOf(b.itemSize);
           })
@@ -718,12 +753,18 @@ const ProductPage = () => {
                 styles.sizeButton,
                 selectedSize === info.itemSize && styles.selectedSizeButton,
               ]}
-              onPress={() => handleSizeSelect(info.itemSize, productInfo.itemTopInfo ? 'top' : 'bottom')}
+              onPress={() =>
+                handleSizeSelect(
+                  info.itemSize,
+                  productInfo.itemTopInfo ? 'top' : 'bottom',
+                )
+              }
               disabled={isTailoringChecked}>
               <Text
                 style={[
                   styles.sizeButtonText,
-                  selectedSize === info.itemSize && styles.selectedSizeButtonText,
+                  selectedSize === info.itemSize &&
+                    styles.selectedSizeButtonText,
                 ]}>
                 {info.itemSize}
               </Text>
@@ -735,32 +776,60 @@ const ProductPage = () => {
       {(isTailoringChecked || selectedSize) && sizeData && (
         <View style={styles.sizeChartContainer}>
           <View style={styles.sizeChartHeader}>
-            {productInfo.itemTopInfo ? (
-              ['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map((header, index) => (
-                <Text key={index} style={styles.sizeChartHeaderText}>{header}</Text>
-              ))
-            ) : (
-              ['Size', 'Height', 'Front Rise', 'Waist', 'Hip', 'Thigh', 'Hem Width'].map((header, index) => (
-                <Text key={index} style={styles.sizeChartHeaderText}>{header}</Text>
-              ))
-            )}
+            {productInfo.itemTopInfo
+              ? ['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map(
+                  (header, index) => (
+                    <Text key={index} style={styles.sizeChartHeaderText}>
+                      {header}
+                    </Text>
+                  ),
+                )
+              : [
+                  'Size',
+                  'Height',
+                  'Front Rise',
+                  'Waist',
+                  'Hip',
+                  'Thigh',
+                  'Hem Width',
+                ].map((header, index) => (
+                  <Text key={index} style={styles.sizeChartHeaderText}>
+                    {header}
+                  </Text>
+                ))}
           </View>
           <View style={styles.sizeChartRow}>
             <Text style={styles.sizeChartRowTitle}>{sizeData.itemSize}</Text>
             <Text style={styles.sizeChartRowText}>{sizeData.itemHeight}</Text>
             {productInfo.itemTopInfo ? (
               <>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemShoulder}</Text>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemChest}</Text>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemSleeve}</Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemShoulder}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemChest}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemSleeve}
+                </Text>
               </>
             ) : (
               <>
-                <Text style={styles.sizeChartRowText}>{sizeData.frontRise}</Text>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemWaists}</Text>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemHipWidth}</Text>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemThighs}</Text>
-                <Text style={styles.sizeChartRowText}>{sizeData.itemHemWidth}</Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.frontRise}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemWaists}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemHipWidth}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemThighs}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {sizeData.itemHemWidth}
+                </Text>
               </>
             )}
           </View>
@@ -777,23 +846,47 @@ const ProductPage = () => {
           <View style={styles.sizeChartContainer}>
             <Text style={styles.originalSize}>원래 사이즈</Text>
             <View style={styles.sizeChartRow2}>
-              <Text style={styles.sizeChartRowTitle}>{recommendedSize.itemSize}</Text>
-              <Text style={styles.sizeChartRowText}>{Math.round(recommendedSize.itemHeight)}</Text>
+              <Text style={styles.sizeChartRowTitle}>
+                {recommendedSize.itemSize}
+              </Text>
+              <Text style={styles.sizeChartRowText}>
+                {Math.round(recommendedSize.itemHeight)}
+              </Text>
               {productInfo.itemTopInfo ? (
                 // 상의일 때 접근
                 <>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as TopInfoType).itemShoulder)}</Text>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as TopInfoType).itemChest)}</Text>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as TopInfoType).itemSleeve)}</Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round((recommendedSize as TopInfoType).itemShoulder)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round((recommendedSize as TopInfoType).itemChest)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round((recommendedSize as TopInfoType).itemSleeve)}
+                  </Text>
                 </>
               ) : (
                 // 하의일 때 접근
                 <>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).frontRise)}</Text>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemWaists)}</Text>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemHipWidth)}</Text>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemThighs)}</Text>
-                  <Text style={styles.sizeChartRowText}>{Math.round((recommendedSize as BottomInfoType).itemHemWidth)}</Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round((recommendedSize as BottomInfoType).frontrise)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round((recommendedSize as BottomInfoType).itemWaists)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round(
+                      (recommendedSize as BottomInfoType).itemhipWidth,
+                    )}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round((recommendedSize as BottomInfoType).itemThighs)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round(
+                      (recommendedSize as BottomInfoType).itemHemWidth,
+                    )}
+                  </Text>
                 </>
               )}
             </View>
@@ -801,26 +894,48 @@ const ProductPage = () => {
             <Text style={styles.originalSize}>추천 사이즈</Text>
 
             {/* 추천 사이즈 - 상의 */}
-            {Array.isArray(productInfo.itemTopInfo) && productInfo.itemTopInfo[0] && userBodyInfo && (
-              <View style={styles.sizeChartRow}>
-                <Text style={styles.sizeChartRowText}>상의</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.bodySize)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.shoulderSize)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemTopInfo[0].itemChest)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.armSize)}</Text>
-              </View>
-            )}
+            {Array.isArray(productInfo.itemTopInfo) &&
+              productInfo.itemTopInfo[0] &&
+              userBodyInfo && (
+                <View style={styles.sizeChartRow}>
+                  <Text style={styles.sizeChartRowText}>상의</Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round(userBodyInfo.bodySize)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round(userBodyInfo.shoulderSize)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round(productInfo.itemTopInfo[0].itemChest)}
+                  </Text>
+                  <Text style={styles.sizeChartRowText}>
+                    {Math.round(userBodyInfo.armSize)}
+                  </Text>
+                </View>
+              )}
 
             {/* 추천 사이즈 - 하의 */}
             {productInfo.itemBottomInfo && userBodyInfo && (
               <View style={styles.sizeChartRow2}>
                 <Text style={styles.sizeChartRowText}>하의</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(userBodyInfo.legSize)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].frontrise)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemWaists)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemhipWidth)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemThighs)}</Text>
-                <Text style={styles.sizeChartRowText}>{Math.round(productInfo.itemBottomInfo[0].itemHemWidth)}</Text>
+                <Text style={styles.sizeChartRowText}>
+                  {Math.round(userBodyInfo.legSize)}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {Math.round(productInfo.itemBottomInfo[0].frontrise)}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {Math.round(productInfo.itemBottomInfo[0].itemWaists)}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {Math.round(productInfo.itemBottomInfo[0].itemhipWidth)}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {Math.round(productInfo.itemBottomInfo[0].itemThighs)}
+                </Text>
+                <Text style={styles.sizeChartRowText}>
+                  {Math.round(productInfo.itemBottomInfo[0].itemHemWidth)}
+                </Text>
               </View>
             )}
           </View>
@@ -834,7 +949,7 @@ const ProductPage = () => {
           <CheckBox
             value={isTailoringChecked}
             onValueChange={setIsTailoringChecked}
-            tintColors={{ true: '#1A16FF', false: '#1A16FF' }}
+            tintColors={{true: '#1A16FF', false: '#1A16FF'}}
             style={styles.checkbox}
           />
         </View>
@@ -843,7 +958,7 @@ const ProductPage = () => {
         <TouchableOpacity onPress={openModal}>
           <View style={styles.roundedRect}>
             {tryimgUri ? (
-              <Image source={{ uri: tryimgUri }} style={styles.productImage} />
+              <Image source={{uri: tryimgUri}} style={styles.productImage} />
             ) : (
               <></>
             )}
@@ -857,7 +972,7 @@ const ProductPage = () => {
               <View style={styles.modalContent}>
                 {tryimgUri ? (
                   <Image
-                    source={{ uri: tryimgUri }}
+                    source={{uri: tryimgUri}}
                     style={styles.modalImage}
                     resizeMode="contain"
                   />
@@ -872,56 +987,72 @@ const ProductPage = () => {
         {isTailoringChecked && productInfo.itemTopInfo && (
           // 상의 조정 버튼
           <View>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>총장 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementLength} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementLength}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{length}</Text>
-                  <TouchableOpacity onPress={handleIncrementLength} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementLength}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>어깨 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementShoulder} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementShoulder}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{shoulder}</Text>
-                  <TouchableOpacity onPress={handleIncrementShoulder} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementShoulder}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>가슴 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementChest} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementChest}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{chest}</Text>
-                  <TouchableOpacity onPress={handleIncrementChest} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementChest}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>소매 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementSleeve} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementSleeve}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{sleeve}</Text>
-                  <TouchableOpacity onPress={handleIncrementSleeve} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementSleeve}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
@@ -933,84 +1064,108 @@ const ProductPage = () => {
         {isTailoringChecked && productInfo.itemBottomInfo && (
           // 하의 조정 버튼
           <View>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>총장 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementBottomLength} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementBottomLength}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{bottomLength}</Text>
-                  <TouchableOpacity onPress={handleIncrementBottomLength} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementBottomLength}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>밑위 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementFrontRise} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementFrontRise}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{frontRise}</Text>
-                  <TouchableOpacity onPress={handleIncrementFrontRise} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementFrontRise}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>허리 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementWaist} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementWaist}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{waist}</Text>
-                  <TouchableOpacity onPress={handleIncrementWaist} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementWaist}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>엉덩이 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementHipWidth} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementHipWidth}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{hipWidth}</Text>
-                  <TouchableOpacity onPress={handleIncrementHipWidth} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementHipWidth}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>허벅지 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementThigh} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementThigh}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{thigh}</Text>
-                  <TouchableOpacity onPress={handleIncrementThigh} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementThigh}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>밑단 :</Text>
                 <View style={styles.buttoncontainer2}>
-                  <TouchableOpacity onPress={handleDecrementHemWidth} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleDecrementHemWidth}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> - </Text>
                   </TouchableOpacity>
                   <Text style={styles.buttonText2}>{hemWidth}</Text>
-                  <TouchableOpacity onPress={handleIncrementHemWidth} style={styles.button}>
+                  <TouchableOpacity
+                    onPress={handleIncrementHemWidth}
+                    style={styles.button}>
                     <Text style={styles.buttonText}> + </Text>
                   </TouchableOpacity>
                 </View>
@@ -1039,7 +1194,9 @@ const ProductPage = () => {
 
       {isTailoringChecked && (
         <View style={styles.pitPriceContainer}>
-          <Text style={styles.pitPriceText}>수선 가격: ₩{productInfo.pitPrice.toLocaleString()}</Text>
+          <Text style={styles.pitPriceText}>
+            수선 가격: ₩{productInfo.pitPrice.toLocaleString()}
+          </Text>
         </View>
       )}
 
