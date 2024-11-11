@@ -20,6 +20,7 @@ import {DATA_URL} from '../../Constant';
 import {reqGet} from '../../utills/Request';
 import path from 'path';
 import {useUser} from '../UserContext';
+import {PERMISSIONS, request} from 'react-native-permissions';
 
 type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
@@ -256,6 +257,13 @@ const Main: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState('상의');
   const selectedSectionRef = useRef('');
   const [introVisible, setIntroVisible] = useState(true);
+
+  useEffect(() => {
+    // 알림 권한 요청
+    request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS).then(result => {
+      console.log(result);
+    });
+  }, []);
 
   //사용자 스타일 테마 가지고 오기
   useEffect(() => {

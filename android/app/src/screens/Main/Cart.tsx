@@ -144,26 +144,26 @@ const Cart = () => {
   useEffect(() => {
     const initialQuantities: Record<number, number> = {};
     cartItems.forEach(item => {
-      initialQuantities[item.itemKey] = item.qty;
+      initialQuantities[item.cartKey] = item.qty;
     });
     setQuantities(initialQuantities);
   }, [cartItems]);
 
-  const handleQuantityChange = (itemKey: number, delta: number) => {
+  const handleQuantityChange = (cartKey: number, delta: number) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
-      [itemKey]: Math.max((prevQuantities[itemKey] || 1) + delta, 1),
+      [cartKey]: Math.max((prevQuantities[cartKey] || 1) + delta, 1),
     }));
   };
   const totalPrice = cartItems.reduce((total, item) => {
-    const quantity = quantities[item.itemKey] || 1;
+    const quantity = quantities[item.cartKey] || 1;
     const itemTotal = item.itemPrice * quantity;
     const alterationCost = item.pitStatus && item.pitPrice ? item.pitPrice : 0;
     return total + itemTotal + alterationCost;
   }, 0);
 
   const handleOrder = () => {
-    const Orderdata = cartItems.map(item => ({
+    const Orderdata = cartItems.map((item, index) => ({
       itemKey: item.itemKey,
       userEmail: item.userEmail,
       itemImgName: item.itemImgName,
@@ -172,8 +172,8 @@ const Cart = () => {
       itemType: item.itemType,
       itemPrice: item.itemPrice,
       pitPrice: item.pitStatus ? item.pitPrice : null,
-      pit: 1,
-      qty: quantities[item.itemKey] || item.qty,
+      pit: index,
+      qty: quantities[item.cartKey] || item.qty,
       pitStatus: item.pitStatus,
       pitTopInfo:
         item.pitStatus && item.pitItemCart?.itemType === '상의'
@@ -210,8 +210,8 @@ const Cart = () => {
             </Text>
           </View>
         ) : (
-          cartItems.map(item => (
-            <View key={item.itemKey} style={styles.itemContainer}>
+          cartItems.map((item, index) => (
+            <View key={index} style={styles.itemContainer}>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => confirmDelete(item.cartKey)}>
@@ -245,28 +245,28 @@ const Cart = () => {
                   <Text style={styles.itemSize}>Size : {item.itemSize}</Text>
 
                   <Text style={styles.itemQuantity}>
-                    수량 : {quantities[item.itemKey] || item.qty}
+                    수량 : {quantities[item.cartKey] || item.qty}
                   </Text>
 
                   <View style={styles.quantityAndPrice}>
                     <View style={styles.quantityControl}>
                       <TouchableOpacity
                         style={styles.quantityButton}
-                        onPress={() => handleQuantityChange(item.itemKey, -1)}>
+                        onPress={() => handleQuantityChange(item.cartKey, -1)}>
                         <Text style={styles.quantityButtonText}>-</Text>
                       </TouchableOpacity>
                       <Text style={styles.itemQuantityText}>
-                        {quantities[item.itemKey] || item.qty}
+                        {quantities[item.cartKey] || item.qty}
                       </Text>
                       <TouchableOpacity
                         style={styles.quantityButton}
-                        onPress={() => handleQuantityChange(item.itemKey, 1)}>
+                        onPress={() => handleQuantityChange(item.cartKey, 1)}>
                         <Text style={styles.quantityButtonText}>+</Text>
                       </TouchableOpacity>
                     </View>
                     <Text style={styles.itemPrice}>
                       {(
-                        item.itemPrice * (quantities[item.itemKey] || item.qty)
+                        item.itemPrice * (quantities[item.cartKey] || item.qty)
                       ).toLocaleString()}{' '}
                       원
                     </Text>
