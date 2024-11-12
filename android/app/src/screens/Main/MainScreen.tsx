@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   BackHandler,
   Alert,
+  Modal,
 } from 'react-native';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {RootStackParamList} from '../../../../../App';
@@ -31,6 +32,44 @@ interface Product {
   itemImgNames: string[];
   itemStyle: string;
 }
+
+// IntroModal 컴포넌트의 props 인터페이스 정의
+interface IntroModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+// IntroModal 컴포넌트의 타입을 IntroModalProps로 지정
+const IntroModal: React.FC<IntroModalProps> = ({visible, onClose}) => {
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>
+            첫 핏 코멘트 작성 시 {'\n'} 수선비 무료!
+          </Text>
+          <View style={styles.modalImageContainer}>
+            <Image
+              source={require('../../assets/img/main/modal1.png')}
+              style={styles.modalImage}
+            />
+            <Image
+              source={require('../../assets/img/main/modal2.png')}
+              style={styles.modalImage2}
+            />
+          </View>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>X</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 const CameraBubble = () => {
   const [visible, setVisible] = useState(false);
@@ -217,12 +256,32 @@ const Main: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedSection, setSelectedSection] = useState('상의');
   const selectedSectionRef = useRef('');
+  const [introVisible, setIntroVisible] = useState(false);
 
   useEffect(() => {
     // 알림 권한 요청
     request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS).then(result => {
       console.log(result);
     });
+  }, []);
+
+  const checkFirstFitComment = async () => {
+    try {
+      const res = await reqGet(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
+      );
+      // 핏 코멘트가 비어있는 경우
+      if (res && res.length === 0) {
+        setIntroVisible(true);
+      }
+    } catch (error) {
+      console.error('핏 보관함 조회 오류:', error);
+    }
+  };
+  useEffect(() => {
+    checkFirstFitComment();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   //사용자 스타일 테마 가지고 오기
@@ -377,6 +436,11 @@ const Main: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
+        {/* Intro Modal */}
+        <IntroModal
+          visible={introVisible}
+          onClose={() => setIntroVisible(false)}
+        />
         <View style={styles.header}>
           <View>
             <Text style={styles.headerText}>FitPin</Text>
@@ -689,6 +753,54 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'black',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: 'white',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginTop: 50,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  modalImageContainer: {
+    marginBottom: 10,
+  },
+  modalImage: {
+    width: 240,
+    height: 200,
+    resizeMode: 'contain',
+    marginLeft: 65,
+    marginBottom: -40,
+  },
+  modalImage2: {
+    width: 300,
+    height: 150,
+    resizeMode: 'contain',
+    marginLeft: 50,
+    marginBottom: -20,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 10,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 

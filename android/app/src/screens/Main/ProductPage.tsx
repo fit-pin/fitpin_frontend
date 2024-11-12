@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,13 @@ import {
   TouchableWithoutFeedback, // 모달 외부 터치 감지용
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import { RootStackParamList } from '../../../../../App.tsx';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { AR_URL, DATA_URL } from '../../Constant.ts';
+import {RootStackParamList} from '../../../../../App.tsx';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {AR_URL, DATA_URL} from '../../Constant.ts';
 import path from 'path';
-import { ArRequest, reqGet, reqPost } from '../../utills/Request.ts';
-import { useUser } from '../UserContext.tsx';
+import {ArRequest, reqGet, reqPost} from '../../utills/Request.ts';
+import {useUser} from '../UserContext.tsx';
 
 type ProductPageoNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -52,6 +52,7 @@ const ProductPage = () => {
   const [recommendedSize, setRecommendedSize] = useState<
     TopInfoType | BottomInfoType | null
   >(null);
+  const [isFirstComment, setIsFirstComment] = useState<boolean>(false); // 수선비용을 결정하는 추가 상태
   const [length, setLength] = useState(0);
   const [shoulder, setShoulder] = useState(0);
   const [chest, setChest] = useState(0);
@@ -91,7 +92,7 @@ const ProductPage = () => {
     itemImgNames: '',
     pitPrice: 0,
   });
-  const { userHeight, userEmail } = useUser();
+  const {userHeight, userEmail} = useUser();
   const itemid = route.params.itemkey;
 
   const [userBodyInfo, setUserBodyInfo] = useState<{
@@ -340,28 +341,29 @@ const ProductPage = () => {
     const pitItemCart = pitStatus
       ? productInfo.itemTopInfo !== null
         ? ({
-          itemType: '상의',
-          itemSize: selectedSize,
-          itemHeight: length,
-          itemShoulder: shoulder,
-          itemChest: chest,
-          itemSleeve: sleeve,
-        } as TopInfoType)
+            itemType: '상의',
+            itemSize: selectedSize,
+            itemHeight: length,
+            itemShoulder: shoulder,
+            itemChest: chest,
+            itemSleeve: sleeve,
+          } as TopInfoType)
         : ({
-          itemType: '하의',
-          itemSize: selectedSize,
-          itemHeight: bottomLength,
-          frontrise: frontRise,
-          itemWaists: waist,
-          itemhipWidth: hipWidth,
-          itemThighs: thigh,
-          itemHemWidth: hemWidth,
-        } as BottomInfoType)
+            itemType: '하의',
+            itemSize: selectedSize,
+            itemHeight: bottomLength,
+            frontrise: frontRise,
+            itemWaists: waist,
+            itemhipWidth: hipWidth,
+            itemThighs: thigh,
+            itemHemWidth: hemWidth,
+          } as BottomInfoType)
       : null;
 
     // 총 가격 계산: 수선 선택 시 수선 가격을 포함
+    // 수선비용 조건 설정 (처음 핏 코멘트 작성 시 0원)
     const totalItemPrice = pitStatus
-      ? productInfo.itemPrice + productInfo.pitPrice
+      ? productInfo.itemPrice + (isFirstComment ? 0 : productInfo.pitPrice)
       : productInfo.itemPrice;
 
     // 장바구니 요청에 추천 사이즈 반영
@@ -375,7 +377,7 @@ const ProductPage = () => {
       itemPrice: totalItemPrice,
       qty: qty,
       pitStatus,
-      pitPrice: productInfo.pitPrice,
+      pitPrice: isFirstComment ? 0 : productInfo.pitPrice,
       pitItemCart,
     };
 
@@ -408,7 +410,7 @@ const ProductPage = () => {
         itemName: productInfo.itemName,
         itemSize: selectedSize,
         itemPrice: isTailoringChecked
-          ? productInfo.itemPrice + productInfo.pitPrice
+          ? productInfo.itemPrice + (isFirstComment ? 0 : productInfo.pitPrice)
           : productInfo.itemPrice,
         qty: qty,
         itemImgName: productInfo.itemImgNames,
@@ -416,33 +418,37 @@ const ProductPage = () => {
         pit: 0,
         userEmail: userEmail,
         pitStatus: isTailoringChecked,
-        pitPrice: isTailoringChecked ? productInfo.pitPrice : 0,
+        pitPrice: isTailoringChecked
+          ? isFirstComment
+            ? 0
+            : productInfo.pitPrice
+          : 0,
         // 상의 수선 정보
         pitTopInfo:
           productInfo.itemTopInfo !== null && isTailoringChecked
             ? ({
-              itemHeight: length,
-              itemShoulder: shoulder,
-              itemChest: chest,
-              itemSleeve: sleeve,
-            } as TopInfoType)
+                itemHeight: length,
+                itemShoulder: shoulder,
+                itemChest: chest,
+                itemSleeve: sleeve,
+              } as TopInfoType)
             : null,
         // 하의 수선 정보
         pitBottomInfo:
           productInfo.itemBottomInfo !== null && isTailoringChecked
             ? ({
-              itemHeight: bottomLength,
-              frontrise: frontRise,
-              itemWaists: waist,
-              itemhipWidth: hipWidth,
-              itemThighs: thigh,
-              itemHemWidth: hemWidth,
-            } as BottomInfoType)
+                itemHeight: bottomLength,
+                frontrise: frontRise,
+                itemWaists: waist,
+                itemhipWidth: hipWidth,
+                itemThighs: thigh,
+                itemHemWidth: hemWidth,
+              } as BottomInfoType)
             : null,
       },
     ] as RootStackParamList['Order']['Orderdata'];
 
-    navigation.navigate('Order', { Orderdata });
+    navigation.navigate('Order', {Orderdata});
   };
 
   // 상품 정보 가져오기
@@ -702,6 +708,26 @@ const ProductPage = () => {
     }
   }, [userBodyInfo, productInfo.itemTopInfo, productInfo.itemBottomInfo]);
 
+  // 핏 보관함 조회 함수 추가
+  const checkFirstFitComment = async () => {
+    try {
+      const res = await reqGet(
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
+      );
+      // 핏 코멘트가 비어있는 경우 처음 작성으로 간주
+      if (res && res.length === 1) {
+        setIsFirstComment(true);
+      }
+    } catch (error) {
+      console.error('핏 보관함 조회 오류:', error);
+    }
+  };
+
+  useEffect(() => {
+    checkFirstFitComment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* 헤더 */}
@@ -722,7 +748,7 @@ const ProductPage = () => {
       {/* 제품 이미지 */}
       <View style={styles.roundedRect}>
         {PordimgUri ? (
-          <Image source={{ uri: PordimgUri }} style={styles.productImage} />
+          <Image source={{uri: PordimgUri}} style={styles.productImage} />
         ) : (
           <></>
         )}
@@ -742,7 +768,7 @@ const ProductPage = () => {
           ? productInfo.itemTopInfo
           : productInfo.itemBottomInfo || []
         )
-          .sort((a: { itemSize: string }, b: { itemSize: string }) => {
+          .sort((a: {itemSize: string}, b: {itemSize: string}) => {
             const order = ['S', 'M', 'L', 'XL', '2XL', '3XL', 'Free'];
             return order.indexOf(a.itemSize) - order.indexOf(b.itemSize);
           })
@@ -764,7 +790,7 @@ const ProductPage = () => {
                 style={[
                   styles.sizeButtonText,
                   selectedSize === info.itemSize &&
-                  styles.selectedSizeButtonText,
+                    styles.selectedSizeButtonText,
                 ]}>
                 {info.itemSize}
               </Text>
@@ -778,25 +804,25 @@ const ProductPage = () => {
           <View style={styles.sizeChartHeader}>
             {productInfo.itemTopInfo
               ? ['Size', 'Height', 'Shoulder', 'Chest', 'Sleeve'].map(
-                (header, index) => (
+                  (header, index) => (
+                    <Text key={index} style={styles.sizeChartHeaderText}>
+                      {header}
+                    </Text>
+                  ),
+                )
+              : [
+                  'Size',
+                  'Height',
+                  'Front Rise',
+                  'Waist',
+                  'Hip',
+                  'Thigh',
+                  'Hem Width',
+                ].map((header, index) => (
                   <Text key={index} style={styles.sizeChartHeaderText}>
                     {header}
                   </Text>
-                ),
-              )
-              : [
-                'Size',
-                'Height',
-                'Front Rise',
-                'Waist',
-                'Hip',
-                'Thigh',
-                'Hem Width',
-              ].map((header, index) => (
-                <Text key={index} style={styles.sizeChartHeaderText}>
-                  {header}
-                </Text>
-              ))}
+                ))}
           </View>
           <View style={styles.sizeChartRow}>
             <Text style={styles.sizeChartRowTitle}>{sizeData.itemSize}</Text>
@@ -953,7 +979,7 @@ const ProductPage = () => {
           <CheckBox
             value={isTailoringChecked}
             onValueChange={setIsTailoringChecked}
-            tintColors={{ true: '#1A16FF', false: '#1A16FF' }}
+            tintColors={{true: '#1A16FF', false: '#1A16FF'}}
             style={styles.checkbox}
           />
         </View>
@@ -962,7 +988,7 @@ const ProductPage = () => {
         <TouchableOpacity onPress={openModal}>
           <View style={styles.roundedRect}>
             {tryimgUri ? (
-              <Image source={{ uri: tryimgUri }} style={styles.productImage} />
+              <Image source={{uri: tryimgUri}} style={styles.productImage} />
             ) : (
               <></>
             )}
@@ -976,7 +1002,7 @@ const ProductPage = () => {
               <View style={styles.modalContent}>
                 {tryimgUri ? (
                   <Image
-                    source={{ uri: tryimgUri }}
+                    source={{uri: tryimgUri}}
                     style={styles.modalImage}
                     resizeMode="contain"
                   />
@@ -991,7 +1017,7 @@ const ProductPage = () => {
         {isTailoringChecked && productInfo.itemTopInfo && (
           // 상의 조정 버튼
           <View>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>총장 :</Text>
                 <View style={styles.buttoncontainer2}>
@@ -1009,7 +1035,7 @@ const ProductPage = () => {
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>어깨 :</Text>
                 <View style={styles.buttoncontainer2}>
                   <TouchableOpacity
@@ -1027,7 +1053,7 @@ const ProductPage = () => {
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>가슴 :</Text>
                 <View style={styles.buttoncontainer2}>
@@ -1045,7 +1071,7 @@ const ProductPage = () => {
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>소매 :</Text>
                 <View style={styles.buttoncontainer2}>
                   <TouchableOpacity
@@ -1068,7 +1094,7 @@ const ProductPage = () => {
         {isTailoringChecked && productInfo.itemBottomInfo && (
           // 하의 조정 버튼
           <View>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>총장 :</Text>
                 <View style={styles.buttoncontainer2}>
@@ -1086,7 +1112,7 @@ const ProductPage = () => {
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>밑위 :</Text>
                 <View style={styles.buttoncontainer2}>
                   <TouchableOpacity
@@ -1104,7 +1130,7 @@ const ProductPage = () => {
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>허리 :</Text>
                 <View style={styles.buttoncontainer2}>
@@ -1122,7 +1148,7 @@ const ProductPage = () => {
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>엉덩이 :</Text>
                 <View style={styles.buttoncontainer2}>
                   <TouchableOpacity
@@ -1140,7 +1166,7 @@ const ProductPage = () => {
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{flexDirection: 'row'}}>
               <View style={styles.buttoncontainer}>
                 <Text style={styles.buttontitle}>허벅지 :</Text>
                 <View style={styles.buttoncontainer2}>
@@ -1158,7 +1184,7 @@ const ProductPage = () => {
                 </View>
               </View>
 
-              <View style={[styles.buttoncontainer, { marginLeft: '14%' }]}>
+              <View style={[styles.buttoncontainer, {marginLeft: '14%'}]}>
                 <Text style={styles.buttontitle}>밑단 :</Text>
                 <View style={styles.buttoncontainer2}>
                   <TouchableOpacity
@@ -1199,8 +1225,14 @@ const ProductPage = () => {
       {isTailoringChecked && (
         <View style={styles.pitPriceContainer}>
           <Text style={styles.pitPriceText}>
-            수선 가격: ₩{productInfo.pitPrice.toLocaleString()}
+            수선 가격: ₩
+            {isFirstComment ? '0' : productInfo.pitPrice.toLocaleString()}
           </Text>
+          {isFirstComment && (
+            <Text style={styles.benefitText}>
+              첫 핏 코멘트 작성 혜택이 제공되었어요!
+            </Text>
+          )}
         </View>
       )}
 
@@ -1591,6 +1623,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#787878',
     textAlign: 'right',
+  },
+  benefitText: {
+    fontSize: 16,
+    color: '#1A16FF',
+    marginTop: 6,
   },
 });
 
