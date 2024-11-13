@@ -16,6 +16,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useUser} from '../UserContext';
 import {RootStackParamList} from '../../../../../App';
 import {DATA_URL} from '../../Constant';
+import path from 'path';
 
 type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
@@ -38,10 +39,14 @@ const Fit_box: React.FC = () => {
 
   const fetchImagesFromBackend = async () => {
     try {
-      const url = `${DATA_URL}/api/fitStorageImages/user/${userEmail}`.replace(
-        /([^:]\/)\/+/g,
-        '$1',
+      const url = path.join(
+        DATA_URL,
+        'api',
+        'fitStorageImages',
+        'user',
+        userEmail,
       );
+
       console.log('API 호출 URL:', url);
 
       const response = await fetch(url);
@@ -63,12 +68,7 @@ const Fit_box: React.FC = () => {
           )
           .reverse(); // 역순 정렬로 최신 사진이 위로 오도록
 
-        const imageUrls = sortedData.map(item =>
-          `${DATA_URL}/api/img/imgserve/fitstorageimg/${item.fitStorageImg}`.replace(
-            /([^:]\/)\/+/g,
-            '$1',
-          ),
-        );
+        const imageUrls = sortedData.map(item => item.fitStorageImg);
 
         console.log('Sorted Image URLs:', imageUrls);
         setImages(imageUrls);
@@ -93,19 +93,20 @@ const Fit_box: React.FC = () => {
 
   const deleteImage = async (imageUri: string) => {
     try {
-      const imageName = imageUri.split('/').pop();
-      console.log('삭제 요청 이미지 이름:', imageName);
+      console.log('삭제 요청 이미지 이름:', imageUri);
 
-      const url =
-        `${DATA_URL}/api/fitStorageImages/delete/${imageName}`.replace(
-          /([^:]\/)\/+/g,
-          '$1',
-        );
+      const url = path.join(
+        DATA_URL,
+        'api',
+        'fitStorageImages',
+        'delete',
+        imageUri,
+      );
+
       console.log('API 호출 URL:', url);
 
       const response = await fetch(url, {
         method: 'DELETE',
-        headers: {'Content-Type': 'application/json'},
       });
 
       const result = await response.json();
@@ -145,7 +146,16 @@ const Fit_box: React.FC = () => {
             onPress={() => setSelectedImage(item)}
             style={styles.imageWrapper}>
             <Image
-              source={{uri: item}}
+              source={{
+                uri: path.join(
+                  DATA_URL,
+                  'api',
+                  'img',
+                  'imgserve',
+                  'fitstorageimg',
+                  item,
+                ),
+              }}
               style={styles.image}
               resizeMode="cover"
               onError={e =>
@@ -162,7 +172,19 @@ const Fit_box: React.FC = () => {
           transparent
           onRequestClose={() => setSelectedImage(null)}>
           <View style={styles.modalContainer}>
-            <Image source={{uri: selectedImage}} style={styles.fullImage} />
+            <Image
+              source={{
+                uri: path.join(
+                  DATA_URL,
+                  'api',
+                  'img',
+                  'imgserve',
+                  'fitstorageimg',
+                  selectedImage,
+                ),
+              }}
+              style={styles.fullImage}
+            />
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.closeButton}

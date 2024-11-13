@@ -37,7 +37,12 @@ const WritePage: React.FC = () => {
   const route = useRoute<WritePageRouteProp>();
   const {userEmail} = useUser();
 
-  const uploadedImageName = route.params?.uploadedImageName;
+  let imagesName: string | null = null;
+  if (route.params?.uploadedImageName) {
+    imagesName = route.params?.uploadedImageName;
+  } else if (route.params?.selectedImageUri) {
+    imagesName = route.params.selectedImageUri;
+  }
 
   const [selectedCategory, setSelectedCategory] = useState<string>('상의');
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -45,16 +50,7 @@ const WritePage: React.FC = () => {
   // `selectedImageUri` 초기값을 `uploadedImageName`을 사용하여 설정
 
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(
-    uploadedImageName
-      ? path.join(
-          DATA_URL,
-          'api',
-          'img',
-          'imgserve',
-          'fitstorageimg',
-          uploadedImageName!!,
-        )
-      : null,
+    imagesName,
   );
   const [brandName, setBrandName] = useState<string>('');
   const [productName, setProductName] = useState<string>('');
@@ -70,16 +66,7 @@ const WritePage: React.FC = () => {
       );
 
       if (Array.isArray(data)) {
-        const imageUrls = data.map(item =>
-          path.join(
-            DATA_URL,
-            'api',
-            'img',
-            'imgserve',
-            'fitstorageimg',
-            item.fitStorageImg,
-          ),
-        );
+        const imageUrls = data.map(item => item.fitStorageImg);
         setImages(imageUrls.reverse());
       }
     } catch (error) {
@@ -98,22 +85,13 @@ const WritePage: React.FC = () => {
       setSelectedSize(null);
       setSelectedFit(null);
 
-      // `uploadedImageName`이 있을 경우에만 `selectedImageUri` 설정
-      if (uploadedImageName) {
-        setSelectedImageUri(
-          path.join(
-            DATA_URL,
-            'api',
-            'img',
-            'imgserve',
-            'fitstorageimg',
-            uploadedImageName!!,
-          ),
-        );
+      // `imagesName`이 있을 경우에만 `selectedImageUri` 설정
+      if (imagesName) {
+        setSelectedImageUri(imagesName);
       } else {
         setSelectedImageUri(null); // 새로운 리뷰를 작성할 때는 이전 이미지 초기화
       }
-    }, [uploadedImageName]),
+    }, [imagesName]),
   );
 
   useEffect(() => {
@@ -123,8 +101,8 @@ const WritePage: React.FC = () => {
 
   // 이미지 업로드 및 코멘트 저장
   const handleSubmit = async () => {
-    if (!uploadedImageName) {
-      Alert.alert('오류', '이미지 업로드가 필요합니다.');
+    if (!selectedImageUri) {
+      Alert.alert('오류', '이미지 선택이 필요합니다.');
       return;
     }
 
@@ -140,7 +118,7 @@ const WritePage: React.FC = () => {
 
     const commentData = {
       userEmail,
-      fitStorageImg: uploadedImageName,
+      fitStorageImg: selectedImageUri,
       fitComment: reviewText,
       itemType: selectedCategory,
       itemBrand: brandName,
@@ -197,7 +175,16 @@ const WritePage: React.FC = () => {
           style={styles.imageTouchArea}>
           {selectedImageUri ? (
             <Image
-              source={{uri: selectedImageUri}}
+              source={{
+                uri: path.join(
+                  DATA_URL,
+                  'api',
+                  'img',
+                  'imgserve',
+                  'fitstorageimg',
+                  selectedImageUri!!,
+                ),
+              }}
               key={selectedImageUri}
               style={styles.selectedImage}
             />
@@ -321,7 +308,19 @@ const WritePage: React.FC = () => {
                   <TouchableOpacity
                     onPress={() => selectImage(item)}
                     style={styles.modalImageContainer}>
-                    <Image source={{uri: item}} style={styles.modalImage} />
+                    <Image
+                      source={{
+                        uri: path.join(
+                          DATA_URL,
+                          'api',
+                          'img',
+                          'imgserve',
+                          'fitstorageimg',
+                          item,
+                        ),
+                      }}
+                      style={styles.modalImage}
+                    />
                   </TouchableOpacity>
                 )}
                 numColumns={2}

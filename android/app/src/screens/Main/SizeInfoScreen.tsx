@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {
-  useRoute,
-  useNavigation,
-  RouteProp,
-  useFocusEffect,
-} from '@react-navigation/native';
-import {BackHandler} from 'react-native';
+import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
@@ -56,22 +50,6 @@ const SizeInfoScreen: React.FC = () => {
     const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
     return `photo_${year}${month}${day}T${hours}${minutes}${seconds}${milliseconds}Z.jpg`;
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      const backAction = () => {
-        navigation.navigate('Main'); // 뒤로가기 시 메인 페이지로 이동
-        return true;
-      };
-
-      const backHandler = BackHandler.addEventListener(
-        'hardwareBackPress',
-        backAction,
-      );
-
-      return () => backHandler.remove();
-    }, [navigation]),
-  );
 
   // 핏보관함 저장시 이미지 업로드 부분
   const handleUploadImage = async () => {

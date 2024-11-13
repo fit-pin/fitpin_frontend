@@ -5,7 +5,6 @@ import {
   Text,
   Platform,
   TouchableOpacity,
-  Image,
   Alert,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
@@ -54,6 +53,13 @@ const CameraBodyPhoto = () => {
     requestCameraPermission();
   }, []);
 
+  useEffect(() => {
+    if (photoUri) {
+      navigation.navigate('SizeInfoScreen', {photoUri}); // SizeInfoScreen으로 이동
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoUri]);
+
   if (!hasPermission) {
     return (
       <View style={styles.container}>
@@ -85,35 +91,6 @@ const CameraBodyPhoto = () => {
       }
     }
   };
-
-  const confirmPicture = () => {
-    if (photoUri) {
-      navigation.navigate('SizeInfoScreen', {photoUri}); // SizeInfoScreen으로 이동
-      setPhotoUri(null); // 초기화
-    }
-  };
-
-  const retakePicture = () => {
-    setPhotoUri(null); // 사진 다시 촬영
-  };
-
-  if (photoUri) {
-    return (
-      <View style={styles.container}>
-        <Image source={{uri: photoUri}} style={styles.preview} />
-        <View style={styles.bottomControls}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={confirmPicture}>
-            <Text style={styles.buttonText}>확인</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={retakePicture}>
-            <Text style={styles.buttonText}>취소</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
