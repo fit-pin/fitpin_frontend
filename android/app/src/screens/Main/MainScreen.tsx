@@ -30,6 +30,7 @@ interface Product {
   itemPrice: number;
   itemImgNames: string[];
   itemStyle: string;
+  averageBmi: number | null;
 }
 
 const CameraBubble = () => {
@@ -213,10 +214,10 @@ const Main: React.FC = () => {
   const [userStyles, setUserStyles] = useState<
     Array<{text: string; image: any; recommended: boolean; key: string}>
   >([]); // 스타일 상태 이름을 변경
-  const {userEmail, userName} = useUser();
+  const {userEmail, userName, userHeight, userWeight} = useUser();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedSection, setSelectedSection] = useState('상의');
-  const selectedSectionRef = useRef('');
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
 
   useEffect(() => {
     // 알림 권한 요청
@@ -279,29 +280,35 @@ const Main: React.FC = () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
   }, [navigation]);
 
-  //화면 처음 렌더링?시 상의 상품 띄어주는것
+  // 제품 바꿀때 마다 상품정보 갱신
   useEffect(() => {
-    selectedSectionRef.current = '상의';
     // 상품 아이템들 띄우는 함수
-    const fetchProducts = async () => {
+    (async () => {
       try {
         const response: Product[] = await reqGet(
-          path.join(
-            DATA_URL,
-            'api',
-            'items',
-            'list',
-            selectedSectionRef.current,
-          ),
+          path.join(DATA_URL, 'api', 'items', 'list', selectedSection),
         );
-        setProducts(response);
+
+        let res = response;
+        if (selectedStyle) {
+          const myBMI = userWeight / ((userHeight / 100) * (userHeight / 100));
+          res = response
+            .filter(item => item.itemStyle === selectedStyle)
+            // 제품 구매자들의 평균 BMI 지수와 내 지수를 비교하여 내 BMI와 가장 유사한 제품을 상단으로
+            .sort((a, b) => {
+              const aBmi = Math.abs(myBMI - (a.averageBmi || 0));
+              const bBmi = Math.abs(myBMI - (b.averageBmi || 0));
+              return aBmi - bBmi;
+            });
+        }
+
+        setProducts(res);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
-    };
-    fetchProducts();
-    setSelectedSection('상의');
-  }, []);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSection, selectedStyle]);
 
   const renderProductGrid = () => {
     if (products.length > 0) {
@@ -338,40 +345,15 @@ const Main: React.FC = () => {
     }
   };
 
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
-
   const onSelectItemStyle = async (itemStyle: string) => {
     const itemStyleSelected = itemStyle.split('\n')[0].trim();
 
     if (selectedStyle === itemStyleSelected) {
       // 스타일 선택 해제 시, 초기 '상의' 상태로
       setSelectedStyle(null);
-      selectedSectionRef.current = '상의';
-      await onSelectSelect(selectedSectionRef.current);
     } else {
-      // 다른 스타일 선택 시 해당 스타일 필터링
-      await onSelectSelect(selectedSectionRef.current);
       setSelectedStyle(itemStyleSelected);
-      setProducts(prevProducts =>
-        prevProducts.filter(item => item.itemStyle === itemStyleSelected),
-      );
     }
-  };
-
-  const onSelectSelect = async (selectSection: string) => {
-    const fetchProducts = async () => {
-      try {
-        const response: Product[] = await reqGet(
-          path.join(DATA_URL, 'api', 'items', 'list', selectSection),
-        );
-        setProducts(response); // 전체 목록으로 상태 설정
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
-    await fetchProducts(); // 데이터가 설정될 때까지 기다림
-    selectedSectionRef.current = selectSection; // ref에 섹션 값 저장
-    setSelectedSection(selectSection);
   };
 
   return (
@@ -437,7 +419,7 @@ const Main: React.FC = () => {
             <TouchableOpacity
               key={section}
               style={styles.sectionButton}
-              onPress={() => onSelectSelect(section)}>
+              onPress={() => setSelectedSection(section)}>
               <Text
                 style={[
                   styles.sectionText,
