@@ -16,6 +16,8 @@ import {RootStackParamList} from '../../../../../App';
 import BottomTabNavigator from '../Navigation/BottomTabNavigator';
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
+import path from 'path';
+import {DATA_URL} from '../../Constant';
 
 interface FitComment {
   fitStorageKey: number;
@@ -29,27 +31,80 @@ interface FitComment {
   userName: string | null;
 }
 
+let backupComment: FitComment[] | undefined;
+
+type HeaderProps = {
+  setComments: React.Dispatch<React.SetStateAction<FitComment[]>>;
+};
+const RenderHeader = (props: HeaderProps) => {
+  const navigation =
+    useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
+
+  const searchHandler = (value: string) => {
+    if (!backupComment) {
+      return;
+    }
+
+    const result = backupComment.filter(itme => itme.itemName?.includes(value));
+    props.setComments(result);
+  };
+
+  return (
+    <>
+      <View style={styles.header}>
+        <Text style={styles.platformName}>옷에 대한 정보를 공유해요</Text>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => navigation.navigate('Cart')}>
+          <Image
+            source={require('../../assets/img/main/shop.png')}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.searchBar}>
+        <TextInput
+          style={styles.searchInput}
+          onChangeText={searchHandler}
+          placeholder="궁금한 옷 정보를 검색해보세요"
+        />
+        <TouchableOpacity>
+          <Image
+            source={require('../../assets/img/search/search.png')}
+            style={styles.searchIcon}
+          />
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+};
+
 const Comment: React.FC = () => {
   const navigation =
     useNavigation<NavigationProp<RootStackParamList, 'Comment'>>();
 
-  const [selectedSection, setSelectedSection] = useState<string>('상의');
   const [loading, setLoading] = useState<boolean>(true);
   const [comments, setComments] = useState<FitComment[]>([]);
 
-  const sections: string[] = ['상의', '하의', '아우터', '정장'];
-  const baseImageUrl =
-    'http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/';
+  const baseImageUrl = path.join(
+    DATA_URL,
+    'api',
+    'img',
+    'imgserve',
+    'fitstorageimg',
+  );
 
-  const fetchComments = useCallback(async () => {
+  const fetchComments = async () => {
     try {
       setLoading(true); // 새로고침 시 로딩 상태 설정
       const response = await fetch(
-        'http://fitpitback.kro.kr:8080/api/fit_comment/get_fitcomment',
+        path.join(DATA_URL, 'api', 'fit_comment', 'get_fitcomment'),
       );
       if (response.ok) {
         const data = await response.json();
         console.log('Filtered User Comments:', data);
+        backupComment = adjustForOddItems(data);
         setComments(adjustForOddItems(data));
       } else {
         console.error('Failed to fetch comments');
@@ -59,12 +114,13 @@ const Comment: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useFocusEffect(
     useCallback(() => {
       fetchComments(); // 화면에 포커스될 때마다 리뷰 목록 새로고침
-    }, [fetchComments]),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
   );
 
   const adjustForOddItems = (items: FitComment[]) => {
@@ -89,61 +145,13 @@ const Comment: React.FC = () => {
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
-        작성된 리뷰가 없어요. 지금 첫 리뷰를 작성해보세요!
+        작성된 리뷰가 없거나, 검색어를 찾을 수 없습니다.
       </Text>
     </View>
   );
-
-  const renderHeader = () => (
-    <>
-      <View style={styles.header}>
-        <Text style={styles.platformName}>옷에 대한 정보를 공유해요</Text>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => navigation.navigate('Cart')}>
-          <Image
-            source={require('../../assets/img/main/shop.png')}
-            style={styles.icon}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchBar}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="궁금한 옷 정보를 검색해보세요"
-        />
-        <TouchableOpacity>
-          <Image
-            source={require('../../assets/img/search/search.png')}
-            style={styles.searchIcon}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.sections}>
-        {sections.map(section => (
-          <TouchableOpacity
-            key={section}
-            style={styles.sectionButton}
-            onPress={() => setSelectedSection(section)}>
-            <Text
-              style={[
-                styles.sectionText,
-                {color: selectedSection === section ? '#000' : '#919191'},
-              ]}>
-              {section}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </>
-  );
-
   const renderItem = ({item}: {item: FitComment}) => {
     if (item.fitStorageKey === -1) return <View style={styles.emptyCard} />;
-
-    const imageUrl = `${baseImageUrl}${item.fitStorageImg}`;
+    const imageUrl = `${baseImageUrl}/${item.fitStorageImg}`;
 
     return (
       <TouchableOpacity
@@ -182,7 +190,7 @@ const Comment: React.FC = () => {
         numColumns={2} // 한 줄에 2개씩 배치
         columnWrapperStyle={styles.columnWrapper} // 컬럼 여백 스타일
         contentContainerStyle={styles.contentContainer} // 리스트 전체 여백
-        ListHeaderComponent={renderHeader} // 헤더 컴포넌트 추가
+        ListHeaderComponent={<RenderHeader setComments={setComments} />} // 헤더 컴포넌트 추가
         ListEmptyComponent={renderEmptyComponent} // 데이터가 없을 때 표시할 컴포넌트
       />
       <TouchableOpacity
