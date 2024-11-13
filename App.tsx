@@ -131,6 +131,7 @@ const ConnectSSE = () => {
           title: `${message.itemName} 수선가격 결정`, // 알림 제목
           message: `가격: ${message.price}원, 업체명: ${message.company}`, // 서버로부터 수신한 메시지 내용
           playSound: true,
+          smallIcon: 'ic_stat_name',
           soundName: 'default',
           importance: 'default',
           priority: 'default',
