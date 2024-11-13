@@ -112,10 +112,11 @@ const ProductPage = () => {
         setUserBodyInfo({
           userHeight: res.userHeight,
           userWeight: res.userWeight,
-          armSize: res.armSize,
-          shoulderSize: res.shoulderSize,
-          bodySize: res.bodySize,
-          legSize: res.legSize,
+          // 추가적으로 사이즈 보정함
+          armSize: res.armSize + 7,
+          shoulderSize: res.shoulderSize + 20,
+          bodySize: res.bodySize + 20,
+          legSize: res.legSize + 25,
         });
       }
     } catch (error) {
