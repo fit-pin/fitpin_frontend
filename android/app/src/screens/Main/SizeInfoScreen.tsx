@@ -183,6 +183,7 @@ const SizeInfoScreen: React.FC = () => {
         <Image
           source={{uri: meaPhotoUri || photoUri}}
           style={styles.image}
+          resizeMode="contain"
           onLayout={handleImageLayout}
         />
       </TouchableOpacity>

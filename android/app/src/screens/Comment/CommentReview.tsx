@@ -1,5 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, Image} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Modal,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+} from 'react-native';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../../../../../App';
 import {reqGet} from '../../utills/Request';
@@ -26,6 +35,8 @@ const CommentReview: React.FC = () => {
   const {fitStorageKey} = route.params;
 
   const [comment, setComment] = useState<FitComment | null>(null);
+
+  const [isModalVisible, setIsModalVisible] = useState(false); // 모달 상태 관리
 
   // API 호출하여 코멘트 데이터 가져오기
   const fetchComment = async () => {
@@ -78,13 +89,47 @@ const CommentReview: React.FC = () => {
       {/* 헤더 */}
       <Text style={styles.header}>{comment.userName}님의 핏코멘트</Text>
 
-      {/* 이미지 */}
-      <Image
-        source={{
-          uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${comment.fitStorageImg}`,
-        }}
-        style={styles.galleryImage}
-      />
+      {/* 터치시 모달로 보여주게 */}
+      <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+        <Image
+          source={{
+            uri: path.join(
+              DATA_URL,
+              'api',
+              'img',
+              'imgserve',
+              'fitstorageimg',
+              comment.fitStorageImg,
+            ),
+          }}
+          resizeMode="contain"
+          style={styles.galleryImage}
+        />
+      </TouchableOpacity>
+
+      {/* 모달 */}
+      <Modal visible={isModalVisible} transparent={true}>
+        <TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Image
+                source={{
+                  uri: path.join(
+                    DATA_URL,
+                    'api',
+                    'img',
+                    'imgserve',
+                    'fitstorageimg',
+                    comment.fitStorageImg,
+                  ),
+                }}
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* 옷 이름과 종류 */}
       <View style={styles.textContainer}>
@@ -253,6 +298,24 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 14,
     color: '#000',
+  },
+
+  // 모달 설정
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // 반투명 배경
+  },
+  modalContent: {
+    width: '90%',
+    height: '70%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

@@ -184,6 +184,7 @@ const Fit_box: React.FC = () => {
                 ),
               }}
               style={styles.fullImage}
+              resizeMode="contain"
             />
             <View style={styles.buttonContainer}>
               <TouchableOpacity

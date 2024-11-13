@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 15,
     paddingHorizontal: '4%',
-    marginBottom: 55,
+    marginBottom: 100,
   },
   productCardContainer: {
     width: '48%',
