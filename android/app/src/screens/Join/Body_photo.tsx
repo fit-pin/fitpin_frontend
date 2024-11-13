@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {
   TouchableOpacity,
@@ -18,15 +18,22 @@ type BodyPhotoNavigationProp = StackNavigationProp<
   'Body_photo'
 >;
 
+type BodyPhotoRouteProp = RouteProp<RootStackParamList, 'Body_photo'>;
+
 export default function Body_photo() {
   const navigation = useNavigation<BodyPhotoNavigationProp>();
   const context = useUser();
+  const {isfirst} = useRoute<BodyPhotoRouteProp>().params; // route의 타입을 지정
 
   const handleNextPress = () => {
-    if (context.userGender === 'female') {
-      navigation.navigate('Style_G');
+    if (isfirst) {
+      if (context.userGender === 'female') {
+        navigation.navigate('Style_G');
+      } else {
+        navigation.navigate('Style_B');
+      }
     } else {
-      navigation.navigate('Style_B');
+      navigation.replace('My_Fit');
     }
   };
 
@@ -45,7 +52,11 @@ export default function Body_photo() {
       return;
     }
 
-    navigation.navigate('Loading', {uri: uri});
+    if (isfirst) {
+      navigation.navigate('Loading', {uri: uri, isfirst: isfirst});
+    } else {
+      navigation.replace('Loading', {uri: uri, isfirst: isfirst});
+    }
   };
 
   return (

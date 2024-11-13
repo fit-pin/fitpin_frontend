@@ -72,7 +72,7 @@ const My_Fit = () => {
       <Text style={styles.remeasureText}>내 체형 정보를 바꾸고 싶다면?</Text>
       <Text
         style={styles.remeasureText2}
-        onPress={() => navigation.navigate('Remeasure')}>
+        onPress={() => navigation.replace('Body_photo', {isfirst: false})}>
         재측정 하러 가기 →
       </Text>
     </View>

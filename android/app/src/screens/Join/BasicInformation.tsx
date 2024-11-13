@@ -71,7 +71,7 @@ export default function BasicInformation() {
     console.log('User Weight:', inputWeight);
     console.log('User Gender:', userGender);
 
-    navigation.navigate('Body_photo');
+    navigation.navigate('Body_photo', {isfirst: true});
   };
 
   return (

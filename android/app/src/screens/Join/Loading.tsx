@@ -77,10 +77,14 @@ export default function Loading() {
 
         if (res.status === 200) {
           saveDB(message, context.userEmail).then(() => {
-            if (context.userGender === 'female') {
-              navigation.replace('Style_G');
+            if (route.params.isfirst) {
+              if (context.userGender === 'female') {
+                navigation.replace('Style_G');
+              } else {
+                navigation.replace('Style_B');
+              }
             } else {
-              navigation.replace('Style_B');
+              navigation.replace('My_Fit');
             }
           });
         } else {

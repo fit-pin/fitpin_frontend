@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,9 @@ import {
   useNavigation,
   useFocusEffect, // 추가
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../../App';
-import { useUser } from '../UserContext';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../../../../App';
+import {useUser} from '../UserContext';
 
 type WriteCommentNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -36,7 +36,7 @@ interface Review {
 const WriteComment: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const navigation = useNavigation<WriteCommentNavigationProp>();
-  const { userEmail } = useUser();
+  const {userEmail} = useUser();
 
   // 리뷰 목록 불러오기 및 필터링
   const fetchReviews = async () => {
@@ -51,7 +51,10 @@ const WriteComment: React.FC = () => {
       if (Array.isArray(data)) {
         // deleteStatus가 false인 데이터만 필터링
         const filteredReviews = data.filter(
-          (review: Review) => review.deleteStatus === false && review.fitComment && review.fitComment.trim() !== '',
+          (review: Review) =>
+            review.deleteStatus === false &&
+            review.fitComment &&
+            review.fitComment.trim() !== '',
         );
         setReviews(filteredReviews);
       } else {
@@ -73,7 +76,7 @@ const WriteComment: React.FC = () => {
 
   // 리뷰 클릭 시 상세 페이지로 이동하는 함수
   const handleReviewPress = (review: Review) => {
-    navigation.navigate('ReviewDetail', { review });
+    navigation.navigate('ReviewDetail', {review});
   };
 
   return (

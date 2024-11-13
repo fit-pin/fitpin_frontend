@@ -17,7 +17,6 @@ import Order from './android/app/src/screens/Main/Order';
 import OrderComplete from './android/app/src/screens/Main/OrderComplete';
 import Camera from './android/app/src/screens/Main/Camera';
 import CameraBodyPhoto from './android/app/src/screens/Main/CameraBodyPhoto';
-import CameraRemeasure from './android/app/src/screens/Main/CameraRemeasure';
 import Size from './android/app/src/screens/Main/Size';
 import Search from './android/app/src/screens/Search/Search';
 import Comment from './android/app/src/screens/Comment/Comment';
@@ -26,7 +25,6 @@ import WritePage from './android/app/src/screens/Comment/WritePage';
 import Mypage from './android/app/src/screens/Mypage/Mypage';
 import Purchase from './android/app/src/screens/Mypage/Purchase';
 import My_Fit from './android/app/src/screens/Mypage/My_Fit';
-import Remeasure from './android/app/src/screens/Mypage/Remeasure';
 import Fit_box from './android/app/src/screens/Mypage/Fit_box';
 import WriteComment from './android/app/src/screens/Mypage/WriteComment';
 import {UserProvider, useUser} from './android/app/src/screens/UserContext';
@@ -46,7 +44,7 @@ export type RootStackParamList = {
   Signin: undefined;
   Login: undefined;
   BasicInformation: undefined;
-  Body_photo: undefined;
+  Body_photo: {isfirst: boolean};
   Style_G: undefined;
   Style_B: undefined;
   Congrats: {selectedStyles: string[]};
@@ -99,7 +97,7 @@ export type RootStackParamList = {
   WriteComment: {review: any; fromWritePage?: boolean};
   ReviewDetail: {review: any};
   BottomTabNavigator: undefined;
-  Loading: {uri: string};
+  Loading: {uri: string; isfirst: boolean};
   SizeInfoScreen: {photoUri: string};
 };
 
@@ -263,11 +261,6 @@ const App = () => {
             options={{headerShown: false}}
           />
           <Stack.Screen
-            name="CameraRemeasure"
-            component={CameraRemeasure}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
             name="Size"
             component={Size}
             options={{headerShown: false}}
@@ -317,16 +310,6 @@ const App = () => {
             component={My_Fit}
             options={{
               headerTitle: '내 체형 정보',
-              headerTitleStyle: {
-                fontWeight: 'bold',
-              },
-            }}
-          />
-          <Stack.Screen
-            name="Remeasure"
-            component={Remeasure}
-            options={{
-              headerTitle: '체형 재측정',
               headerTitleStyle: {
                 fontWeight: 'bold',
               },
