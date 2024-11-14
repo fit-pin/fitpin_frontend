@@ -129,7 +129,7 @@ const WritePage: React.FC = () => {
 
     try {
       const response = await fetch(
-        'http://fitpitback.kro.kr:8080/api/fit_comment/save_comment',
+        path.join(DATA_URL, 'api', 'fit_comment', 'save_comment'),
         {
           method: 'POST',
           headers: {

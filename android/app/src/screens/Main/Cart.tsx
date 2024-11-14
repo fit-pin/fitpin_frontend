@@ -99,7 +99,7 @@ const Cart = () => {
   const deleteCartItem = async (cartKey: number) => {
     try {
       const response = await fetch(
-        `http://fitpitback.kro.kr:8080/api/cart/delete/${cartKey}`,
+        path.join(DATA_URL, 'api', 'cart', 'delete', `${cartKey}`),
         {
           method: 'DELETE',
         },

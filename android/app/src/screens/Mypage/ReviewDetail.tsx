@@ -43,10 +43,14 @@ const ReviewDetail: React.FC = () => {
   const [review, setReview] = useState<Review>(route.params.review);
   const [editMode, setEditMode] = useState(false);
   const [imageLoadError, setImageLoadError] = useState<boolean>(false);
-  const formattedImageUri = `${DATA_URL.replace(
-    /\/$/,
-    '',
-  )}/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`;
+  const formattedImageUri = path.join(
+    DATA_URL,
+    'api',
+    'img',
+    'imgserve',
+    'fitstorageimg',
+    review.fitStorageImg,
+  );
 
   useFocusEffect(
     React.useCallback(() => {

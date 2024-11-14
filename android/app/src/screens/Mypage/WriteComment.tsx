@@ -16,6 +16,8 @@ import {
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
+import path from 'path';
+import {DATA_URL} from '../../Constant';
 
 type WriteCommentNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -42,7 +44,7 @@ const WriteComment: React.FC = () => {
   const fetchReviews = async () => {
     try {
       const response = await fetch(
-        `http://fitpitback.kro.kr:8080/api/fitStorageImages/user/${userEmail}`,
+        path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
       );
       const data = await response.json();
 
@@ -95,7 +97,14 @@ const WriteComment: React.FC = () => {
               <View style={styles.imageContainer}>
                 <Image
                   source={{
-                    uri: `http://fitpitback.kro.kr:8080/api/img/imgserve/fitstorageimg/${review.fitStorageImg}`,
+                    uri: path.join(
+                      DATA_URL,
+                      'api',
+                      'img',
+                      'imgserve',
+                      'fitstorageimg',
+                      review.fitStorageImg,
+                    ),
                   }}
                   style={styles.image}
                 />
