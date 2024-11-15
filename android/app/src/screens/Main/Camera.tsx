@@ -130,7 +130,7 @@ const Camera = () => {
   }
 
   if (confirmedPhotoUri) {
-    navigation.replace('Loading', {uri: confirmedPhotoUri});
+    navigation.replace('Loading', {uri: confirmedPhotoUri, isfirst: true});
     return <></>;
   }
 
