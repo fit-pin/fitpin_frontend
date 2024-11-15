@@ -14,11 +14,13 @@ import {
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {RootStackParamList} from '../../../../../App';
 import {StackNavigationProp} from '@react-navigation/stack';
 //ViewPropTypes 애러 나는거 해결
 import '../../../src/ignoreWarnings';
+
+type OrderRouteProp = RouteProp<RootStackParamList, 'Camera'>;
 
 const Camera = () => {
   const [hasPermission, setHasPermission] = useState(false);
@@ -29,6 +31,7 @@ const Camera = () => {
   );
   const cameraRef = useRef<RNCamera | null>(null);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const {isfirst} = useRoute<OrderRouteProp>().params;
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -130,7 +133,7 @@ const Camera = () => {
   }
 
   if (confirmedPhotoUri) {
-    navigation.replace('Loading', {uri: confirmedPhotoUri, isfirst: true});
+    navigation.replace('Loading', {uri: confirmedPhotoUri, isfirst: isfirst});
     return <></>;
   }
 

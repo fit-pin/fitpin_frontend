@@ -81,7 +81,7 @@ export type RootStackParamList = {
     }[];
   };
   OrderComplete: undefined;
-  Camera: undefined;
+  Camera: {isfirst: boolean};
   CameraBodyPhoto: undefined;
   CameraRemeasure: undefined;
   Size: undefined;

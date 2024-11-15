@@ -84,7 +84,7 @@ export default function Body_photo() {
       <View style={styles.imageContainer}>
         <TouchableOpacity
           style={styles.rectangleContainer}
-          onPress={() => navigation.navigate('Camera')}>
+          onPress={() => navigation.navigate('Camera', {isfirst: isfirst})}>
           <View style={styles.plusButton}>
             <Text style={styles.plusText}>+</Text>
           </View>
