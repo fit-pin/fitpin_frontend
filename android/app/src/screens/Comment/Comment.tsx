@@ -18,6 +18,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 import path from 'path';
 import {DATA_URL} from '../../Constant';
+import {reqGet} from '../../utills/Request';
 
 interface FitComment {
   fitStorageKey: number;
@@ -98,17 +99,13 @@ const Comment: React.FC = () => {
   const fetchComments = async () => {
     try {
       setLoading(true); // 새로고침 시 로딩 상태 설정
-      const response = await fetch(
+      const response = await reqGet(
         path.join(DATA_URL, 'api', 'fit_comment', 'get_fitcomment'),
       );
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Filtered User Comments:', data);
-        backupComment = adjustForOddItems(data);
-        setComments(adjustForOddItems(data));
-      } else {
-        console.error('Failed to fetch comments');
-      }
+
+      console.log('Filtered User Comments:', response);
+      backupComment = adjustForOddItems(response);
+      setComments(adjustForOddItems(response));
     } catch (error) {
       console.error('Error fetching comments:', error);
     } finally {

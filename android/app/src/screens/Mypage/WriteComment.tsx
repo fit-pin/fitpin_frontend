@@ -18,6 +18,7 @@ import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
 import path from 'path';
 import {DATA_URL} from '../../Constant';
+import {reqGet} from '../../utills/Request';
 
 type WriteCommentNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -43,11 +44,9 @@ const WriteComment: React.FC = () => {
   // 리뷰 목록 불러오기 및 필터링
   const fetchReviews = async () => {
     try {
-      const response = await fetch(
+      const data = await reqGet(
         path.join(DATA_URL, 'api', 'fitStorageImages', 'user', userEmail),
       );
-      const data = await response.json();
-
       console.log('Fetched Data:', data); // 응답 데이터 확인
 
       if (Array.isArray(data)) {

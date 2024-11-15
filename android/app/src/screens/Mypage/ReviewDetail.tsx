@@ -16,7 +16,7 @@ import {useUser} from '../UserContext';
 import {DATA_URL} from '../../Constant';
 import {useFocusEffect} from '@react-navigation/native';
 import path from 'path';
-import {reqGet, reqPost} from '../../utills/Request';
+import {reqDelete, reqGet, reqPost} from '../../utills/Request';
 
 type ReviewDetailRouteProp = RouteProp<RootStackParamList, 'ReviewDetail'>;
 type ReviewDetailNavigationProp = StackNavigationProp<
@@ -68,27 +68,15 @@ const ReviewDetail: React.FC = () => {
     };
 
     try {
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      await reqDelete(url, body);
 
-      if (response.ok) {
-        Alert.alert('리뷰가 삭제되었습니다.');
-        navigation.navigate('WriteComment', {
-          review: review,
-        });
-      } else if (response.status === 404) {
-        Alert.alert('이미지를 찾을 수 없습니다.');
-      } else {
-        Alert.alert('삭제 중 오류가 발생했습니다.');
-      }
+      Alert.alert('리뷰가 삭제되었습니다.');
+      navigation.navigate('WriteComment', {
+        review: review,
+      });
     } catch (error) {
-      Alert.alert('네트워크 오류가 발생했습니다.');
-      console.error('Network Error:', error);
+      Alert.alert('삭제 중 오류가 발생했습니다.');
+      console.error('이미지 삭제 오류:', error);
     }
   };
 

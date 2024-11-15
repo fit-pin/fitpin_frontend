@@ -22,7 +22,7 @@ import {
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../../../App';
 import {useUser} from '../UserContext';
-import {reqGet} from '../../utills/Request';
+import {reqGet, reqPost} from '../../utills/Request';
 import path from 'path';
 import {DATA_URL} from '../../Constant';
 
@@ -127,33 +127,22 @@ const WritePage: React.FC = () => {
       itemName: productName,
     };
 
+    let result;
     try {
-      const response = await fetch(
+      result = await reqPost(
         path.join(DATA_URL, 'api', 'fit_comment', 'save_comment'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(commentData),
-        },
+        commentData,
       );
 
-      const result = await response.json();
+      Alert.alert('코멘트가 성공적으로 저장되었습니다.');
 
-      if (response.ok) {
-        Alert.alert('코멘트가 성공적으로 저장되었습니다.');
-
-        // 핏코멘트 페이지로 가지고 이전 버튼 누르면 main으로 와지게
-        navigation.reset({
-          index: 1,
-          routes: [{name: 'Main'}, {name: 'Comment'}],
-        });
-      } else {
-        Alert.alert('코멘트 저장 실패', result.message);
-      }
+      // 핏코멘트 페이지로 가지고 이전 버튼 누르면 main으로 와지게
+      navigation.reset({
+        index: 1,
+        routes: [{name: 'Main'}, {name: 'Comment'}],
+      });
     } catch (error) {
-      Alert.alert('처리 중 오류가 발생했습니다.');
+      Alert.alert('코멘트 저장 실패', result.message);
       console.error(error);
     }
   };

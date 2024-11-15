@@ -13,7 +13,7 @@ import {useNavigation, NavigationProp} from '@react-navigation/native';
 import {RootStackParamList} from '../../../../../App.tsx';
 import {DATA_URL} from '../../Constant.ts';
 import path from 'path';
-import {reqGet} from '../../utills/Request.ts';
+import {reqDelete, reqGet} from '../../utills/Request.ts';
 import {useUser} from '../UserContext.tsx';
 
 const screenWidth = Dimensions.get('window').width;
@@ -98,24 +98,16 @@ const Cart = () => {
 
   const deleteCartItem = async (cartKey: number) => {
     try {
-      const response = await fetch(
+      await reqDelete(
         path.join(DATA_URL, 'api', 'cart', 'delete', `${cartKey}`),
-        {
-          method: 'DELETE',
-        },
       );
 
-      if (response.ok) {
-        console.log(
-          `Item with cartKey ${cartKey} successfully deleted from cart`,
-        );
-        setCartItems(prevItems =>
-          prevItems.filter(item => item.cartKey !== cartKey),
-        );
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to delete item:', errorData.message);
-      }
+      console.log(
+        `Item with cartKey ${cartKey} successfully deleted from cart`,
+      );
+      setCartItems(prevItems =>
+        prevItems.filter(item => item.cartKey !== cartKey),
+      );
     } catch (error) {
       console.error('장바구니 항목을 삭제하는 중 오류가 발생했습니다:', error);
     }

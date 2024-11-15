@@ -17,6 +17,7 @@ import {useUser} from '../UserContext';
 import {RootStackParamList} from '../../../../../App';
 import {DATA_URL} from '../../Constant';
 import path from 'path';
+import {reqDelete, reqGet} from '../../utills/Request';
 
 type FitBoxNavigationProp = StackNavigationProp<RootStackParamList, 'Fit_box'>;
 
@@ -48,15 +49,7 @@ const Fit_box: React.FC = () => {
       );
 
       console.log('API 호출 URL:', url);
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        console.error('API 호출 실패:', response.status);
-        throw new Error(`Failed to fetch images: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await reqGet(url);
 
       if (Array.isArray(data) && data.length > 0) {
         // 최신순 정렬 후 배열 역순으로 변경
@@ -105,21 +98,11 @@ const Fit_box: React.FC = () => {
 
       console.log('API 호출 URL:', url);
 
-      const response = await fetch(url, {
-        method: 'DELETE',
-      });
+      const response = await reqDelete(url);
+      console.log('삭제 API 응답:', response);
 
-      const result = await response.json();
-      console.log('삭제 API 응답:', result);
-
-      if (response.ok) {
-        setImages(prevImages => prevImages.filter(image => image !== imageUri));
-        Alert.alert('성공', '이미지가 삭제되었습니다.');
-      } else if (response.status === 404) {
-        Alert.alert('오류', '이미지를 찾을 수 없습니다.');
-      } else {
-        Alert.alert('오류', result.message || '이미지 삭제 실패');
-      }
+      setImages(prevImages => prevImages.filter(image => image !== imageUri));
+      Alert.alert('성공', '이미지가 삭제되었습니다.');
     } catch (error) {
       console.error('Error deleting image:', error);
       Alert.alert('오류', '이미지 삭제 중 오류가 발생했습니다.');

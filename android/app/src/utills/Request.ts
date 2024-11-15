@@ -14,6 +14,7 @@
  */
 export async function reqGet(url: string): Promise<any> {
   const res = await fetch(url, {
+    method: 'get',
     headers: {
       Accept: 'application/json',
     },
@@ -45,6 +46,38 @@ export async function reqPost(url: string, body: object): Promise<any> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+  });
+
+  return await res.json();
+}
+
+/**  데이터 백엔드에 delete 요청을 보냅니다.
+ * @param url 요청주소
+ * @param body 요청 js객체
+ * @returns 응답 json
+ * @example
+ * // async, await 방식
+ * async function any() {
+ *   const data = await reqDelete('url');
+ *   console.log(data.아무개);
+ * }
+ * // callback 방식
+ * reqDelete('url')
+ *  .then(data => console.log(data.아무개))
+ *  .catch(err => console.log(err));
+ */
+export async function reqDelete(url: string, body?: object): Promise<any> {
+  let reqBody;
+  if (body) {
+    reqBody = JSON.stringify(body);
+  }
+
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+    },
+    body: reqBody,
   });
 
   return await res.json();
