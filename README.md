@@ -4,15 +4,13 @@
 
 - Fitpin 앱
 
-
 ## 사용법
 
 1. **개발 환경 설치**
 
    - [**node.js & npm설치**](https://nodejs.org/en)
-   
-   - [**Android Studio 설치**](https://developer.android.com/studio?gad_source=1&gclid=CjwKCAiAxea5BhBeEiwAh4t5K2uYb2RMJtf7epeSj27TD3_oIIe3RKgxoxf6m-DChUYkkzNQCBLyYBoCBqsQAvD_BwE&gclsrc=aw.ds&hl=ko)
 
+   - [**Android Studio 설치**](https://developer.android.com/studio?gad_source=1&gclid=CjwKCAiAxea5BhBeEiwAh4t5K2uYb2RMJtf7epeSj27TD3_oIIe3RKgxoxf6m-DChUYkkzNQCBLyYBoCBqsQAvD_BwE&gclsrc=aw.ds&hl=ko)
 
    - [**JDK17 설치**](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
 
@@ -31,9 +29,15 @@
    git clone https://github.com/fit-pin/fitpin_frontend_app.git
    ```
 
+4. **./android 폴더에 local.properties 파일 만들고 해당 내용 입력**
+
+   ```
+   sdk.dir = C:\\Users\\[유저이름]\\AppData\\Local\\Android\\Sdk
+   ```
+
 5. **Android Emulator 또는 실물 기기 디버그 모드로 연결**
 
-4. **npm 으로 시작**
+6. **npm 으로 시작**
 
    ```bash
    npm run android

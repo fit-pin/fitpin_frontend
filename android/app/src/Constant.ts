@@ -5,4 +5,4 @@ export const AR_URL = 'https://fitpin.kro.kr/ar-api/';
 export const DATA_URL = 'https://fitpin.kro.kr/app-api/';
 
 /** 수선 경매 알림 서버 주소 */
-export const AUCTION_URL = 'https://fitpin.kro.kr/web-api';
+export const AUCTION_URL = 'https://fitpin.kro.kr/web-api/';
